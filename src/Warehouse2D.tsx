@@ -25,39 +25,42 @@ export default function Warehouse2D() {
   const beltPath = `M 180 345 L 540 345 L 540 195 L 120 195 L 120 95 L 540 95`;
 
   // 벨트 포인트 (가로 위주, 세로 구간 최소화)
-  const beltPoints = [
-    // 아래쪽 (좌→우)
-    { x: 180, y: 345 },
-    { x: 240, y: 345 },
-    { x: 300, y: 345 },
-    { x: 360, y: 345 },
-    { x: 420, y: 345 },
-    { x: 480, y: 345 },
-    { x: 540, y: 345 },
-    // 위로 (우→중간)
-    { x: 540, y: 295 },
-    { x: 540, y: 245 },
-    { x: 540, y: 195 },
-    // 왼쪽 (우→좌, 중간)
-    { x: 480, y: 195 },
-    { x: 420, y: 195 },
-    { x: 360, y: 195 },
-    { x: 300, y: 195 },
-    { x: 240, y: 195 },
-    { x: 180, y: 195 },
-    { x: 120, y: 195 },
-    // 위로 (중간→위)
-    { x: 120, y: 145 },
-    { x: 120, y: 95 },
-    // 오른쪽 (좌→우, 위)
-    { x: 180, y: 95 },
-    { x: 240, y: 95 },
-    { x: 300, y: 95 },
-    { x: 360, y: 95 },
-    { x: 420, y: 95 },
-    { x: 480, y: 95 },
-    { x: 540, y: 95 },
-  ];
+  const beltPoints = React.useMemo(
+    () => [
+      // 아래쪽 (좌→우)
+      { x: 180, y: 345 },
+      { x: 240, y: 345 },
+      { x: 300, y: 345 },
+      { x: 360, y: 345 },
+      { x: 420, y: 345 },
+      { x: 480, y: 345 },
+      { x: 540, y: 345 },
+      // 위로 (우→중간)
+      { x: 540, y: 295 },
+      { x: 540, y: 245 },
+      { x: 540, y: 195 },
+      // 왼쪽 (우→좌, 중간)
+      { x: 480, y: 195 },
+      { x: 420, y: 195 },
+      { x: 360, y: 195 },
+      { x: 300, y: 195 },
+      { x: 240, y: 195 },
+      { x: 180, y: 195 },
+      { x: 120, y: 195 },
+      // 위로 (중간→위)
+      { x: 120, y: 145 },
+      { x: 120, y: 95 },
+      // 오른쪽 (좌→우, 위)
+      { x: 180, y: 95 },
+      { x: 240, y: 95 },
+      { x: 300, y: 95 },
+      { x: 360, y: 95 },
+      { x: 420, y: 95 },
+      { x: 480, y: 95 },
+      { x: 540, y: 95 },
+    ],
+    []
+  );
 
   // 하차 트럭 위치 및 크기 (오른쪽으로 40 이동)
   const truck = { x: 100, y: 315, width: 60, height: 60 };
@@ -122,6 +125,11 @@ export default function Warehouse2D() {
     Array(MAX_WORKERS)
       .fill(0)
       .map(() => [])
+  );
+
+  // 작업자별 일시적 고장 해제 시각 (0이면 정상)
+  const [workerBrokenUntil, setWorkerBrokenUntil] = useState<number[]>(() =>
+    Array(MAX_WORKERS).fill(0)
   );
 
   // 작업 실패(벨트 끝까지 도달한 동그라미) 카운트
@@ -208,6 +216,7 @@ export default function Warehouse2D() {
     const removeIdxs: number[] = [];
     const newCatchTimes = workerCatchTimes.map((times) => [...times]);
     const caughtCircleSet = new Set<number>();
+    const newBrokenUntil = [...workerBrokenUntil];
     for (let workerIdx = 0; workerIdx < workerCount; workerIdx++) {
       const w = receiveWorkers[workerIdx];
       const last =
@@ -217,6 +226,8 @@ export default function Warehouse2D() {
       // --- 쿨다운 배율 적용 ---
       const workerCooldownWithScale =
         workerCooldown * workerCooldownScales[workerIdx];
+      // --- 고장 상태면 skip ---
+      if (workerBrokenUntil[workerIdx] > now) continue;
       if (now - last < workerCooldownWithScale) continue;
       let caught = false;
       circles.forEach((circle, cIdx) => {
@@ -235,26 +246,53 @@ export default function Warehouse2D() {
         const dy = w.y - movingCircle.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 30) {
-          removeIdxs.push(cIdx);
-          caughtCircleSet.add(cIdx);
-          newCatchTimes[workerIdx].push(now);
-          caught = true;
-          // --- 여기서 WebSocket으로 송출 ---
-          ws?.send({
-            ts: now,
-            msg: "작업자 처리",
-            workerId:
-              workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
-            itemId: circle.id,
-            count: newCatchTimes[workerIdx].length + 1,
-          });
+          // --- 고장 조건 체크 ---
+          // 5% 확율로 고장: 끝 두자리의 차이가 2 이하일 때
+          const cooldownLast2 = Math.round(workerCooldownWithScale) % 100;
+          const itemIdLast2 = circle.id % 100;
+          if (Math.abs(cooldownLast2 - itemIdLast2) <= 2) {
+            // 고장 발생!
+            newBrokenUntil[workerIdx] = now + 15000;
+            // 고장 발생 메시지 송출
+            ws?.send({
+              ts: now,
+              msg: "작업자 고장",
+              workerId:
+                workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
+              itemId: circle.id,
+              cooldown: Math.round(workerCooldownWithScale),
+              brokenUntil: newBrokenUntil[workerIdx],
+            });
+          } else {
+            removeIdxs.push(cIdx);
+            caughtCircleSet.add(cIdx);
+            newCatchTimes[workerIdx].push(now);
+            caught = true;
+            // --- 여기서 WebSocket으로 송출 ---
+            ws?.send({
+              ts: now,
+              msg: "작업자 처리",
+              workerId:
+                workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
+              itemId: circle.id,
+              count: newCatchTimes[workerIdx].length + 1,
+            });
+          }
         }
       });
     }
-    if (removeIdxs.length > 0) {
-      const removeSet = new Set(removeIdxs);
-      setCircles((prev) => prev.filter((_, i) => !removeSet.has(i)));
-      setWorkerCatchTimes(newCatchTimes);
+    if (
+      removeIdxs.length > 0 ||
+      newBrokenUntil.some((v, i) => v !== workerBrokenUntil[i])
+    ) {
+      if (removeIdxs.length > 0) {
+        const removeSet = new Set(removeIdxs);
+        setCircles((prev) => prev.filter((_, i) => !removeSet.has(i)));
+        setWorkerCatchTimes(newCatchTimes);
+      }
+      if (newBrokenUntil.some((v, i) => v !== workerBrokenUntil[i])) {
+        setWorkerBrokenUntil(newBrokenUntil);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -265,6 +303,7 @@ export default function Warehouse2D() {
     workerCooldown,
     workerCount,
     running, // running 추가
+    workerBrokenUntil,
   ]);
 
   // 벨트 끝까지 도달한 동그라미를 실패로 처리 (running일 때만 동작)
@@ -275,7 +314,7 @@ export default function Warehouse2D() {
       .map((circle, i) => {
         const totalSegments = beltPoints.length - 1;
         const seg = circle.progress * totalSegments;
-        return seg >= totalSegments - 0.5 ? i : -1;
+        return seg >= totalSegments - 0.1 ? i : -1;
       })
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
@@ -588,8 +627,18 @@ export default function Warehouse2D() {
             const r = 15;
             const cx = receiveWorkers[i].x;
             const cy = receiveWorkers[i].y;
-            const yellowHeight = 2 * r * cooldownRatio;
-            const yellowY = cy + r - yellowHeight;
+            // (yellowHeight, yellowY는 barHeight, barY로 대체됨)
+            // --- 고장 상태 확인 ---
+            const isBroken = workerBrokenUntil[i] > now;
+            let barRatio = cooldownRatio;
+            let barColor = "#fff59d";
+            if (isBroken) {
+              const brokenLeft = workerBrokenUntil[i] - now;
+              barRatio = Math.min(1, Math.max(0, brokenLeft / 15000));
+              barColor = "#ef5350";
+            }
+            const barHeight = 2 * r * barRatio;
+            const barY = cy + r - barHeight;
 
             return (
               <g key={i}>
@@ -602,22 +651,22 @@ export default function Warehouse2D() {
                   stroke={beltWorkerStyle.stroke}
                   strokeWidth={beltWorkerStyle.strokeWidth}
                 />
-                {/* 쿨다운 남은 시간만큼 노란색 덮기 (아래에서 위로) */}
-                {cooldownRatio > 0 && (
+                {/* 쿨다운 남은 시간만큼 노란색/빨간색 덮기 (아래에서 위로) */}
+                {barRatio > 0 && (
                   <g>
                     <clipPath id={`cooldown-mask-${i}`}>
                       <rect
                         x={cx - r}
-                        y={yellowY}
+                        y={barY}
                         width={2 * r}
-                        height={yellowHeight}
+                        height={barHeight}
                       />
                     </clipPath>
                     <circle
                       cx={cx}
                       cy={cy}
                       r={r}
-                      fill="#fff59d"
+                      fill={barColor}
                       stroke={beltWorkerStyle.stroke}
                       strokeWidth={beltWorkerStyle.strokeWidth}
                       clipPath={`url(#cooldown-mask-${i})`}
