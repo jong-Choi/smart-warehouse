@@ -22,45 +22,45 @@ export default function Warehouse2D() {
 
   // 컨베이어 벨트 경로 (가로 위주 ┏━┓ 형태, 더 길게)
   // 아래→오른쪽→위→왼쪽→중간→오른쪽 (ㄹ자 변형)
-  const beltPath = `M 180 350 L 540 350 L 540 200 L 120 200 L 120 100 L 540 100`;
+  const beltPath = `M 180 345 L 540 345 L 540 195 L 120 195 L 120 95 L 540 95`;
 
   // 벨트 포인트 (가로 위주, 세로 구간 최소화)
   const beltPoints = [
     // 아래쪽 (좌→우)
-    { x: 180, y: 350 },
-    { x: 240, y: 350 },
-    { x: 300, y: 350 },
-    { x: 360, y: 350 },
-    { x: 420, y: 350 },
-    { x: 480, y: 350 },
-    { x: 540, y: 350 },
+    { x: 180, y: 345 },
+    { x: 240, y: 345 },
+    { x: 300, y: 345 },
+    { x: 360, y: 345 },
+    { x: 420, y: 345 },
+    { x: 480, y: 345 },
+    { x: 540, y: 345 },
     // 위로 (우→중간)
-    { x: 540, y: 300 },
-    { x: 540, y: 250 },
-    { x: 540, y: 200 },
+    { x: 540, y: 295 },
+    { x: 540, y: 245 },
+    { x: 540, y: 195 },
     // 왼쪽 (우→좌, 중간)
-    { x: 480, y: 200 },
-    { x: 420, y: 200 },
-    { x: 360, y: 200 },
-    { x: 300, y: 200 },
-    { x: 240, y: 200 },
-    { x: 180, y: 200 },
-    { x: 120, y: 200 },
+    { x: 480, y: 195 },
+    { x: 420, y: 195 },
+    { x: 360, y: 195 },
+    { x: 300, y: 195 },
+    { x: 240, y: 195 },
+    { x: 180, y: 195 },
+    { x: 120, y: 195 },
     // 위로 (중간→위)
-    { x: 120, y: 150 },
-    { x: 120, y: 100 },
+    { x: 120, y: 145 },
+    { x: 120, y: 95 },
     // 오른쪽 (좌→우, 위)
-    { x: 180, y: 100 },
-    { x: 240, y: 100 },
-    { x: 300, y: 100 },
-    { x: 360, y: 100 },
-    { x: 420, y: 100 },
-    { x: 480, y: 100 },
-    { x: 540, y: 100 },
+    { x: 180, y: 95 },
+    { x: 240, y: 95 },
+    { x: 300, y: 95 },
+    { x: 360, y: 95 },
+    { x: 420, y: 95 },
+    { x: 480, y: 95 },
+    { x: 540, y: 95 },
   ];
 
   // 하차 트럭 위치 및 크기 (오른쪽으로 40 이동)
-  const truck = { x: 100, y: 320, width: 60, height: 60 };
+  const truck = { x: 100, y: 315, width: 60, height: 60 };
 
   // 하차 지점 (컨베이어 시작점)
   const unloadPoint = {
@@ -89,7 +89,7 @@ export default function Warehouse2D() {
       const frac = idxF - idx;
       const p1 = beltPoints[midIdxs[idx]];
       const p2 = beltPoints[midIdxs[idx + 1]] || p1;
-      selected.push({ x: p1.x + (p2.x - p1.x) * frac, y: 200 + 28 });
+      selected.push({ x: p1.x + (p2.x - p1.x) * frac, y: 195 + 28 });
     }
     // 위쪽 10명(A) 나중에 균등 분포
     for (let i = 0; i < topCount; i++) {
@@ -99,7 +99,7 @@ export default function Warehouse2D() {
       const frac = idxF - idx;
       const p1 = beltPoints[topIdxs[idx]];
       const p2 = beltPoints[topIdxs[idx + 1]] || p1;
-      selected.push({ x: p1.x + (p2.x - p1.x) * frac - 40, y: 100 - 28 });
+      selected.push({ x: p1.x + (p2.x - p1.x) * frac - 40, y: 95 - 28 });
     }
     return selected;
   }
@@ -286,65 +286,7 @@ export default function Warehouse2D() {
   };
 
   return (
-    <div style={{ width: width, margin: "0 auto", position: "relative" }}>
-      {/* 공장 가동 중단 버튼 (우측 상단) */}
-      {running && (
-        <button
-          style={{
-            position: "absolute",
-            top: 24,
-            right: 24,
-            zIndex: 10,
-            fontSize: 20,
-            padding: "12px 32px",
-            background: "#c62828",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: "bold",
-            boxShadow: "0 2px 8px #0002",
-            cursor: "pointer",
-          }}
-          onClick={() => setRunning(false)}
-        >
-          공장 가동 중단
-        </button>
-      )}
-      {/* 공장 가동 시작 버튼 (중앙) */}
-      {!running && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: height,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 20,
-            background: "#fff9",
-            borderRadius: 16,
-          }}
-        >
-          <button
-            style={{
-              fontSize: 36,
-              padding: "32px 64px",
-              background: "#1976d2",
-              color: "#fff",
-              border: "none",
-              borderRadius: 16,
-              fontWeight: "bold",
-              boxShadow: "0 4px 16px #0002",
-              cursor: "pointer",
-            }}
-            onClick={() => setRunning(true)}
-          >
-            공장 가동 시작
-          </button>
-        </div>
-      )}
+    <div style={{ width: width, margin: "0 auto" }}>
       {/* 컨트롤 UI */}
       <div
         style={{
@@ -424,204 +366,272 @@ export default function Warehouse2D() {
           </span>
         </label>
       </div>
-      {/* SVG 시각화 */}
-      <svg
-        width={width}
-        height={height}
+      {/* svg와 버튼을 감싸는 div */}
+      <div
         style={{
-          background: "#f5f5f5",
-          borderRadius: 16,
-          boxShadow: "0 2px 8px #0001",
+          position: "relative",
+          width: width,
+          height: height,
+          margin: "0 auto",
         }}
       >
-        {/* 컨베이어 벨트 (점선) */}
-        <path
-          d={beltPath}
-          stroke={beltColor}
-          strokeWidth={10}
-          fill="none"
-          strokeDasharray="16 12"
-        />
-
-        {/* 하차 트럭 (네모) */}
-        <rect
-          x={truck.x}
-          y={truck.y}
-          width={truck.width}
-          height={truck.height}
-          fill="#90caf9"
-          stroke="#1976d2"
-          strokeWidth={4}
-          rx={10}
-        />
-        <text
-          x={truck.x + truck.width / 2}
-          y={truck.y + truck.height / 2 + 6}
-          textAnchor="middle"
-          fontSize={16}
-          fill="#1976d2"
-          fontWeight="bold"
-        >
-          트럭
-        </text>
-
-        {/* 하차 작업자 (트럭 위/아래) */}
-        {unloadWorkers.map((w, i) => (
-          <g key={i}>
-            <circle cx={w.x} cy={w.y} r={16} {...unloadWorkerStyle} />
-            {/* 하차 작업자 번호 */}
-            <text
-              x={w.x}
-              y={w.y + 6}
-              textAnchor="middle"
-              fontSize={14}
-              fontWeight="bold"
-              fill="#fff"
+        {/* 공장 가동 중단 버튼 (왼쪽 상단) */}
+        {running && (
+          <button
+            style={{
+              position: "absolute",
+              top: 24,
+              left: 24,
+              zIndex: 10,
+              fontSize: 16,
+              padding: "8px 20px",
+              background: "#c62828",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              fontWeight: "bold",
+              boxShadow: "0 2px 8px #0002",
+              cursor: "pointer",
+            }}
+            onClick={() => setRunning(false)}
+          >
+            중단하기
+          </button>
+        )}
+        {/* 공장 가동 시작 버튼 (중앙) */}
+        {!running && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 20,
+              background: "#fff9",
+              borderRadius: 16,
+            }}
+          >
+            <button
+              style={{
+                fontSize: 36,
+                padding: "32px 64px",
+                background: "#1976d2",
+                color: "#fff",
+                border: "none",
+                borderRadius: 16,
+                fontWeight: "bold",
+                boxShadow: "0 4px 16px #0002",
+                cursor: "pointer",
+              }}
+              onClick={() => setRunning(true)}
             >
-              U{i + 1}
-            </text>
-          </g>
-        ))}
-
-        {/* 하차 지점 */}
-        <circle
-          cx={unloadPoint.x}
-          cy={unloadPoint.y}
-          r={18}
-          fill={boxColor}
-          stroke="#b26a00"
-          strokeWidth={3}
-        />
-        <text
-          x={unloadPoint.x}
-          y={unloadPoint.y + 5}
-          textAnchor="middle"
-          fontSize={14}
-          fill="#333"
+              공장 가동 시작
+            </button>
+          </div>
+        )}
+        {/* SVG 시각화 */}
+        <svg
+          width={width}
+          height={height}
+          style={{
+            background: "#f5f5f5",
+            borderRadius: 16,
+            boxShadow: "0 2px 8px #0001",
+          }}
         >
-          하차
-        </text>
+          {/* 컨베이어 벨트 (점선) */}
+          <path
+            d={beltPath}
+            stroke={beltColor}
+            strokeWidth={10}
+            fill="none"
+            strokeDasharray="16 12"
+          />
 
-        {/* 이동하는 하차 원(물건, 여러 개) */}
-        {circles.map((circle, i) => {
-          const totalSegments = beltPoints.length - 1;
-          const seg = circle.progress * totalSegments;
-          const segIdx = Math.floor(seg);
-          const t = seg - segIdx;
-          const p1 = beltPoints[segIdx];
-          const p2 = beltPoints[(segIdx + 1) % beltPoints.length];
-          const movingCircle = {
-            x: p1.x + (p2.x - p1.x) * t,
-            y: p1.y + (p2.y - p1.y) * t,
-          };
-          return (
+          {/* 하차 트럭 (네모) */}
+          <rect
+            x={truck.x}
+            y={truck.y}
+            width={truck.width}
+            height={truck.height}
+            fill="#90caf9"
+            stroke="#1976d2"
+            strokeWidth={4}
+            rx={10}
+          />
+          <text
+            x={truck.x + truck.width / 2}
+            y={truck.y + truck.height / 2 + 6}
+            textAnchor="middle"
+            fontSize={16}
+            fill="#1976d2"
+            fontWeight="bold"
+          >
+            트럭
+          </text>
+
+          {/* 하차 작업자 (트럭 위/아래) */}
+          {unloadWorkers.map((w, i) => (
             <g key={i}>
-              <circle
-                cx={movingCircle.x}
-                cy={movingCircle.y}
-                r={14}
-                fill="#ff5252"
-                stroke="#b71c1c"
-                strokeWidth={3}
-              />
+              <circle cx={w.x} cy={w.y} r={16} {...unloadWorkerStyle} />
+              {/* 하차 작업자 번호 */}
               <text
-                x={movingCircle.x}
-                y={movingCircle.y + 5}
-                textAnchor="middle"
-                fontSize={12}
-                fill="#fff"
-              >
-                하차
-              </text>
-            </g>
-          );
-        })}
-
-        {/* 벨트 작업자 */}
-        {Array.from({ length: workerCount }).map((_, i) => {
-          // 작업자 1~10: A1~A10, 11~20: B1~B10
-          const isTop = i < 10;
-          const label = isTop ? `A${i + 1}` : `B${i - 9}`;
-          const countY = isTop
-            ? receiveWorkers[i].y + 34
-            : receiveWorkers[i].y - 28;
-
-          // 쿨다운 상태 확인
-          const now = Date.now();
-          const lastCatchTime =
-            workerCatchTimes[i].length > 0
-              ? workerCatchTimes[i][workerCatchTimes[i].length - 1]
-              : 0;
-          const cooldownLeft = Math.max(
-            0,
-            workerCooldown - (now - lastCatchTime)
-          );
-          const cooldownRatio = Math.min(1, cooldownLeft / workerCooldown); // 0~1
-          const r = 15;
-          const cx = receiveWorkers[i].x;
-          const cy = receiveWorkers[i].y;
-          const yellowHeight = 2 * r * cooldownRatio;
-          const yellowY = cy + r - yellowHeight;
-
-          return (
-            <g key={i}>
-              {/* 기본 초록색 원 */}
-              <circle
-                cx={cx}
-                cy={cy}
-                r={r}
-                fill={beltWorkerStyle.fill}
-                stroke={beltWorkerStyle.stroke}
-                strokeWidth={beltWorkerStyle.strokeWidth}
-              />
-              {/* 쿨다운 남은 시간만큼 노란색 덮기 (아래에서 위로) */}
-              {cooldownRatio > 0 && (
-                <g>
-                  <clipPath id={`cooldown-mask-${i}`}>
-                    <rect
-                      x={cx - r}
-                      y={yellowY}
-                      width={2 * r}
-                      height={yellowHeight}
-                    />
-                  </clipPath>
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={r}
-                    fill="#fff59d"
-                    stroke={beltWorkerStyle.stroke}
-                    strokeWidth={beltWorkerStyle.strokeWidth}
-                    clipPath={`url(#cooldown-mask-${i})`}
-                  />
-                </g>
-              )}
-              {/* 작업자 번호 */}
-              <text
-                x={cx}
-                y={cy + 6}
+                x={w.x}
+                y={w.y + 6}
                 textAnchor="middle"
                 fontSize={14}
                 fontWeight="bold"
-                fill="#222"
+                fill="#fff"
               >
-                {label}
-              </text>
-              {/* 작업자별 카운트 */}
-              <text
-                x={cx}
-                y={countY}
-                textAnchor="middle"
-                fontSize={16}
-                fontWeight="bold"
-                fill="#333"
-              >
-                {workerCatchTimes[i].length}
+                U{i + 1}
               </text>
             </g>
-          );
-        })}
-      </svg>
+          ))}
+
+          {/* 하차 지점 */}
+          <circle
+            cx={unloadPoint.x}
+            cy={unloadPoint.y}
+            r={18}
+            fill={boxColor}
+            stroke="#b26a00"
+            strokeWidth={3}
+          />
+          <text
+            x={unloadPoint.x}
+            y={unloadPoint.y + 5}
+            textAnchor="middle"
+            fontSize={14}
+            fill="#333"
+          >
+            하차
+          </text>
+
+          {/* 이동하는 하차 원(물건, 여러 개) */}
+          {circles.map((circle, i) => {
+            const totalSegments = beltPoints.length - 1;
+            const seg = circle.progress * totalSegments;
+            const segIdx = Math.floor(seg);
+            const t = seg - segIdx;
+            const p1 = beltPoints[segIdx];
+            const p2 = beltPoints[(segIdx + 1) % beltPoints.length];
+            const movingCircle = {
+              x: p1.x + (p2.x - p1.x) * t,
+              y: p1.y + (p2.y - p1.y) * t,
+            };
+            return (
+              <g key={i}>
+                <circle
+                  cx={movingCircle.x}
+                  cy={movingCircle.y}
+                  r={14}
+                  fill="#ff5252"
+                  stroke="#b71c1c"
+                  strokeWidth={3}
+                />
+                <text
+                  x={movingCircle.x}
+                  y={movingCircle.y + 5}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fill="#fff"
+                >
+                  하차
+                </text>
+              </g>
+            );
+          })}
+
+          {/* 벨트 작업자 */}
+          {Array.from({ length: workerCount }).map((_, i) => {
+            // 작업자 1~10: A1~A10, 11~20: B1~B10
+            const isTop = i < 10;
+            const label = isTop ? `A${i + 1}` : `B${i - 9}`;
+            const countY = isTop
+              ? receiveWorkers[i].y + 34
+              : receiveWorkers[i].y - 28;
+
+            // 쿨다운 상태 확인
+            const now = Date.now();
+            const lastCatchTime =
+              workerCatchTimes[i].length > 0
+                ? workerCatchTimes[i][workerCatchTimes[i].length - 1]
+                : 0;
+            const cooldownLeft = Math.max(
+              0,
+              workerCooldown - (now - lastCatchTime)
+            );
+            const cooldownRatio = Math.min(1, cooldownLeft / workerCooldown); // 0~1
+            const r = 15;
+            const cx = receiveWorkers[i].x;
+            const cy = receiveWorkers[i].y;
+            const yellowHeight = 2 * r * cooldownRatio;
+            const yellowY = cy + r - yellowHeight;
+
+            return (
+              <g key={i}>
+                {/* 기본 초록색 원 */}
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={r}
+                  fill={beltWorkerStyle.fill}
+                  stroke={beltWorkerStyle.stroke}
+                  strokeWidth={beltWorkerStyle.strokeWidth}
+                />
+                {/* 쿨다운 남은 시간만큼 노란색 덮기 (아래에서 위로) */}
+                {cooldownRatio > 0 && (
+                  <g>
+                    <clipPath id={`cooldown-mask-${i}`}>
+                      <rect
+                        x={cx - r}
+                        y={yellowY}
+                        width={2 * r}
+                        height={yellowHeight}
+                      />
+                    </clipPath>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r}
+                      fill="#fff59d"
+                      stroke={beltWorkerStyle.stroke}
+                      strokeWidth={beltWorkerStyle.strokeWidth}
+                      clipPath={`url(#cooldown-mask-${i})`}
+                    />
+                  </g>
+                )}
+                {/* 작업자 번호 */}
+                <text
+                  x={cx}
+                  y={cy + 6}
+                  textAnchor="middle"
+                  fontSize={14}
+                  fontWeight="bold"
+                  fill="#222"
+                >
+                  {label}
+                </text>
+                {/* 작업자별 카운트 */}
+                <text
+                  x={cx}
+                  y={countY}
+                  textAnchor="middle"
+                  fontSize={16}
+                  fontWeight="bold"
+                  fill="#333"
+                >
+                  {workerCatchTimes[i].length}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
     </div>
   );
 }
