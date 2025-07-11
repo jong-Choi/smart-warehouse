@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useWebSocket } from "./App";
 
 // 창고 2D 시각화: ㄷ자 컨베이어, 하차지점, 작업자들
 const beltColor = "#888";
@@ -121,6 +122,8 @@ export default function Warehouse2D() {
   // 작업 실패(벨트 끝까지 도달한 동그라미) 카운트
   const [failCount, setFailCount] = useState(0);
 
+  const ws = useWebSocket();
+
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
   useEffect(() => {
     const timer = setInterval(() => {
@@ -183,6 +186,15 @@ export default function Warehouse2D() {
           caughtCircleSet.add(cIdx);
           newCatchTimes[workerIdx].push(now);
           caught = true;
+          // --- 여기서 WebSocket으로 송출 ---
+          ws?.send({
+            ts: now,
+            msg: "작업자 처리",
+            workerId:
+              workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
+            itemIdx: cIdx,
+            count: newCatchTimes[workerIdx].length + 1,
+          });
         }
       });
     }
