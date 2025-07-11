@@ -466,18 +466,61 @@ export default function Warehouse2D() {
           const countY = isTop
             ? receiveWorkers[i].y + 34
             : receiveWorkers[i].y - 28;
+
+          // 쿨다운 상태 확인
+          const now = Date.now();
+          const lastCatchTime =
+            workerCatchTimes[i].length > 0
+              ? workerCatchTimes[i][workerCatchTimes[i].length - 1]
+              : 0;
+          const cooldownLeft = Math.max(
+            0,
+            workerCooldown - (now - lastCatchTime)
+          );
+          const cooldownRatio = Math.min(1, cooldownLeft / workerCooldown); // 0~1
+          const r = 15;
+          const cx = receiveWorkers[i].x;
+          const cy = receiveWorkers[i].y;
+          const yellowHeight = 2 * r * cooldownRatio;
+          const yellowY = cy + r - yellowHeight;
+
           return (
             <g key={i}>
+              {/* 기본 초록색 원 */}
               <circle
-                cx={receiveWorkers[i].x}
-                cy={receiveWorkers[i].y}
-                r={15}
-                {...beltWorkerStyle}
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill={beltWorkerStyle.fill}
+                stroke={beltWorkerStyle.stroke}
+                strokeWidth={beltWorkerStyle.strokeWidth}
               />
+              {/* 쿨다운 남은 시간만큼 노란색 덮기 (아래에서 위로) */}
+              {cooldownRatio > 0 && (
+                <g>
+                  <clipPath id={`cooldown-mask-${i}`}>
+                    <rect
+                      x={cx - r}
+                      y={yellowY}
+                      width={2 * r}
+                      height={yellowHeight}
+                    />
+                  </clipPath>
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={r}
+                    fill="#fff59d"
+                    stroke={beltWorkerStyle.stroke}
+                    strokeWidth={beltWorkerStyle.strokeWidth}
+                    clipPath={`url(#cooldown-mask-${i})`}
+                  />
+                </g>
+              )}
               {/* 작업자 번호 */}
               <text
-                x={receiveWorkers[i].x}
-                y={receiveWorkers[i].y + 6}
+                x={cx}
+                y={cy + 6}
                 textAnchor="middle"
                 fontSize={14}
                 fontWeight="bold"
@@ -487,7 +530,7 @@ export default function Warehouse2D() {
               </text>
               {/* 작업자별 카운트 */}
               <text
-                x={receiveWorkers[i].x}
+                x={cx}
                 y={countY}
                 textAnchor="middle"
                 fontSize={16}
