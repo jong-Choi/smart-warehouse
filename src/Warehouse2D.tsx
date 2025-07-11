@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 // 창고 2D 시각화: ㄷ자 컨베이어, 하차지점, 작업자들
 const beltColor = "#888";
-const workerUnloadColor = "#1976d2";
-const workerReceiveColor = "#43a047";
 const boxColor = "#ffb300";
 
 export default function Warehouse2D() {
@@ -118,6 +116,9 @@ export default function Warehouse2D() {
       .map(() => [])
   );
 
+  // 작업 실패(벨트 끝까지 도달한 동그라미) 카운트
+  const [failCount, setFailCount] = useState(0);
+
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
   useEffect(() => {
     const timer = setInterval(() => {
@@ -198,6 +199,35 @@ export default function Warehouse2D() {
     workerCount,
   ]);
 
+  // 벨트 끝까지 도달한 동그라미를 실패로 처리
+  useEffect(() => {
+    // 마지막 포인트에 도달한 동그라미 인덱스
+    const failedIdxs = circles
+      .map((circle, i) => {
+        const totalSegments = beltPoints.length - 1;
+        const seg = circle.progress * totalSegments;
+        return seg >= totalSegments - 0.5 ? i : -1;
+      })
+      .filter((i) => i !== -1);
+    if (failedIdxs.length > 0) {
+      setFailCount((failCount) => failCount + failedIdxs.length);
+      setCircles((prev) => prev.filter((_, i) => !failedIdxs.includes(i)));
+    }
+  }, [circles, beltPoints]);
+
+  // 하차 작업자 스타일
+  const unloadWorkerStyle = {
+    fill: "#1976d2",
+    stroke: "#0d47a1",
+    strokeWidth: 4,
+  };
+  // 레일 작업자 스타일
+  const beltWorkerStyle = {
+    fill: "#a5d6a7",
+    stroke: "#388e3c",
+    strokeWidth: 2,
+  };
+
   return (
     <div style={{ width: width, margin: "0 auto" }}>
       {/* 컨트롤 UI */}
@@ -245,6 +275,26 @@ export default function Warehouse2D() {
             style={{ width: 48, marginLeft: 8 }}
           />
         </label>
+        <label style={{ display: "flex", alignItems: "center" }}>
+          작업 실패:
+          <span
+            style={{
+              display: "inline-block",
+              background: "#c62828",
+              color: "#fff",
+              borderRadius: 12,
+              padding: "2px 16px",
+              fontWeight: 700,
+              fontSize: 16,
+              marginLeft: 8,
+              minWidth: 36,
+              textAlign: "center",
+              letterSpacing: 1,
+            }}
+          >
+            {failCount}
+          </span>
+        </label>
       </div>
       {/* SVG 시각화 */}
       <svg
@@ -290,15 +340,17 @@ export default function Warehouse2D() {
         {/* 하차 작업자 (트럭 위/아래) */}
         {unloadWorkers.map((w, i) => (
           <g key={i}>
-            <circle cx={w.x} cy={w.y} r={14} fill={workerUnloadColor} />
+            <circle cx={w.x} cy={w.y} r={16} {...unloadWorkerStyle} />
+            {/* 하차 작업자 번호 */}
             <text
               x={w.x}
-              y={w.y + 5}
+              y={w.y + 6}
               textAnchor="middle"
-              fontSize={12}
+              fontSize={14}
+              fontWeight="bold"
               fill="#fff"
             >
-              작업자
+              U{i + 1}
             </text>
           </g>
         ))}
@@ -358,37 +410,46 @@ export default function Warehouse2D() {
         })}
 
         {/* 벨트 작업자 */}
-        {Array.from({ length: workerCount }).map((_, i) => (
-          <g key={i}>
-            <circle
-              cx={receiveWorkers[i].x}
-              cy={receiveWorkers[i].y}
-              r={14}
-              fill={workerReceiveColor}
-              stroke="#333"
-              strokeWidth={1}
-            />
-            <text
-              x={receiveWorkers[i].x}
-              y={receiveWorkers[i].y + 5}
-              textAnchor="middle"
-              fontSize={12}
-              fill="#fff"
-            >
-              작업자
-            </text>
-            {/* 작업자별 카운트 */}
-            <text
-              x={receiveWorkers[i].x}
-              y={receiveWorkers[i].y + 30}
-              textAnchor="middle"
-              fontSize={16}
-              fill="#333"
-            >
-              {workerCatchTimes[i].length}
-            </text>
-          </g>
-        ))}
+        {Array.from({ length: workerCount }).map((_, i) => {
+          // 위쪽(A) 10명, 중간(B) 10명
+          const isTop = i < 10;
+          const label = isTop ? `A${i + 1}` : `B${i - 9}`;
+          const countY = isTop
+            ? receiveWorkers[i].y - 28
+            : receiveWorkers[i].y + 34;
+          return (
+            <g key={i}>
+              <circle
+                cx={receiveWorkers[i].x}
+                cy={receiveWorkers[i].y}
+                r={15}
+                {...beltWorkerStyle}
+              />
+              {/* 작업자 번호 */}
+              <text
+                x={receiveWorkers[i].x}
+                y={receiveWorkers[i].y + 6}
+                textAnchor="middle"
+                fontSize={14}
+                fontWeight="bold"
+                fill="#222"
+              >
+                {label}
+              </text>
+              {/* 작업자별 카운트 */}
+              <text
+                x={receiveWorkers[i].x}
+                y={countY}
+                textAnchor="middle"
+                fontSize={16}
+                fontWeight="bold"
+                fill="#333"
+              >
+                {workerCatchTimes[i].length}
+              </text>
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
