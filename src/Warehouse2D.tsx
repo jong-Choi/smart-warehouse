@@ -615,6 +615,18 @@ export default function Warehouse2D() {
             boxShadow: "0 2px 8px #0001",
           }}
         >
+          {/* 그림자 필터 정의 */}
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow
+                dx="4"
+                dy="2"
+                stdDeviation="2"
+                floodColor="#000000"
+                floodOpacity="0.4"
+              />
+            </filter>
+          </defs>
           {/* 컨베이어 벨트 배경 (넓고 반투명한 회색) */}
           <path
             d={BELT_PATH}
@@ -624,6 +636,7 @@ export default function Warehouse2D() {
             opacity={0.2}
             strokeLinecap="round"
             strokeLinejoin="round"
+            filter="url(#shadow)"
           />
 
           {/* 컨베이어 벨트 어두운 회색 가로줄들 */}
@@ -797,7 +810,7 @@ export default function Warehouse2D() {
             };
 
             return (
-              <g key={i}>
+              <g key={i} filter="url(#shadow)">
                 <image
                   href="/src/assets/closed-box.svg"
                   x={movingBox.x - 20}
@@ -892,17 +905,19 @@ export default function Warehouse2D() {
                 )}
                 {/* 작업 중일 때 열린 박스 표시 */}
                 {(isWorking || isBroken) && (
-                  <image
-                    href={
-                      isBroken
-                        ? "/src/assets/broken-box.svg"
-                        : "/src/assets/opened-box.svg"
-                    }
-                    x={openedBoxX - 20}
-                    y={openedBoxY - 20}
-                    width={40}
-                    height={40}
-                  />
+                  <g filter="url(#shadow)">
+                    <image
+                      href={
+                        isBroken
+                          ? "/src/assets/broken-box.svg"
+                          : "/src/assets/opened-box.svg"
+                      }
+                      x={openedBoxX - 20}
+                      y={openedBoxY - 20}
+                      width={40}
+                      height={40}
+                    />
+                  </g>
                 )}
                 {/* 작업자 번호 */}
                 <text
