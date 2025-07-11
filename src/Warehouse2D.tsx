@@ -223,13 +223,13 @@ const WORKER_COOLDOWN_SCALES = Array(MAX_WORKERS)
 
 export default function Warehouse2D() {
   // 공장 가동 상태
-  const [running, setRunning] = useState(false);
+  const [running, setRunning] = useState(true);
   // 컨트롤 상태
   const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
   const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
   const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
   // 레일 속도 (컨트롤)
-  const [beltSpeed, setBeltSpeed] = useState(1); // 1~5
+  const [beltSpeed, setBeltSpeed] = useState(5); // 1~5
 
   const speed = beltSpeed / 2 / (TOTAL_DISTANCE * 0.1); // 거리 기반 속도 계산
   const requestRef = useRef<number | null>(null);
@@ -766,7 +766,7 @@ export default function Warehouse2D() {
             하차
           </text>
 
-          {/* 이동하는 하차 원(물건, 여러 개) */}
+          {/* 이동하는 박스(물건, 여러 개) */}
           {circles.map((circle, i) => {
             // 거리 기반 위치 계산
             const targetDistance = circle.progress * TOTAL_DISTANCE;
@@ -791,30 +791,20 @@ export default function Warehouse2D() {
 
             const p1 = BELT_POINTS[segIdx];
             const p2 = BELT_POINTS[segIdx + 1] || p1;
-            const movingCircle = {
+            const movingBox = {
               x: p1.x + (p2.x - p1.x) * t,
               y: p1.y + (p2.y - p1.y) * t,
             };
 
             return (
               <g key={i}>
-                <circle
-                  cx={movingCircle.x}
-                  cy={movingCircle.y}
-                  r={14}
-                  fill="#ff5252"
-                  stroke="#b71c1c"
-                  strokeWidth={3}
+                <image
+                  href="/src/assets/closed-box.svg"
+                  x={movingBox.x - 20}
+                  y={movingBox.y - 28}
+                  width={40}
+                  height={40}
                 />
-                <text
-                  x={movingCircle.x}
-                  y={movingCircle.y + 5}
-                  textAnchor="middle"
-                  fontSize={12}
-                  fill="#fff"
-                >
-                  하차
-                </text>
               </g>
             );
           })}
@@ -861,6 +851,12 @@ export default function Warehouse2D() {
             const barHeight = 2 * r * barRatio;
             const barY = cy + r - barHeight;
 
+            // 작업 중일 때 열린 박스 표시 (왼쪽 대각선 아래)
+            const isWorking = cooldownLeft > 0;
+            const openedBoxOffset = toIsometric(-20, 0); // 왼쪽 대각선 아래, 더 멀리
+            const openedBoxX = cx + openedBoxOffset.x;
+            const openedBoxY = cy + openedBoxOffset.y;
+
             return (
               <g key={i}>
                 {/* 기본 초록색 원 */}
@@ -893,6 +889,20 @@ export default function Warehouse2D() {
                       clipPath={`url(#cooldown-mask-${i})`}
                     />
                   </g>
+                )}
+                {/* 작업 중일 때 열린 박스 표시 */}
+                {(isWorking || isBroken) && (
+                  <image
+                    href={
+                      isBroken
+                        ? "/src/assets/broken-box.svg"
+                        : "/src/assets/opened-box.svg"
+                    }
+                    x={openedBoxX - 20}
+                    y={openedBoxY - 20}
+                    width={40}
+                    height={40}
+                  />
                 )}
                 {/* 작업자 번호 */}
                 <text
