@@ -107,8 +107,8 @@ export default function Warehouse2D() {
   const speed = beltSpeed / 2 / (beltPoints.length * 60); // beltSpeed=1~5, 0.5~2배속
   const requestRef = useRef<number | null>(null);
 
-  // 운송장 번호 상태 (useState)
-  const [itemSeq, setItemSeq] = useState(1200000001);
+  // 운송장 번호 상태 (UI 표시용 - 현재는 사용하지 않음)
+  // const [itemSeq, setItemSeq] = useState(1200000001);
 
   // 여러 개의 하차 동그라미(물건) 상태
   const [circles, setCircles] = useState<{ progress: number; id: number }[]>(
@@ -127,14 +127,32 @@ export default function Warehouse2D() {
 
   const ws = useWebSocket();
 
+  // 운송장 번호 ref (타이머에서 사용)
+  const itemSeqRef = useRef(1200000001);
+  // WebSocket ref (타이머에서 사용)
+  const wsRef = useRef(ws);
+  wsRef.current = ws;
+
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
   useEffect(() => {
     const timer = setInterval(() => {
-      setCircles((prev) => [...prev, { progress: 0, id: itemSeq }]);
-      setItemSeq((prev) => prev + 1);
+      // 하차 작업자 랜덤 선택 (U1 또는 U2)
+      const unloadWorkerId = Math.random() < 0.5 ? "U1" : "U2";
+      const currentItemSeq = itemSeqRef.current;
+
+      setCircles((prev) => [...prev, { progress: 0, id: currentItemSeq }]);
+      itemSeqRef.current += 1; // 실제 번호용
+
+      // --- 하차 작업자 하차 완료 메시지 송출 ---
+      wsRef.current?.send({
+        ts: Date.now(),
+        msg: "하차된 물건",
+        unloadWorkerId: unloadWorkerId,
+        itemId: currentItemSeq,
+      });
     }, unloadInterval);
     return () => clearInterval(timer);
-  }, [unloadInterval, itemSeq]);
+  }, [unloadInterval]); // ← itemSeq, ws 의존성 제거로 타이머 재생성 방지
 
   // 각 동그라미의 progress를 부드럽게 업데이트
   useEffect(() => {
