@@ -45,6 +45,7 @@ const WORKER_OFFSET_Y = 50; // 28에서 50으로 증가하여 레일에서 더 �
 
 // 작업자 물건 처리 범위
 const WORKER_CATCH_RANGE = 60; // 30에서 60으로 증가하여 더 넓은 범위에서 물건 처리
+const WORKER_CATCH_RANGE_SQUARED = WORKER_CATCH_RANGE * WORKER_CATCH_RANGE; // 제곱값 미리 계산
 
 // 하차 관련 상수
 const TRUCK_BASE = { x: 100, y: 315, width: 60, height: 60 };
@@ -222,6 +223,12 @@ const TOTAL_DISTANCE = (() => {
   return distance;
 })();
 
+// 속도 계산을 위한 상수 (TOTAL_DISTANCE * 0.1)
+const SPEED_DENOMINATOR = TOTAL_DISTANCE * 0.1;
+
+// 벨트 끝 도달 판정을 위한 상수
+const BELT_END_THRESHOLD = TOTAL_DISTANCE - 10; // 10픽셀 여유
+
 // 작업자별 쿨다운 배율 (0.6~1.4, 마운트 시 고정)
 const WORKER_COOLDOWN_SCALES = Array(MAX_WORKERS)
   .fill(0)
@@ -304,11 +311,8 @@ export default function Warehouse2D() {
   // 레일 속도 (컨트롤)
   const [beltSpeed, setBeltSpeed] = useState(5); // 1~5
 
-  // 속도 계산을 useMemo로 최적화
-  const speed = useMemo(
-    () => beltSpeed / 2 / (TOTAL_DISTANCE * 0.1),
-    [beltSpeed]
-  );
+  // 속도 계산을 useMemo로 최적화 (상수 부분 분리)
+  const speed = useMemo(() => beltSpeed / 2 / SPEED_DENOMINATOR, [beltSpeed]);
   const requestRef = useRef<number | null>(null);
 
   // 이벤트 핸들러들을 useCallback으로 최적화
@@ -433,8 +437,7 @@ export default function Warehouse2D() {
         const dx = w.x - movingCircle.x;
         const dy = w.y - movingCircle.y;
         const distSquared = dx * dx + dy * dy;
-        const catchRangeSquared = WORKER_CATCH_RANGE * WORKER_CATCH_RANGE;
-        if (distSquared < catchRangeSquared) {
+        if (distSquared < WORKER_CATCH_RANGE_SQUARED) {
           // --- 고장 조건 체크 ---
           // 5% 확율로 고장: 끝 두자리의 차이가 2 이하일 때
           const cooldownLast2 = Math.round(workerCooldownWithScale) % 100;
@@ -501,7 +504,7 @@ export default function Warehouse2D() {
       .map((circle, i) => {
         // 거리 기반으로 끝에 도달했는지 확인
         const targetDistance = circle.progress * TOTAL_DISTANCE;
-        return targetDistance >= TOTAL_DISTANCE - 10 ? i : -1; // 10픽셀 여유
+        return targetDistance >= BELT_END_THRESHOLD ? i : -1;
       })
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
