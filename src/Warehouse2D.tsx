@@ -5,100 +5,234 @@ import { useWebSocket } from "./App";
 const beltColor = "#888";
 const boxColor = "#ffb300";
 
+// 미니어처 벨트 포인트 (기준 좌표)
+const MINIFIED_BELT_POINTS = [
+  // 아래쪽 (좌→우)
+  { x: 180, y: 345 },
+  { x: 540, y: 345 },
+  // 위로 (우→중간)
+  { x: 540, y: 195 },
+  // 왼쪽 (우→좌, 중간)
+  { x: 120, y: 195 },
+  // 위로 (중간→위)
+  { x: 120, y: 45 }, // 95에서 45로 변경 (더 위로)
+  // 오른쪽 (좌→우, 위)
+  { x: 540, y: 45 }, // 95에서 45로 변경 (더 위로)
+];
+
+// 이소메트릭 변환 함수
+const toIsometric = (x: number, y: number) => {
+  return {
+    x: x + y,
+    y: (y - x) / 2,
+  };
+};
+
+// 기준 크기 상수
+const BASE_WIDTH = 900;
+const BASE_HEIGHT = 600;
+
+// 작업자 관련 상수
+const MAX_WORKERS = 20;
+const WORKER_TOP_INDICES = [4, 5]; // 위쪽 가로선 (120,45) -> (540,45)
+const WORKER_MID_INDICES = [2, 3]; // 중간 가로선 (540,195) -> (120,195)
+const WORKER_OFFSET_Y = 50; // 28에서 50으로 증가하여 레일에서 더 멀리 배치
+
+// 작업자 물건 처리 범위
+const WORKER_CATCH_RANGE = 60; // 30에서 60으로 증가하여 더 넓은 범위에서 물건 처리
+
+// 하차 관련 상수
+const TRUCK_BASE = { x: 100, y: 315, width: 60, height: 60 };
+const UNLOAD_WORKER_OFFSET = { x: 20, y: 32 };
+
+// 작업자 스타일 상수
+const UNLOAD_WORKER_STYLE = {
+  fill: "#1976d2",
+  stroke: "#0d47a1",
+  strokeWidth: 4,
+};
+
+const BELT_WORKER_STYLE = {
+  fill: "#a5d6a7",
+  stroke: "#388e3c",
+  strokeWidth: 2,
+};
+
+// 화면 크기 상수
+const WIDTH = 1200;
+const HEIGHT = 800;
+
+// 스케일 계산 상수
+const SCALE_X = WIDTH / BASE_WIDTH;
+const SCALE_Y = HEIGHT / BASE_HEIGHT;
+
+// 벨트 포인트 (화면 크기에 맞게 스케일링)
+const ORIGINAL_BELT_POINTS = MINIFIED_BELT_POINTS.map((point) => ({
+  x: point.x * SCALE_X,
+  y: point.y * SCALE_Y,
+}));
+
+// 이소메트릭 벨트 포인트 생성 및 중앙 정렬
+const BELT_POINTS = (() => {
+  const rawPoints = ORIGINAL_BELT_POINTS.map(({ x, y }) => toIsometric(x, y));
+
+  // 전체 영역 계산
+  const minX = Math.min(...rawPoints.map((p) => p.x));
+  const maxX = Math.max(...rawPoints.map((p) => p.x));
+  const minY = Math.min(...rawPoints.map((p) => p.y));
+  const maxY = Math.max(...rawPoints.map((p) => p.y));
+
+  const contentWidth = maxX - minX;
+  const contentHeight = maxY - minY;
+
+  // 중앙 정렬을 위한 offset 계산
+  const CENTER_OFFSET_X = (WIDTH - contentWidth) / 2 - minX;
+  const CENTER_OFFSET_Y = (HEIGHT - contentHeight) / 2 - minY;
+
+  return rawPoints.map((p) => ({
+    x: p.x + CENTER_OFFSET_X,
+    y: p.y + CENTER_OFFSET_Y,
+  }));
+})();
+
+// 컨베이어 벨트 경로 (가로 위주 ┏━┓ 형태, 더 길게)
+// 아래→오른쪽→위→왼쪽→중간→오른쪽 (ㄹ자 변형)
+const BELT_PATH = `M ${BELT_POINTS[0].x} ${BELT_POINTS[0].y} L ${BELT_POINTS[1].x} ${BELT_POINTS[1].y} L ${BELT_POINTS[2].x} ${BELT_POINTS[2].y} L ${BELT_POINTS[3].x} ${BELT_POINTS[3].y} L ${BELT_POINTS[4].x} ${BELT_POINTS[4].y} L ${BELT_POINTS[5].x} ${BELT_POINTS[5].y}`;
+
+// 하차 트럭 위치 및 크기 (벨트 포인트에 상대적으로 계산)
+const TRUCK = (() => {
+  // 벨트 시작점 (첫 번째 포인트) 기준으로 트럭 위치 계산
+  const beltStartX = BELT_POINTS[0].x;
+  const beltStartY = BELT_POINTS[0].y;
+
+  // 트럭을 벨트 시작점 왼쪽에 배치
+  const truckOffsetX = -80; // 벨트 시작점에서 왼쪽으로 80픽셀
+  const truckOffsetY = -30; // 벨트 시작점에서 위로 30픽셀
+
+  return {
+    x: beltStartX + truckOffsetX,
+    y: beltStartY + truckOffsetY,
+    width: TRUCK_BASE.width * SCALE_X,
+    height: TRUCK_BASE.height * SCALE_Y,
+  };
+})();
+
+// 하차 지점 (컨베이어 시작점)
+const UNLOAD_POINT = {
+  x: TRUCK.x + TRUCK.width,
+  y: TRUCK.y + TRUCK.height / 2,
+};
+
+// 하차 작업자 위치 (하차지점 위/아래)
+const UNLOAD_WORKERS = [
+  {
+    x: UNLOAD_POINT.x + UNLOAD_WORKER_OFFSET.x,
+    y: UNLOAD_POINT.y - UNLOAD_WORKER_OFFSET.y,
+  },
+  {
+    x: UNLOAD_POINT.x + UNLOAD_WORKER_OFFSET.x,
+    y: UNLOAD_POINT.y + UNLOAD_WORKER_OFFSET.y,
+  },
+];
+
+// 작업자 위치 계산 함수
+function getWorkerPositionsOnBelt(workerCount: number) {
+  const topCount = Math.max(0, workerCount - 10);
+  const midCount = Math.min(10, workerCount);
+  const selected: { x: number; y: number }[] = [];
+
+  // 중간 10명(B) 먼저 균등 분포
+  for (let i = 0; i < midCount; i++) {
+    const t = i / (midCount - 1 || 1);
+    const idxF = t * (WORKER_MID_INDICES.length - 1);
+    const idx = Math.floor(idxF);
+    const frac = idxF - idx;
+    const p1 = BELT_POINTS[WORKER_MID_INDICES[idx]];
+    const p2 = BELT_POINTS[WORKER_MID_INDICES[idx + 1]] || p1;
+
+    // 벨트 방향 벡터 계산
+    const beltVectorX = p2.x - p1.x;
+    const beltVectorY = p2.y - p1.y;
+    const beltLength = Math.sqrt(
+      beltVectorX * beltVectorX + beltVectorY * beltVectorY
+    );
+
+    // 벨트에 수직인 방향 벡터 (시계방향 90도 회전)
+    const perpVectorX = -beltVectorY / beltLength;
+    const perpVectorY = beltVectorX / beltLength;
+
+    // 작업자 위치 = 벨트 위의 위치 + 수직 방향 offset
+    const workerX = p1.x + (p2.x - p1.x) * frac + perpVectorX * WORKER_OFFSET_Y;
+    const workerY = p1.y + (p2.y - p1.y) * frac + perpVectorY * WORKER_OFFSET_Y;
+
+    selected.push({
+      x: workerX,
+      y: workerY,
+    });
+  }
+
+  // 위쪽 10명(A) 나중에 균등 분포
+  for (let i = 0; i < topCount; i++) {
+    const t = i / (topCount - 1 || 1);
+    const idxF = t * (WORKER_TOP_INDICES.length - 1);
+    const idx = Math.floor(idxF);
+    const frac = idxF - idx;
+    const p1 = BELT_POINTS[WORKER_TOP_INDICES[idx]];
+    const p2 = BELT_POINTS[WORKER_TOP_INDICES[idx + 1]] || p1;
+
+    // 벨트 방향 벡터 계산
+    const beltVectorX = p2.x - p1.x;
+    const beltVectorY = p2.y - p1.y;
+    const beltLength = Math.sqrt(
+      beltVectorX * beltVectorX + beltVectorY * beltVectorY
+    );
+
+    // 벨트에 수직인 방향 벡터 (반시계방향 90도 회전)
+    const perpVectorX = beltVectorY / beltLength;
+    const perpVectorY = -beltVectorX / beltLength;
+
+    // 작업자 위치 = 벨트 위의 위치 + 수직 방향 offset
+    const workerX = p1.x + (p2.x - p1.x) * frac + perpVectorX * WORKER_OFFSET_Y;
+    const workerY = p1.y + (p2.y - p1.y) * frac + perpVectorY * WORKER_OFFSET_Y;
+
+    selected.push({
+      x: workerX,
+      y: workerY,
+    });
+  }
+  return selected;
+}
+
+// 작업자 위치: 위쪽(윗 가로) 10명, 중간(중간 가로) 10명으로 나눠서 배치
+const RECEIVE_WORKERS = getWorkerPositionsOnBelt(MAX_WORKERS);
+
+// 하차 원(물건) 이동 애니메이션 (세그먼트별 거리에 따라 속도 조정)
+const TOTAL_DISTANCE = (() => {
+  let distance = 0;
+  for (let i = 0; i < BELT_POINTS.length - 1; i++) {
+    const p1 = BELT_POINTS[i];
+    const p2 = BELT_POINTS[i + 1];
+    distance += Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+  }
+  return distance;
+})();
+
+// 작업자별 쿨다운 배율 (0.6~1.4, 마운트 시 고정)
+const WORKER_COOLDOWN_SCALES = Array(MAX_WORKERS)
+  .fill(0)
+  .map(() => Math.random() * 0.8 + 0.6);
+
 export default function Warehouse2D() {
   // 공장 가동 상태
   const [running, setRunning] = useState(false);
   // 컨트롤 상태
   const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
   const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
-  const MAX_WORKERS = 20;
   const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
   // 레일 속도 (컨트롤)
   const [beltSpeed, setBeltSpeed] = useState(1); // 1~5
 
-  // SVG 크기
-  const width = 600;
-  const height = 400;
-
-  // 벨트 포인트 (직선으로 단순화, path와 값 공유)
-  const beltPoints = React.useMemo(
-    () => [
-      // 아래쪽 (좌→우)
-      { x: 180, y: 345 },
-      { x: 540, y: 345 },
-      // 위로 (우→중간)
-      { x: 540, y: 195 },
-      // 왼쪽 (우→좌, 중간)
-      { x: 120, y: 195 },
-      // 위로 (중간→위)
-      { x: 120, y: 95 },
-      // 오른쪽 (좌→우, 위)
-      { x: 540, y: 95 },
-    ],
-    []
-  );
-  // 컨베이어 벨트 경로 (가로 위주 ┏━┓ 형태, 더 길게)
-  // 아래→오른쪽→위→왼쪽→중간→오른쪽 (ㄹ자 변형)
-  const beltPath = `M ${beltPoints[0].x} ${beltPoints[0].y} L ${beltPoints[1].x} ${beltPoints[1].y} L ${beltPoints[2].x} ${beltPoints[2].y} L ${beltPoints[3].x} ${beltPoints[3].y} L ${beltPoints[4].x} ${beltPoints[4].y} L ${beltPoints[5].x} ${beltPoints[5].y}`;
-
-  // 하차 트럭 위치 및 크기 (오른쪽으로 40 이동)
-  const truck = { x: 100, y: 315, width: 60, height: 60 };
-
-  // 하차 지점 (컨베이어 시작점)
-  const unloadPoint = {
-    x: truck.x + truck.width,
-    y: truck.y + truck.height / 2,
-  };
-
-  // 하차 작업자 위치 (하차지점 위/아래, 오른쪽으로 40 이동)
-  const unloadWorkers = [
-    { x: unloadPoint.x + 20, y: unloadPoint.y - 32 }, // 하차지점 위 (반칸 왼쪽)
-    { x: unloadPoint.x + 20, y: unloadPoint.y + 32 }, // 하차지점 아래 (반칸 왼쪽)
-  ];
-
-  // 작업자 위치: 위쪽(윗 가로) 10명, 중간(중간 가로) 10명으로 나눠서 배치
-  function getWorkerPositionsOnBelt(workerCount: number) {
-    const topIdxs = [4, 5]; // 위쪽 가로선 (120,95) -> (540,95)
-    const midIdxs = [2, 3]; // 중간 가로선 (540,195) -> (120,195)
-    const topCount = Math.max(0, workerCount - 10);
-    const midCount = Math.min(10, workerCount);
-    const selected: { x: number; y: number }[] = [];
-    // 중간 10명(B) 먼저 균등 분포
-    for (let i = 0; i < midCount; i++) {
-      const t = i / (midCount - 1 || 1);
-      const idxF = t * (midIdxs.length - 1);
-      const idx = Math.floor(idxF);
-      const frac = idxF - idx;
-      const p1 = beltPoints[midIdxs[idx]];
-      const p2 = beltPoints[midIdxs[idx + 1]] || p1;
-      selected.push({ x: p1.x + (p2.x - p1.x) * frac, y: 195 + 28 });
-    }
-    // 위쪽 10명(A) 나중에 균등 분포
-    for (let i = 0; i < topCount; i++) {
-      const t = i / (topCount - 1 || 1);
-      const idxF = t * (topIdxs.length - 1);
-      const idx = Math.floor(idxF);
-      const frac = idxF - idx;
-      const p1 = beltPoints[topIdxs[idx]];
-      const p2 = beltPoints[topIdxs[idx + 1]] || p1;
-      selected.push({ x: p1.x + (p2.x - p1.x) * frac - 40, y: 95 - 28 });
-    }
-    return selected;
-  }
-  const receiveWorkers = getWorkerPositionsOnBelt(MAX_WORKERS);
-
-  // 하차 원(물건) 이동 애니메이션 (세그먼트별 거리에 따라 속도 조정)
-  const totalDistance = React.useMemo(() => {
-    let distance = 0;
-    for (let i = 0; i < beltPoints.length - 1; i++) {
-      const p1 = beltPoints[i];
-      const p2 = beltPoints[i + 1];
-      distance += Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-    }
-    return distance;
-  }, [beltPoints]);
-
-  const speed = beltSpeed / 2 / (totalDistance * 0.1); // 거리 기반 속도 계산
+  const speed = beltSpeed / 2 / (TOTAL_DISTANCE * 0.1); // 거리 기반 속도 계산
   const requestRef = useRef<number | null>(null);
 
   // 운송장 번호 상태 (UI 표시용 - 현재는 사용하지 않음)
@@ -123,15 +257,6 @@ export default function Warehouse2D() {
 
   // 작업 실패(벨트 끝까지 도달한 동그라미) 카운트
   const [failCount, setFailCount] = useState(0);
-
-  // 작업자별 쿨다운 배율 (0.6~1.4, 마운트 시 고정)
-  const workerCooldownScales = React.useMemo(
-    () =>
-      Array(MAX_WORKERS)
-        .fill(0)
-        .map(() => Math.random() * 0.8 + 0.6),
-    []
-  );
 
   const ws = useWebSocket();
 
@@ -207,14 +332,14 @@ export default function Warehouse2D() {
     const caughtCircleSet = new Set<number>();
     const newBrokenUntil = [...workerBrokenUntil];
     for (let workerIdx = 0; workerIdx < workerCount; workerIdx++) {
-      const w = receiveWorkers[workerIdx];
+      const w = RECEIVE_WORKERS[workerIdx];
       const last =
         workerCatchTimes[workerIdx].length > 0
           ? workerCatchTimes[workerIdx][workerCatchTimes[workerIdx].length - 1]
           : 0;
       // --- 쿨다운 배율 적용 ---
       const workerCooldownWithScale =
-        workerCooldown * workerCooldownScales[workerIdx];
+        workerCooldown * WORKER_COOLDOWN_SCALES[workerIdx];
       // --- 고장 상태면 skip ---
       if (workerBrokenUntil[workerIdx] > now) continue;
       if (now - last < workerCooldownWithScale) continue;
@@ -223,14 +348,14 @@ export default function Warehouse2D() {
         if (caughtCircleSet.has(cIdx) || caught) return;
 
         // 거리 기반 위치 계산
-        const targetDistance = circle.progress * totalDistance;
+        const targetDistance = circle.progress * TOTAL_DISTANCE;
         let currentDistance = 0;
         let segIdx = 0;
         let t = 0;
 
-        for (let i = 0; i < beltPoints.length - 1; i++) {
-          const p1 = beltPoints[i];
-          const p2 = beltPoints[i + 1];
+        for (let i = 0; i < BELT_POINTS.length - 1; i++) {
+          const p1 = BELT_POINTS[i];
+          const p2 = BELT_POINTS[i + 1];
           const segmentDistance = Math.sqrt(
             (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
           );
@@ -243,8 +368,8 @@ export default function Warehouse2D() {
           currentDistance += segmentDistance;
         }
 
-        const p1 = beltPoints[segIdx];
-        const p2 = beltPoints[segIdx + 1] || p1;
+        const p1 = BELT_POINTS[segIdx];
+        const p2 = BELT_POINTS[segIdx + 1] || p1;
         const movingCircle = {
           x: p1.x + (p2.x - p1.x) * t,
           y: p1.y + (p2.y - p1.y) * t,
@@ -253,7 +378,7 @@ export default function Warehouse2D() {
         const dx = w.x - movingCircle.x;
         const dy = w.y - movingCircle.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 30) {
+        if (dist < WORKER_CATCH_RANGE) {
           // --- 고장 조건 체크 ---
           // 5% 확율로 고장: 끝 두자리의 차이가 2 이하일 때
           const cooldownLast2 = Math.round(workerCooldownWithScale) % 100;
@@ -305,8 +430,6 @@ export default function Warehouse2D() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     circles,
-    receiveWorkers,
-    beltPoints,
     workerCatchTimes,
     workerCooldown,
     workerCount,
@@ -321,31 +444,21 @@ export default function Warehouse2D() {
     const failedIdxs = circles
       .map((circle, i) => {
         // 거리 기반으로 끝에 도달했는지 확인
-        const targetDistance = circle.progress * totalDistance;
-        return targetDistance >= totalDistance - 10 ? i : -1; // 10픽셀 여유
+        const targetDistance = circle.progress * TOTAL_DISTANCE;
+        return targetDistance >= TOTAL_DISTANCE - 10 ? i : -1; // 10픽셀 여유
       })
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
       setFailCount((failCount) => failCount + failedIdxs.length);
       setCircles((prev) => prev.filter((_, i) => !failedIdxs.includes(i)));
     }
-  }, [circles, totalDistance, running]); // totalDistance 추가
+  }, [circles, running]); // TOTAL_DISTANCE는 상수이므로 의존성에서 제거
 
   // 하차 작업자 스타일
-  const unloadWorkerStyle = {
-    fill: "#1976d2",
-    stroke: "#0d47a1",
-    strokeWidth: 4,
-  };
   // 레일 작업자 스타일
-  const beltWorkerStyle = {
-    fill: "#a5d6a7",
-    stroke: "#388e3c",
-    strokeWidth: 2,
-  };
 
   return (
-    <div style={{ width: width, margin: "0 auto" }}>
+    <div style={{ width: WIDTH, margin: "0 auto" }}>
       {/* 컨트롤 UI */}
       <div
         style={{
@@ -430,8 +543,8 @@ export default function Warehouse2D() {
       <div
         style={{
           position: "relative",
-          width: width,
-          height: height,
+          width: WIDTH,
+          height: HEIGHT,
           margin: "0 auto",
         }}
       >
@@ -495,8 +608,8 @@ export default function Warehouse2D() {
         )}
         {/* SVG 시각화 */}
         <svg
-          width={width}
-          height={height}
+          width={WIDTH}
+          height={HEIGHT}
           style={{
             background: "#f5f5f5",
             borderRadius: 16,
@@ -505,7 +618,7 @@ export default function Warehouse2D() {
         >
           {/* 컨베이어 벨트 (점선) */}
           <path
-            d={beltPath}
+            d={BELT_PATH}
             stroke={beltColor}
             strokeWidth={10}
             fill="none"
@@ -514,18 +627,18 @@ export default function Warehouse2D() {
 
           {/* 하차 트럭 (네모) */}
           <rect
-            x={truck.x}
-            y={truck.y}
-            width={truck.width}
-            height={truck.height}
+            x={TRUCK.x}
+            y={TRUCK.y}
+            width={TRUCK.width}
+            height={TRUCK.height}
             fill="#90caf9"
             stroke="#1976d2"
             strokeWidth={4}
             rx={10}
           />
           <text
-            x={truck.x + truck.width / 2}
-            y={truck.y + truck.height / 2 + 6}
+            x={TRUCK.x + TRUCK.width / 2}
+            y={TRUCK.y + TRUCK.height / 2 + 6}
             textAnchor="middle"
             fontSize={16}
             fill="#1976d2"
@@ -535,9 +648,9 @@ export default function Warehouse2D() {
           </text>
 
           {/* 하차 작업자 (트럭 위/아래) */}
-          {unloadWorkers.map((w, i) => (
+          {UNLOAD_WORKERS.map((w, i) => (
             <g key={i}>
-              <circle cx={w.x} cy={w.y} r={16} {...unloadWorkerStyle} />
+              <circle cx={w.x} cy={w.y} r={16} {...UNLOAD_WORKER_STYLE} />
               {/* 하차 작업자 번호 */}
               <text
                 x={w.x}
@@ -554,16 +667,16 @@ export default function Warehouse2D() {
 
           {/* 하차 지점 */}
           <circle
-            cx={unloadPoint.x}
-            cy={unloadPoint.y}
+            cx={UNLOAD_POINT.x}
+            cy={UNLOAD_POINT.y}
             r={18}
             fill={boxColor}
             stroke="#b26a00"
             strokeWidth={3}
           />
           <text
-            x={unloadPoint.x}
-            y={unloadPoint.y + 5}
+            x={UNLOAD_POINT.x}
+            y={UNLOAD_POINT.y + 5}
             textAnchor="middle"
             fontSize={14}
             fill="#333"
@@ -574,14 +687,14 @@ export default function Warehouse2D() {
           {/* 이동하는 하차 원(물건, 여러 개) */}
           {circles.map((circle, i) => {
             // 거리 기반 위치 계산
-            const targetDistance = circle.progress * totalDistance;
+            const targetDistance = circle.progress * TOTAL_DISTANCE;
             let currentDistance = 0;
             let segIdx = 0;
             let t = 0;
 
-            for (let i = 0; i < beltPoints.length - 1; i++) {
-              const p1 = beltPoints[i];
-              const p2 = beltPoints[i + 1];
+            for (let i = 0; i < BELT_POINTS.length - 1; i++) {
+              const p1 = BELT_POINTS[i];
+              const p2 = BELT_POINTS[i + 1];
               const segmentDistance = Math.sqrt(
                 (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
               );
@@ -594,8 +707,8 @@ export default function Warehouse2D() {
               currentDistance += segmentDistance;
             }
 
-            const p1 = beltPoints[segIdx];
-            const p2 = beltPoints[segIdx + 1] || p1;
+            const p1 = BELT_POINTS[segIdx];
+            const p2 = BELT_POINTS[segIdx + 1] || p1;
             const movingCircle = {
               x: p1.x + (p2.x - p1.x) * t,
               y: p1.y + (p2.y - p1.y) * t,
@@ -630,8 +743,8 @@ export default function Warehouse2D() {
             const isTop = i < 10;
             const label = isTop ? `A${i + 1}` : `B${i - 9}`;
             const countY = isTop
-              ? receiveWorkers[i].y + 34
-              : receiveWorkers[i].y - 28;
+              ? RECEIVE_WORKERS[i].y + 34
+              : RECEIVE_WORKERS[i].y - 28;
 
             // 쿨다운 상태 확인
             const now = Date.now();
@@ -641,7 +754,7 @@ export default function Warehouse2D() {
                 : 0;
             // --- 쿨다운 배율 적용 ---
             const workerCooldownWithScale =
-              workerCooldown * workerCooldownScales[i];
+              workerCooldown * WORKER_COOLDOWN_SCALES[i];
             const cooldownLeft = Math.max(
               0,
               workerCooldownWithScale - (now - lastCatchTime)
@@ -651,8 +764,8 @@ export default function Warehouse2D() {
               cooldownLeft / workerCooldownWithScale
             ); // 0~1
             const r = 15;
-            const cx = receiveWorkers[i].x;
-            const cy = receiveWorkers[i].y;
+            const cx = RECEIVE_WORKERS[i].x;
+            const cy = RECEIVE_WORKERS[i].y;
             // (yellowHeight, yellowY는 barHeight, barY로 대체됨)
             // --- 고장 상태 확인 ---
             const isBroken = workerBrokenUntil[i] > now;
@@ -673,9 +786,9 @@ export default function Warehouse2D() {
                   cx={cx}
                   cy={cy}
                   r={r}
-                  fill={beltWorkerStyle.fill}
-                  stroke={beltWorkerStyle.stroke}
-                  strokeWidth={beltWorkerStyle.strokeWidth}
+                  fill={BELT_WORKER_STYLE.fill}
+                  stroke={BELT_WORKER_STYLE.stroke}
+                  strokeWidth={BELT_WORKER_STYLE.strokeWidth}
                 />
                 {/* 쿨다운 남은 시간만큼 노란색/빨간색 덮기 (아래에서 위로) */}
                 {barRatio > 0 && (
@@ -693,8 +806,8 @@ export default function Warehouse2D() {
                       cy={cy}
                       r={r}
                       fill={barColor}
-                      stroke={beltWorkerStyle.stroke}
-                      strokeWidth={beltWorkerStyle.strokeWidth}
+                      stroke={BELT_WORKER_STYLE.stroke}
+                      strokeWidth={BELT_WORKER_STYLE.strokeWidth}
                       clipPath={`url(#cooldown-mask-${i})`}
                     />
                   </g>
@@ -740,7 +853,7 @@ export default function Warehouse2D() {
         <span style={{ fontWeight: "bold", color: "#1976d2" }}>
           작업자별 작업 속도(ms):
         </span>
-        {workerCooldownScales.slice(0, workerCount).map((scale, i) => {
+        {WORKER_COOLDOWN_SCALES.slice(0, workerCount).map((scale, i) => {
           const actualCooldown = Math.round(workerCooldown * scale);
           const isTop = i < 10;
           const label = isTop ? `A${i + 1}` : `B${i - 9}`;
