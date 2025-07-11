@@ -1,37 +1,85 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+// useState는 아래에서만 import
 import "./App.css";
 import Warehouse2D from "./Warehouse2D";
+import React, { useState } from "react";
+
+function Dashboard() {
+  return (
+    <div
+      style={{
+        padding: 40,
+        textAlign: "center",
+        fontSize: 28,
+        color: "#1976d2",
+        fontWeight: 700,
+      }}
+    >
+      대시보드 (임시)
+    </div>
+  );
+}
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [tab, setTab] = useState<"factory" | "dashboard">("factory");
+  // Warehouse2D는 항상 렌더링, 대시보드에서도 동작 유지
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      {/* 창고 모니터링 시각화 영역 */}
-      <Warehouse2D />
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div>
+      {/* 상단 토글 버튼 */}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          justifyContent: "center",
+          alignItems: "center",
+          margin: "32px 0 24px 0",
+        }}
+      >
+        <button
+          onClick={() => setTab("factory")}
+          style={{
+            padding: "10px 32px",
+            fontSize: 18,
+            fontWeight: 700,
+            borderRadius: 8,
+            border: tab === "factory" ? "2px solid #1976d2" : "2px solid #bbb",
+            background: tab === "factory" ? "#1976d2" : "#fff",
+            color: tab === "factory" ? "#fff" : "#333",
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+        >
+          공장 상황
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <button
+          onClick={() => setTab("dashboard")}
+          style={{
+            padding: "10px 32px",
+            fontSize: 18,
+            fontWeight: 700,
+            borderRadius: 8,
+            border:
+              tab === "dashboard" ? "2px solid #1976d2" : "2px solid #bbb",
+            background: tab === "dashboard" ? "#1976d2" : "#fff",
+            color: tab === "dashboard" ? "#fff" : "#333",
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+        >
+          대시보드
+        </button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      {/* 실제 화면 */}
+      <div>
+        {/* Warehouse2D는 항상 렌더링, 대시보드에서는 숨김만 */}
+        <div style={{ display: tab === "factory" ? "block" : "none" }}>
+          <Warehouse2D />
+        </div>
+        <div style={{ display: tab === "dashboard" ? "block" : "none" }}>
+          <Dashboard />
+        </div>
+      </div>
+    </div>
   );
 }
 
