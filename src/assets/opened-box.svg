@@ -1,0 +1,56 @@
+<!-- https://www.freepik.com/free-vector/set-cardboard-boxes-shipping_1959781.htm#fromView=keyword&page=2&position=21&uuid=5e7efb6d-7979-4963-9fe6-b2a419778254&query=Isometric+Box -->
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="320 200 140 220" width="180" height="180">
+	<title>Opened Box</title>
+	<style>
+		tspan { white-space:pre } 
+		.s0 { fill: #ffffff } 
+		.t1 { font-size: 28px;fill: #975123;font-weight: 700;font-family: "BebasNeueBold", "Bebas Neue" } 
+		.t2 { font-size: 28px;fill: #975123;font-weight: 400;font-family: "BebasNeueRegular", "Bebas Neue" } 
+		.t3 { font-size: 28px;fill: #975123;font-weight: 400;font-family: "BebasNeueBook", "Bebas Neue" } 
+		.s4 { fill: #dbab6c } 
+		.s5 { fill: #af7941 } 
+		.s6 { fill: #ebc789 } 
+		.s7 { fill: #f3eac7 } 
+		.s8 { fill: #b1712f } 
+		.s9 { fill: #975123 } 
+		.s10 { fill: #271720 } 
+	</style>
+        <g id="&lt;Group&gt;">
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s4" d="m387.3 410v-82.4l-73.6-40.9v81.4z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s5" d="m387.3 410v-82.4l73.6-40.9v81.4z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s4" d="m313.7 286.7l73.6-40.9 73.6 40.9-73.6 40.9z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s4" d="m387.3 245.8l-14.7-34-77.2 37.5 18.3 37.4z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s4" d="m387.3 245.8l24.3-34 77.3 43.3-28 31.6z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s8" d="m387.3 245.8v56.1l25.1 11.8 48.5-27z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s9" d="m387.3 301.9l-25.1 11.8-48.5-27 73.6-40.9z"/>
+			</g>
+			<g id="&lt;Group&gt;" style="opacity: .5">
+				<path id="&lt;Path&gt;" class="s9" d="m387.3 327.6l-14.7 42.6-58.9-31.8v4.1l60 33.5z"/>
+			</g>
+			<g id="&lt;Group&gt;" style="opacity: .5">
+				<path id="&lt;Path&gt;" class="s9" d="m387.3 327.6l13.8 47.3 59.8-31.7v-4l-58.6 31z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s4" d="m387.3 327.6l15 42.6 67.9-35.9-9.3-47.6z"/>
+			</g>
+			<g id="&lt;Group&gt;">
+				<path id="&lt;Path&gt;" class="s4" d="m387.3 327.6l-14.7 42.6-77.2-41.7 18.3-41.8z"/>
+			</g>
+			<g id="&lt;Group&gt;" style="opacity: .5">
+				<path id="&lt;Path&gt;" class="s9" d="m387.3 327.6l-25.1-13.9 25.1 13.1 25.1-13.1z"/>
+			</g>
+		</g>
+</svg>

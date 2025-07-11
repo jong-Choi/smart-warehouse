@@ -1,0 +1,31 @@
+<!-- https://www.freepik.com/free-vector/set-cardboard-boxes-shipping_1959781.htm#fromView=keyword&page=2&position=21&uuid=5e7efb6d-7979-4963-9fe6-b2a419778254&query=Isometric+Box	 -->
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="94 237 120 180" width="180" height="180">
+	<title>Closed Box</title>
+	<style>
+		.s0 { fill: #dbab6c } 
+		.s1 { fill: #af7941 } 
+		.s2 { fill: #ebc789 } 
+		.s3 { fill: #f3eac7 } 
+	</style>
+	<g id="box">
+		<g id="left-side">
+			<path id="left-path" class="s0" d="m154.4 410v-82.4l-73.6-40.9v81.4z"/>
+		</g>
+		<g id="right-side">
+			<path id="right-path" class="s1" d="m154.4 410v-82.4l73.6-40.9v81.4z"/>
+		</g>
+		<g id="top-side">
+			<path id="top-path" class="s2" d="m80.8 286.7l73.6-40.9 73.6 40.9-73.6 40.9z"/>
+		</g>
+		<g id="front-side">
+			<path id="front-path" class="s3" d="m185 262.8l-77.3 39.1v81.6l13.9 8.1v-81.7l76.2-39.7z"/>
+		</g>
+		<path id="side-path" class="s3" d="m118.9 265.5l72.3 41.7v81.8l12-6.8v-81.7l-72.3-41.6z"/>
+		<g id="shadow-left" style="opacity: .3">
+			<path id="shadow-left-path" class="s1" d="m121.6 309.9l-13.9-8v81.6l13.9 8.1z"/>
+		</g>
+		<g id="shadow-right" style="opacity: .3">
+			<path id="shadow-right-path" class="s1" d="m191.2 307.2l12-6.7v81.7l-12 6.8z"/>
+		</g>
+	</g>
+</svg> 

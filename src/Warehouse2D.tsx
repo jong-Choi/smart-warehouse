@@ -10,57 +10,36 @@ export default function Warehouse2D() {
   const [running, setRunning] = useState(false);
   // 컨트롤 상태
   const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
-  const [workerCooldown, setWorkerCooldown] = useState(6000); // 작업자 작업 속도(ms)
+  const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
   const MAX_WORKERS = 20;
   const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
   // 레일 속도 (컨트롤)
-  const [beltSpeed, setBeltSpeed] = useState(3); // 1~5
+  const [beltSpeed, setBeltSpeed] = useState(1); // 1~5
 
   // SVG 크기
   const width = 600;
   const height = 400;
 
-  // 컨베이어 벨트 경로 (가로 위주 ┏━┓ 형태, 더 길게)
-  // 아래→오른쪽→위→왼쪽→중간→오른쪽 (ㄹ자 변형)
-  const beltPath = `M 180 345 L 540 345 L 540 195 L 120 195 L 120 95 L 540 95`;
-
-  // 벨트 포인트 (가로 위주, 세로 구간 최소화)
+  // 벨트 포인트 (직선으로 단순화, path와 값 공유)
   const beltPoints = React.useMemo(
     () => [
       // 아래쪽 (좌→우)
       { x: 180, y: 345 },
-      { x: 240, y: 345 },
-      { x: 300, y: 345 },
-      { x: 360, y: 345 },
-      { x: 420, y: 345 },
-      { x: 480, y: 345 },
       { x: 540, y: 345 },
       // 위로 (우→중간)
-      { x: 540, y: 295 },
-      { x: 540, y: 245 },
       { x: 540, y: 195 },
       // 왼쪽 (우→좌, 중간)
-      { x: 480, y: 195 },
-      { x: 420, y: 195 },
-      { x: 360, y: 195 },
-      { x: 300, y: 195 },
-      { x: 240, y: 195 },
-      { x: 180, y: 195 },
       { x: 120, y: 195 },
       // 위로 (중간→위)
-      { x: 120, y: 145 },
       { x: 120, y: 95 },
       // 오른쪽 (좌→우, 위)
-      { x: 180, y: 95 },
-      { x: 240, y: 95 },
-      { x: 300, y: 95 },
-      { x: 360, y: 95 },
-      { x: 420, y: 95 },
-      { x: 480, y: 95 },
       { x: 540, y: 95 },
     ],
     []
   );
+  // 컨베이어 벨트 경로 (가로 위주 ┏━┓ 형태, 더 길게)
+  // 아래→오른쪽→위→왼쪽→중간→오른쪽 (ㄹ자 변형)
+  const beltPath = `M ${beltPoints[0].x} ${beltPoints[0].y} L ${beltPoints[1].x} ${beltPoints[1].y} L ${beltPoints[2].x} ${beltPoints[2].y} L ${beltPoints[3].x} ${beltPoints[3].y} L ${beltPoints[4].x} ${beltPoints[4].y} L ${beltPoints[5].x} ${beltPoints[5].y}`;
 
   // 하차 트럭 위치 및 크기 (오른쪽으로 40 이동)
   const truck = { x: 100, y: 315, width: 60, height: 60 };
@@ -79,8 +58,8 @@ export default function Warehouse2D() {
 
   // 작업자 위치: 위쪽(윗 가로) 10명, 중간(중간 가로) 10명으로 나눠서 배치
   function getWorkerPositionsOnBelt(workerCount: number) {
-    const topIdxs = [19, 20, 21, 22, 23, 24, 25];
-    const midIdxs = [10, 11, 12, 13, 14, 15, 16];
+    const topIdxs = [4, 5]; // 위쪽 가로선 (120,95) -> (540,95)
+    const midIdxs = [2, 3]; // 중간 가로선 (540,195) -> (120,195)
     const topCount = Math.max(0, workerCount - 10);
     const midCount = Math.min(10, workerCount);
     const selected: { x: number; y: number }[] = [];
@@ -108,8 +87,18 @@ export default function Warehouse2D() {
   }
   const receiveWorkers = getWorkerPositionsOnBelt(MAX_WORKERS);
 
-  // 하차 원(물건) 이동 애니메이션 (더 느리게)
-  const speed = beltSpeed / 2 / (beltPoints.length * 60); // beltSpeed=1~5, 0.5~2배속
+  // 하차 원(물건) 이동 애니메이션 (세그먼트별 거리에 따라 속도 조정)
+  const totalDistance = React.useMemo(() => {
+    let distance = 0;
+    for (let i = 0; i < beltPoints.length - 1; i++) {
+      const p1 = beltPoints[i];
+      const p2 = beltPoints[i + 1];
+      distance += Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+    }
+    return distance;
+  }, [beltPoints]);
+
+  const speed = beltSpeed / 2 / (totalDistance * 0.1); // 거리 기반 속도 계산
   const requestRef = useRef<number | null>(null);
 
   // 운송장 번호 상태 (UI 표시용 - 현재는 사용하지 않음)
@@ -232,16 +221,35 @@ export default function Warehouse2D() {
       let caught = false;
       circles.forEach((circle, cIdx) => {
         if (caughtCircleSet.has(cIdx) || caught) return;
-        const totalSegments = beltPoints.length - 1;
-        const seg = circle.progress * totalSegments;
-        const segIdx = Math.floor(seg);
-        const t = seg - segIdx;
+
+        // 거리 기반 위치 계산
+        const targetDistance = circle.progress * totalDistance;
+        let currentDistance = 0;
+        let segIdx = 0;
+        let t = 0;
+
+        for (let i = 0; i < beltPoints.length - 1; i++) {
+          const p1 = beltPoints[i];
+          const p2 = beltPoints[i + 1];
+          const segmentDistance = Math.sqrt(
+            (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
+          );
+
+          if (currentDistance + segmentDistance >= targetDistance) {
+            segIdx = i;
+            t = (targetDistance - currentDistance) / segmentDistance;
+            break;
+          }
+          currentDistance += segmentDistance;
+        }
+
         const p1 = beltPoints[segIdx];
-        const p2 = beltPoints[(segIdx + 1) % beltPoints.length];
+        const p2 = beltPoints[segIdx + 1] || p1;
         const movingCircle = {
           x: p1.x + (p2.x - p1.x) * t,
           y: p1.y + (p2.y - p1.y) * t,
         };
+
         const dx = w.x - movingCircle.x;
         const dy = w.y - movingCircle.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -312,16 +320,16 @@ export default function Warehouse2D() {
     // 마지막 포인트에 도달한 동그라미 인덱스
     const failedIdxs = circles
       .map((circle, i) => {
-        const totalSegments = beltPoints.length - 1;
-        const seg = circle.progress * totalSegments;
-        return seg >= totalSegments - 0.1 ? i : -1;
+        // 거리 기반으로 끝에 도달했는지 확인
+        const targetDistance = circle.progress * totalDistance;
+        return targetDistance >= totalDistance - 10 ? i : -1; // 10픽셀 여유
       })
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
       setFailCount((failCount) => failCount + failedIdxs.length);
       setCircles((prev) => prev.filter((_, i) => !failedIdxs.includes(i)));
     }
-  }, [circles, beltPoints, running]); // running 추가
+  }, [circles, totalDistance, running]); // totalDistance 추가
 
   // 하차 작업자 스타일
   const unloadWorkerStyle = {
@@ -565,16 +573,34 @@ export default function Warehouse2D() {
 
           {/* 이동하는 하차 원(물건, 여러 개) */}
           {circles.map((circle, i) => {
-            const totalSegments = beltPoints.length - 1;
-            const seg = circle.progress * totalSegments;
-            const segIdx = Math.floor(seg);
-            const t = seg - segIdx;
+            // 거리 기반 위치 계산
+            const targetDistance = circle.progress * totalDistance;
+            let currentDistance = 0;
+            let segIdx = 0;
+            let t = 0;
+
+            for (let i = 0; i < beltPoints.length - 1; i++) {
+              const p1 = beltPoints[i];
+              const p2 = beltPoints[i + 1];
+              const segmentDistance = Math.sqrt(
+                (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
+              );
+
+              if (currentDistance + segmentDistance >= targetDistance) {
+                segIdx = i;
+                t = (targetDistance - currentDistance) / segmentDistance;
+                break;
+              }
+              currentDistance += segmentDistance;
+            }
+
             const p1 = beltPoints[segIdx];
-            const p2 = beltPoints[(segIdx + 1) % beltPoints.length];
+            const p2 = beltPoints[segIdx + 1] || p1;
             const movingCircle = {
               x: p1.x + (p2.x - p1.x) * t,
               y: p1.y + (p2.y - p1.y) * t,
             };
+
             return (
               <g key={i}>
                 <circle
