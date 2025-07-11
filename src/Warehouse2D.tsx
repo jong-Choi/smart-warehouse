@@ -127,6 +127,15 @@ export default function Warehouse2D() {
   // 작업 실패(벨트 끝까지 도달한 동그라미) 카운트
   const [failCount, setFailCount] = useState(0);
 
+  // 작업자별 쿨다운 배율 (0.6~1.4, 마운트 시 고정)
+  const workerCooldownScales = React.useMemo(
+    () =>
+      Array(MAX_WORKERS)
+        .fill(0)
+        .map(() => Math.random() * 0.8 + 0.6),
+    []
+  );
+
   const ws = useWebSocket();
 
   // 운송장 번호 ref (타이머에서 사용)
@@ -205,7 +214,10 @@ export default function Warehouse2D() {
         workerCatchTimes[workerIdx].length > 0
           ? workerCatchTimes[workerIdx][workerCatchTimes[workerIdx].length - 1]
           : 0;
-      if (now - last < workerCooldown) continue;
+      // --- 쿨다운 배율 적용 ---
+      const workerCooldownWithScale =
+        workerCooldown * workerCooldownScales[workerIdx];
+      if (now - last < workerCooldownWithScale) continue;
       let caught = false;
       circles.forEach((circle, cIdx) => {
         if (caughtCircleSet.has(cIdx) || caught) return;
@@ -310,7 +322,7 @@ export default function Warehouse2D() {
           <span style={{ marginLeft: 8 }}>{unloadInterval}</span>
         </label>
         <label>
-          작업자 작업 속도(ms):
+          작업자 평균 작업 속도(ms):
           <input
             type="range"
             min={1000}
@@ -366,6 +378,7 @@ export default function Warehouse2D() {
           </span>
         </label>
       </div>
+
       {/* svg와 버튼을 감싸는 div */}
       <div
         style={{
@@ -561,11 +574,17 @@ export default function Warehouse2D() {
               workerCatchTimes[i].length > 0
                 ? workerCatchTimes[i][workerCatchTimes[i].length - 1]
                 : 0;
+            // --- 쿨다운 배율 적용 ---
+            const workerCooldownWithScale =
+              workerCooldown * workerCooldownScales[i];
             const cooldownLeft = Math.max(
               0,
-              workerCooldown - (now - lastCatchTime)
+              workerCooldownWithScale - (now - lastCatchTime)
             );
-            const cooldownRatio = Math.min(1, cooldownLeft / workerCooldown); // 0~1
+            const cooldownRatio = Math.min(
+              1,
+              cooldownLeft / workerCooldownWithScale
+            ); // 0~1
             const r = 15;
             const cx = receiveWorkers[i].x;
             const cy = receiveWorkers[i].y;
@@ -631,6 +650,48 @@ export default function Warehouse2D() {
             );
           })}
         </svg>
+      </div>
+      {/* 전체 작업자들의 작업 속도 배열 표시 */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginTop: 16,
+          height: 100,
+          justifyContent: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={{ fontWeight: "bold", color: "#1976d2" }}>
+          작업자별 작업 속도(ms):
+        </span>
+        {workerCooldownScales.slice(0, workerCount).map((scale, i) => {
+          const actualCooldown = Math.round(workerCooldown * scale);
+          const isTop = i < 10;
+          const label = isTop ? `A${i + 1}` : `B${i - 9}`;
+          return (
+            <span
+              key={i}
+              style={{
+                background: "#e3f2fd",
+                color: "#1976d2",
+                padding: "4px 8px",
+                borderRadius: 12,
+                fontSize: 12,
+                fontWeight: "bold",
+                border: "1px solid #bbdefb",
+                height: 24,
+                lineHeight: "16px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "fit-content",
+              }}
+            >
+              {label}: {actualCooldown}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
