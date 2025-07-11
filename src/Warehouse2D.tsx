@@ -7,6 +7,11 @@ const workerReceiveColor = "#43a047";
 const boxColor = "#ffb300";
 
 export default function Warehouse2D() {
+  // 컨트롤 상태
+  const [unloadInterval, setUnloadInterval] = useState(2000); // 물건 하차 속도(ms)
+  const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
+  const [workerCount, setWorkerCount] = useState(5); // 작업자 수
+
   // SVG 크기
   const width = 600;
   const height = 400;
@@ -64,14 +69,11 @@ export default function Warehouse2D() {
     { x: unloadPoint.x, y: unloadPoint.y + 32 }, // 하차지점 아래
   ];
 
-  // 벨트 작업자 위치 (윗쪽)
-  const receiveWorkers = [
-    { x: 120, y: 80 },
-    { x: 200, y: 80 },
-    { x: 300, y: 80 },
-    { x: 400, y: 80 },
-    { x: 480, y: 80 },
-  ];
+  // 벨트 작업자 위치 (윗쪽) - workerCount에 따라 동적으로 생성
+  const receiveWorkers = Array.from({ length: workerCount }, (_, i) => ({
+    x: 120 + ((480 - 120) / (workerCount - 1 || 1)) * i,
+    y: 80,
+  }));
 
   // 하차 원(물건) 이동 애니메이션 (더 느리게)
   const speed = 1 / (beltPoints.length * 60);
@@ -82,20 +84,28 @@ export default function Warehouse2D() {
     { progress: 0 },
   ]);
 
-  // 각 작업자별로 잡은 시간 배열
+  // 벨트 작업자별로 잡은 시간 배열
   const [workerCatchTimes, setWorkerCatchTimes] = useState<number[][]>(() =>
-    Array(receiveWorkers.length)
+    Array(workerCount)
       .fill(0)
       .map(() => [])
   );
+  // workerCount가 바뀌면 배열 리셋
+  useEffect(() => {
+    setWorkerCatchTimes(
+      Array(workerCount)
+        .fill(0)
+        .map(() => [])
+    );
+  }, [workerCount]);
 
-  // 2초마다 새로운 동그라미 추가
+  // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
   useEffect(() => {
     const timer = setInterval(() => {
       setCircles((prev) => [...prev, { progress: 0 }]);
-    }, 2000);
+    }, unloadInterval);
     return () => clearInterval(timer);
-  }, []);
+  }, [unloadInterval]);
 
   // 각 동그라미의 progress를 부드럽게 업데이트
   useEffect(() => {
@@ -122,14 +132,16 @@ export default function Warehouse2D() {
     const now = Date.now();
     const removeIdxs: number[] = [];
     const newCatchTimes = workerCatchTimes.map((times) => [...times]);
+    const caughtCircleSet = new Set<number>();
     receiveWorkers.forEach((w, workerIdx) => {
-      // 마지막 잡은 시간이 2초 이상 차이날 때만 잡기
       const last =
         workerCatchTimes[workerIdx].length > 0
           ? workerCatchTimes[workerIdx][workerCatchTimes[workerIdx].length - 1]
           : 0;
-      if (now - last < 5000) return;
+      if (now - last < workerCooldown) return;
+      let caught = false;
       circles.forEach((circle, cIdx) => {
+        if (caughtCircleSet.has(cIdx) || caught) return;
         const totalSegments = beltPoints.length - 1;
         const seg = circle.progress * totalSegments;
         const segIdx = Math.floor(seg);
@@ -145,7 +157,9 @@ export default function Warehouse2D() {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 30) {
           removeIdxs.push(cIdx);
+          caughtCircleSet.add(cIdx);
           newCatchTimes[workerIdx].push(now);
+          caught = true;
         }
       });
     });
@@ -155,151 +169,200 @@ export default function Warehouse2D() {
       setWorkerCatchTimes(newCatchTimes);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [circles, receiveWorkers, beltPoints, workerCatchTimes]);
+  }, [circles, receiveWorkers, beltPoints, workerCatchTimes, workerCooldown]);
 
   return (
-    <svg
-      width={width}
-      height={height}
-      style={{
-        background: "#f5f5f5",
-        borderRadius: 16,
-        boxShadow: "0 2px 8px #0001",
-      }}
-    >
-      {/* 컨베이어 벨트 (점선) */}
-      <path
-        d={beltPath}
-        stroke={beltColor}
-        strokeWidth={10}
-        fill="none"
-        strokeDasharray="16 12"
-      />
-
-      {/* 하차 트럭 (네모) */}
-      <rect
-        x={truck.x}
-        y={truck.y}
-        width={truck.width}
-        height={truck.height}
-        fill="#90caf9"
-        stroke="#1976d2"
-        strokeWidth={4}
-        rx={10}
-      />
-      <text
-        x={truck.x + truck.width / 2}
-        y={truck.y + truck.height / 2 + 6}
-        textAnchor="middle"
-        fontSize={16}
-        fill="#1976d2"
-        fontWeight="bold"
+    <div style={{ width: width, margin: "0 auto" }}>
+      {/* 컨트롤 UI */}
+      <div
+        style={{
+          display: "flex",
+          gap: 24,
+          marginBottom: 16,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        트럭
-      </text>
-
-      {/* 하차 작업자 (트럭 위/아래) */}
-      {unloadWorkers.map((w, i) => (
-        <g key={i}>
-          <circle cx={w.x} cy={w.y} r={14} fill={workerUnloadColor} />
-          <text
-            x={w.x}
-            y={w.y + 5}
-            textAnchor="middle"
-            fontSize={12}
-            fill="#fff"
-          >
-            작업자
-          </text>
-        </g>
-      ))}
-
-      {/* 하차 지점 */}
-      <circle
-        cx={unloadPoint.x}
-        cy={unloadPoint.y}
-        r={18}
-        fill={boxColor}
-        stroke="#b26a00"
-        strokeWidth={3}
-      />
-      <text
-        x={unloadPoint.x}
-        y={unloadPoint.y + 5}
-        textAnchor="middle"
-        fontSize={14}
-        fill="#333"
+        <label>
+          물건 하차 속도(ms):
+          <input
+            type="range"
+            min={500}
+            max={5000}
+            step={100}
+            value={unloadInterval}
+            onChange={(e) => setUnloadInterval(Number(e.target.value))}
+          />
+          <span style={{ marginLeft: 8 }}>{unloadInterval}</span>
+        </label>
+        <label>
+          작업자 작업 속도(ms):
+          <input
+            type="range"
+            min={1000}
+            max={10000}
+            step={500}
+            value={workerCooldown}
+            onChange={(e) => setWorkerCooldown(Number(e.target.value))}
+          />
+          <span style={{ marginLeft: 8 }}>{workerCooldown}</span>
+        </label>
+        <label>
+          작업자 수:
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={workerCount}
+            onChange={(e) => setWorkerCount(Number(e.target.value))}
+            style={{ width: 48, marginLeft: 8 }}
+          />
+        </label>
+      </div>
+      {/* SVG 시각화 */}
+      <svg
+        width={width}
+        height={height}
+        style={{
+          background: "#f5f5f5",
+          borderRadius: 16,
+          boxShadow: "0 2px 8px #0001",
+        }}
       >
-        하차
-      </text>
+        {/* 컨베이어 벨트 (점선) */}
+        <path
+          d={beltPath}
+          stroke={beltColor}
+          strokeWidth={10}
+          fill="none"
+          strokeDasharray="16 12"
+        />
 
-      {/* 이동하는 하차 원(물건, 여러 개) */}
-      {circles.map((circle, i) => {
-        const totalSegments = beltPoints.length - 1;
-        const seg = circle.progress * totalSegments;
-        const segIdx = Math.floor(seg);
-        const t = seg - segIdx;
-        const p1 = beltPoints[segIdx];
-        const p2 = beltPoints[(segIdx + 1) % beltPoints.length];
-        const movingCircle = {
-          x: p1.x + (p2.x - p1.x) * t,
-          y: p1.y + (p2.y - p1.y) * t,
-        };
-        return (
+        {/* 하차 트럭 (네모) */}
+        <rect
+          x={truck.x}
+          y={truck.y}
+          width={truck.width}
+          height={truck.height}
+          fill="#90caf9"
+          stroke="#1976d2"
+          strokeWidth={4}
+          rx={10}
+        />
+        <text
+          x={truck.x + truck.width / 2}
+          y={truck.y + truck.height / 2 + 6}
+          textAnchor="middle"
+          fontSize={16}
+          fill="#1976d2"
+          fontWeight="bold"
+        >
+          트럭
+        </text>
+
+        {/* 하차 작업자 (트럭 위/아래) */}
+        {unloadWorkers.map((w, i) => (
           <g key={i}>
-            <circle
-              cx={movingCircle.x}
-              cy={movingCircle.y}
-              r={14}
-              fill="#ff5252"
-              stroke="#b71c1c"
-              strokeWidth={3}
-            />
+            <circle cx={w.x} cy={w.y} r={14} fill={workerUnloadColor} />
             <text
-              x={movingCircle.x}
-              y={movingCircle.y + 5}
+              x={w.x}
+              y={w.y + 5}
               textAnchor="middle"
               fontSize={12}
               fill="#fff"
             >
-              하차
+              작업자
             </text>
           </g>
-        );
-      })}
+        ))}
 
-      {/* 벨트 작업자 */}
-      {receiveWorkers.map((w, i) => (
-        <g key={i}>
-          <circle
-            cx={w.x}
-            cy={w.y}
-            r={14}
-            fill={workerReceiveColor}
-            stroke="#333"
-            strokeWidth={1}
-          />
-          <text
-            x={w.x}
-            y={w.y + 5}
-            textAnchor="middle"
-            fontSize={12}
-            fill="#fff"
-          >
-            작업자
-          </text>
-          {/* 작업자별 카운트 */}
-          <text
-            x={w.x}
-            y={w.y + 30}
-            textAnchor="middle"
-            fontSize={16}
-            fill="#333"
-          >
-            {workerCatchTimes[i].length}
-          </text>
-        </g>
-      ))}
-    </svg>
+        {/* 하차 지점 */}
+        <circle
+          cx={unloadPoint.x}
+          cy={unloadPoint.y}
+          r={18}
+          fill={boxColor}
+          stroke="#b26a00"
+          strokeWidth={3}
+        />
+        <text
+          x={unloadPoint.x}
+          y={unloadPoint.y + 5}
+          textAnchor="middle"
+          fontSize={14}
+          fill="#333"
+        >
+          하차
+        </text>
+
+        {/* 이동하는 하차 원(물건, 여러 개) */}
+        {circles.map((circle, i) => {
+          const totalSegments = beltPoints.length - 1;
+          const seg = circle.progress * totalSegments;
+          const segIdx = Math.floor(seg);
+          const t = seg - segIdx;
+          const p1 = beltPoints[segIdx];
+          const p2 = beltPoints[(segIdx + 1) % beltPoints.length];
+          const movingCircle = {
+            x: p1.x + (p2.x - p1.x) * t,
+            y: p1.y + (p2.y - p1.y) * t,
+          };
+          return (
+            <g key={i}>
+              <circle
+                cx={movingCircle.x}
+                cy={movingCircle.y}
+                r={14}
+                fill="#ff5252"
+                stroke="#b71c1c"
+                strokeWidth={3}
+              />
+              <text
+                x={movingCircle.x}
+                y={movingCircle.y + 5}
+                textAnchor="middle"
+                fontSize={12}
+                fill="#fff"
+              >
+                하차
+              </text>
+            </g>
+          );
+        })}
+
+        {/* 벨트 작업자 */}
+        {receiveWorkers.map((w, i) => (
+          <g key={i}>
+            <circle
+              cx={w.x}
+              cy={w.y}
+              r={14}
+              fill={workerReceiveColor}
+              stroke="#333"
+              strokeWidth={1}
+            />
+            <text
+              x={w.x}
+              y={w.y + 5}
+              textAnchor="middle"
+              fontSize={12}
+              fill="#fff"
+            >
+              작업자
+            </text>
+            {/* 작업자별 카운트 */}
+            <text
+              x={w.x}
+              y={w.y + 30}
+              textAnchor="middle"
+              fontSize={16}
+              fill="#333"
+            >
+              {workerCatchTimes[i].length}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
   );
 }
