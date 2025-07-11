@@ -6,6 +6,8 @@ const beltColor = "#888";
 const boxColor = "#ffb300";
 
 export default function Warehouse2D() {
+  // 공장 가동 상태
+  const [running, setRunning] = useState(false);
   // 컨트롤 상태
   const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
   const [workerCooldown, setWorkerCooldown] = useState(6000); // 작업자 작업 속도(ms)
@@ -133,8 +135,23 @@ export default function Warehouse2D() {
   const wsRef = useRef(ws);
   wsRef.current = ws;
 
-  // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
+  // running이 false로 바뀔 때 상태 초기화
   useEffect(() => {
+    if (!running) {
+      setCircles([]);
+      setWorkerCatchTimes(
+        Array(MAX_WORKERS)
+          .fill(0)
+          .map(() => [])
+      );
+      setFailCount(0);
+      itemSeqRef.current = 1200000001;
+    }
+  }, [running]);
+
+  // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경 (running일 때만 동작)
+  useEffect(() => {
+    if (!running) return;
     const timer = setInterval(() => {
       // 하차 작업자 랜덤 선택 (U1 또는 U2)
       const unloadWorkerId = Math.random() < 0.5 ? "U1" : "U2";
@@ -152,10 +169,11 @@ export default function Warehouse2D() {
       });
     }, unloadInterval);
     return () => clearInterval(timer);
-  }, [unloadInterval]); // ← itemSeq, ws 의존성 제거로 타이머 재생성 방지
+  }, [unloadInterval, running]); // running 추가
 
-  // 각 동그라미의 progress를 부드럽게 업데이트
+  // 각 동그라미의 progress를 부드럽게 업데이트 (running일 때만 동작)
   useEffect(() => {
+    if (!running) return;
     const animate = () => {
       setCircles((prev) =>
         prev.map((c) => {
@@ -172,10 +190,11 @@ export default function Warehouse2D() {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [speed]);
+  }, [speed, running]); // running 추가
 
-  // 동그라미가 작업자 위치에 오면 즉시 사라지게 (시간 제한 없이)
+  // 동그라미가 작업자 위치에 오면 즉시 사라지게 (running일 때만 동작)
   useEffect(() => {
+    if (!running) return;
     const now = Date.now();
     const removeIdxs: number[] = [];
     const newCatchTimes = workerCatchTimes.map((times) => [...times]);
@@ -233,10 +252,12 @@ export default function Warehouse2D() {
     workerCatchTimes,
     workerCooldown,
     workerCount,
+    running, // running 추가
   ]);
 
-  // 벨트 끝까지 도달한 동그라미를 실패로 처리
+  // 벨트 끝까지 도달한 동그라미를 실패로 처리 (running일 때만 동작)
   useEffect(() => {
+    if (!running) return;
     // 마지막 포인트에 도달한 동그라미 인덱스
     const failedIdxs = circles
       .map((circle, i) => {
@@ -249,7 +270,7 @@ export default function Warehouse2D() {
       setFailCount((failCount) => failCount + failedIdxs.length);
       setCircles((prev) => prev.filter((_, i) => !failedIdxs.includes(i)));
     }
-  }, [circles, beltPoints]);
+  }, [circles, beltPoints, running]); // running 추가
 
   // 하차 작업자 스타일
   const unloadWorkerStyle = {
@@ -265,7 +286,65 @@ export default function Warehouse2D() {
   };
 
   return (
-    <div style={{ width: width, margin: "0 auto" }}>
+    <div style={{ width: width, margin: "0 auto", position: "relative" }}>
+      {/* 공장 가동 중단 버튼 (우측 상단) */}
+      {running && (
+        <button
+          style={{
+            position: "absolute",
+            top: 24,
+            right: 24,
+            zIndex: 10,
+            fontSize: 20,
+            padding: "12px 32px",
+            background: "#c62828",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: "bold",
+            boxShadow: "0 2px 8px #0002",
+            cursor: "pointer",
+          }}
+          onClick={() => setRunning(false)}
+        >
+          공장 가동 중단
+        </button>
+      )}
+      {/* 공장 가동 시작 버튼 (중앙) */}
+      {!running && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: height,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 20,
+            background: "#fff9",
+            borderRadius: 16,
+          }}
+        >
+          <button
+            style={{
+              fontSize: 36,
+              padding: "32px 64px",
+              background: "#1976d2",
+              color: "#fff",
+              border: "none",
+              borderRadius: 16,
+              fontWeight: "bold",
+              boxShadow: "0 4px 16px #0002",
+              cursor: "pointer",
+            }}
+            onClick={() => setRunning(true)}
+          >
+            공장 가동 시작
+          </button>
+        </div>
+      )}
       {/* 컨트롤 UI */}
       <div
         style={{
