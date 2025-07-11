@@ -107,10 +107,13 @@ export default function Warehouse2D() {
   const speed = beltSpeed / 2 / (beltPoints.length * 60); // beltSpeed=1~5, 0.5~2배속
   const requestRef = useRef<number | null>(null);
 
+  // 운송장 번호 상태 (useState)
+  const [itemSeq, setItemSeq] = useState(1200000001);
+
   // 여러 개의 하차 동그라미(물건) 상태
-  const [circles, setCircles] = useState<{ progress: number }[]>([
-    { progress: 0 },
-  ]);
+  const [circles, setCircles] = useState<{ progress: number; id: number }[]>(
+    []
+  );
 
   // 벨트 작업자별로 잡은 시간 배열
   const [workerCatchTimes, setWorkerCatchTimes] = useState<number[][]>(() =>
@@ -127,10 +130,11 @@ export default function Warehouse2D() {
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
   useEffect(() => {
     const timer = setInterval(() => {
-      setCircles((prev) => [...prev, { progress: 0 }]);
+      setCircles((prev) => [...prev, { progress: 0, id: itemSeq }]);
+      setItemSeq((prev) => prev + 1);
     }, unloadInterval);
     return () => clearInterval(timer);
-  }, [unloadInterval]);
+  }, [unloadInterval, itemSeq]);
 
   // 각 동그라미의 progress를 부드럽게 업데이트
   useEffect(() => {
@@ -139,7 +143,7 @@ export default function Warehouse2D() {
         prev.map((c) => {
           let next = c.progress + speed;
           if (next >= 1) next = 0;
-          return { progress: next };
+          return { progress: next, id: c.id };
         })
       );
       requestRef.current = requestAnimationFrame(animate);
@@ -192,7 +196,7 @@ export default function Warehouse2D() {
             msg: "작업자 처리",
             workerId:
               workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
-            itemIdx: cIdx,
+            itemId: circle.id,
             count: newCatchTimes[workerIdx].length + 1,
           });
         }
