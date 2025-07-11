@@ -10,52 +10,54 @@ export default function Warehouse2D() {
   // 컨트롤 상태
   const [unloadInterval, setUnloadInterval] = useState(2000); // 물건 하차 속도(ms)
   const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
-  const [workerCount, setWorkerCount] = useState(5); // 작업자 수
+  const MAX_WORKERS = 20;
+  const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
 
   // SVG 크기
   const width = 600;
   const height = 400;
 
-  // 컨베이어 벨트 경로 (ㄷ자)
-  const beltPath = `M 100 350 L 500 350 L 500 100 L 100 100`;
+  // 컨베이어 벨트 경로 (가로 위주 ┏━┓ 형태, 더 길게)
+  // 아래→오른쪽→위→왼쪽→중간→오른쪽 (ㄹ자 변형)
+  const beltPath = `M 180 350 L 540 350 L 540 200 L 120 200 L 120 100 L 540 100`;
 
-  // 컨베이어 벨트 경로를 따라 이동할 포인트들 (더 촘촘하게)
+  // 벨트 포인트 (가로 위주, 세로 구간 최소화)
   const beltPoints = [
     // 아래쪽 (좌→우)
-    { x: 100, y: 350 },
-    { x: 150, y: 350 },
-    { x: 200, y: 350 },
-    { x: 250, y: 350 },
+    { x: 180, y: 350 },
+    { x: 240, y: 350 },
     { x: 300, y: 350 },
-    { x: 350, y: 350 },
-    { x: 400, y: 350 },
-    { x: 450, y: 350 },
-    { x: 500, y: 350 },
-    // 오른쪽 (아래→위)
-    { x: 500, y: 300 },
-    { x: 500, y: 250 },
-    { x: 500, y: 200 },
-    { x: 500, y: 150 },
-    { x: 500, y: 100 },
-    // 위쪽 (우→좌)
-    { x: 450, y: 100 },
-    { x: 400, y: 100 },
-    { x: 350, y: 100 },
+    { x: 360, y: 350 },
+    { x: 420, y: 350 },
+    { x: 480, y: 350 },
+    { x: 540, y: 350 },
+    // 위로 (우→중간)
+    { x: 540, y: 300 },
+    { x: 540, y: 250 },
+    { x: 540, y: 200 },
+    // 왼쪽 (우→좌, 중간)
+    { x: 480, y: 200 },
+    { x: 420, y: 200 },
+    { x: 360, y: 200 },
+    { x: 300, y: 200 },
+    { x: 240, y: 200 },
+    { x: 180, y: 200 },
+    { x: 120, y: 200 },
+    // 위로 (중간→위)
+    { x: 120, y: 150 },
+    { x: 120, y: 100 },
+    // 오른쪽 (좌→우, 위)
+    { x: 180, y: 100 },
+    { x: 240, y: 100 },
     { x: 300, y: 100 },
-    { x: 250, y: 100 },
-    { x: 200, y: 100 },
-    { x: 150, y: 100 },
-    { x: 100, y: 100 },
-    // 왼쪽 (위→아래)
-    { x: 100, y: 150 },
-    { x: 100, y: 200 },
-    { x: 100, y: 250 },
-    { x: 100, y: 300 },
-    { x: 100, y: 350 }, // 루프
+    { x: 360, y: 100 },
+    { x: 420, y: 100 },
+    { x: 480, y: 100 },
+    { x: 540, y: 100 },
   ];
 
-  // 하차 트럭 위치 및 크기
-  const truck = { x: 60, y: 320, width: 60, height: 60 };
+  // 하차 트럭 위치 및 크기 (오른쪽으로 40 이동)
+  const truck = { x: 100, y: 320, width: 60, height: 60 };
 
   // 하차 지점 (컨베이어 시작점)
   const unloadPoint = {
@@ -63,17 +65,42 @@ export default function Warehouse2D() {
     y: truck.y + truck.height / 2,
   };
 
-  // 하차 작업자 위치 (하차지점 위/아래)
+  // 하차 작업자 위치 (하차지점 위/아래, 오른쪽으로 40 이동)
   const unloadWorkers = [
-    { x: unloadPoint.x, y: unloadPoint.y - 32 }, // 하차지점 위
-    { x: unloadPoint.x, y: unloadPoint.y + 32 }, // 하차지점 아래
+    { x: unloadPoint.x + 40, y: unloadPoint.y - 32 }, // 하차지점 위
+    { x: unloadPoint.x + 40, y: unloadPoint.y + 32 }, // 하차지점 아래
   ];
 
-  // 벨트 작업자 위치 (윗쪽) - workerCount에 따라 동적으로 생성
-  const receiveWorkers = Array.from({ length: workerCount }, (_, i) => ({
-    x: 120 + ((480 - 120) / (workerCount - 1 || 1)) * i,
-    y: 80,
-  }));
+  // 작업자 위치: 위쪽(윗 가로) 10명, 중간(중간 가로) 10명으로 나눠서 배치
+  function getWorkerPositionsOnBelt(workerCount: number) {
+    const topIdxs = [19, 20, 21, 22, 23, 24, 25];
+    const midIdxs = [10, 11, 12, 13, 14, 15, 16];
+    const topCount = Math.min(10, workerCount);
+    const midCount = Math.max(0, workerCount - 10);
+    const selected: { x: number; y: number }[] = [];
+    // 위쪽 10명 균등 분포 (x좌표 +40)
+    for (let i = 0; i < topCount; i++) {
+      const t = i / (topCount - 1 || 1);
+      const idxF = t * (topIdxs.length - 1);
+      const idx = Math.floor(idxF);
+      const frac = idxF - idx;
+      const p1 = beltPoints[topIdxs[idx]];
+      const p2 = beltPoints[topIdxs[idx + 1]] || p1;
+      selected.push({ x: p1.x + (p2.x - p1.x) * frac - 40, y: 100 - 28 });
+    }
+    // 중간 10명 균등 분포
+    for (let i = 0; i < midCount; i++) {
+      const t = i / (midCount - 1 || 1);
+      const idxF = t * (midIdxs.length - 1);
+      const idx = Math.floor(idxF);
+      const frac = idxF - idx;
+      const p1 = beltPoints[midIdxs[idx]];
+      const p2 = beltPoints[midIdxs[idx + 1]] || p1;
+      selected.push({ x: p1.x + (p2.x - p1.x) * frac, y: 200 + 28 });
+    }
+    return selected;
+  }
+  const receiveWorkers = getWorkerPositionsOnBelt(MAX_WORKERS);
 
   // 하차 원(물건) 이동 애니메이션 (더 느리게)
   const speed = 1 / (beltPoints.length * 60);
@@ -86,18 +113,10 @@ export default function Warehouse2D() {
 
   // 벨트 작업자별로 잡은 시간 배열
   const [workerCatchTimes, setWorkerCatchTimes] = useState<number[][]>(() =>
-    Array(workerCount)
+    Array(MAX_WORKERS)
       .fill(0)
       .map(() => [])
   );
-  // workerCount가 바뀌면 배열 리셋
-  useEffect(() => {
-    setWorkerCatchTimes(
-      Array(workerCount)
-        .fill(0)
-        .map(() => [])
-    );
-  }, [workerCount]);
 
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경
   useEffect(() => {
@@ -133,12 +152,13 @@ export default function Warehouse2D() {
     const removeIdxs: number[] = [];
     const newCatchTimes = workerCatchTimes.map((times) => [...times]);
     const caughtCircleSet = new Set<number>();
-    receiveWorkers.forEach((w, workerIdx) => {
+    for (let workerIdx = 0; workerIdx < workerCount; workerIdx++) {
+      const w = receiveWorkers[workerIdx];
       const last =
         workerCatchTimes[workerIdx].length > 0
           ? workerCatchTimes[workerIdx][workerCatchTimes[workerIdx].length - 1]
           : 0;
-      if (now - last < workerCooldown) return;
+      if (now - last < workerCooldown) continue;
       let caught = false;
       circles.forEach((circle, cIdx) => {
         if (caughtCircleSet.has(cIdx) || caught) return;
@@ -162,14 +182,21 @@ export default function Warehouse2D() {
           caught = true;
         }
       });
-    });
+    }
     if (removeIdxs.length > 0) {
       const removeSet = new Set(removeIdxs);
       setCircles((prev) => prev.filter((_, i) => !removeSet.has(i)));
       setWorkerCatchTimes(newCatchTimes);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [circles, receiveWorkers, beltPoints, workerCatchTimes, workerCooldown]);
+  }, [
+    circles,
+    receiveWorkers,
+    beltPoints,
+    workerCatchTimes,
+    workerCooldown,
+    workerCount,
+  ]);
 
   return (
     <div style={{ width: width, margin: "0 auto" }}>
@@ -212,7 +239,7 @@ export default function Warehouse2D() {
           <input
             type="number"
             min={1}
-            max={10}
+            max={20}
             value={workerCount}
             onChange={(e) => setWorkerCount(Number(e.target.value))}
             style={{ width: 48, marginLeft: 8 }}
@@ -331,19 +358,19 @@ export default function Warehouse2D() {
         })}
 
         {/* 벨트 작업자 */}
-        {receiveWorkers.map((w, i) => (
+        {Array.from({ length: workerCount }).map((_, i) => (
           <g key={i}>
             <circle
-              cx={w.x}
-              cy={w.y}
+              cx={receiveWorkers[i].x}
+              cy={receiveWorkers[i].y}
               r={14}
               fill={workerReceiveColor}
               stroke="#333"
               strokeWidth={1}
             />
             <text
-              x={w.x}
-              y={w.y + 5}
+              x={receiveWorkers[i].x}
+              y={receiveWorkers[i].y + 5}
               textAnchor="middle"
               fontSize={12}
               fill="#fff"
@@ -352,8 +379,8 @@ export default function Warehouse2D() {
             </text>
             {/* 작업자별 카운트 */}
             <text
-              x={w.x}
-              y={w.y + 30}
+              x={receiveWorkers[i].x}
+              y={receiveWorkers[i].y + 30}
               textAnchor="middle"
               fontSize={16}
               fill="#333"
