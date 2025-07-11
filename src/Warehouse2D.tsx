@@ -8,7 +8,7 @@ const boxColor = "#ffb300";
 export default function Warehouse2D() {
   // 컨트롤 상태
   const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
-  const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
+  const [workerCooldown, setWorkerCooldown] = useState(6000); // 작업자 작업 속도(ms)
   const MAX_WORKERS = 20;
   const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
   // 레일 속도 (컨트롤)
