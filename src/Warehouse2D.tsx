@@ -221,6 +221,48 @@ const WORKER_COOLDOWN_SCALES = Array(MAX_WORKERS)
   .fill(0)
   .map(() => Math.random() * 0.8 + 0.6);
 
+// 위치 계산 최적화 함수 (캐싱)
+const calculatePositionOnBelt = (() => {
+  const cache = new Map<number, { x: number; y: number }>();
+
+  return (progress: number) => {
+    const cacheKey = Math.round(progress * 1000); // 소수점 3자리까지 캐시
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey)!;
+    }
+
+    const targetDistance = progress * TOTAL_DISTANCE;
+    let currentDistance = 0;
+    let segIdx = 0;
+    let t = 0;
+
+    for (let i = 0; i < BELT_POINTS.length - 1; i++) {
+      const p1 = BELT_POINTS[i];
+      const p2 = BELT_POINTS[i + 1];
+      const segmentDistance = Math.sqrt(
+        (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
+      );
+
+      if (currentDistance + segmentDistance >= targetDistance) {
+        segIdx = i;
+        t = (targetDistance - currentDistance) / segmentDistance;
+        break;
+      }
+      currentDistance += segmentDistance;
+    }
+
+    const p1 = BELT_POINTS[segIdx];
+    const p2 = BELT_POINTS[segIdx + 1] || p1;
+    const position = {
+      x: p1.x + (p2.x - p1.x) * t,
+      y: p1.y + (p2.y - p1.y) * t,
+    };
+
+    cache.set(cacheKey, position);
+    return position;
+  };
+})();
+
 export default function Warehouse2D() {
   // 공장 가동 상태
   const [running, setRunning] = useState(true);
@@ -346,38 +388,14 @@ export default function Warehouse2D() {
       circles.forEach((circle, cIdx) => {
         if (caughtCircleSet.has(cIdx) || caught) return;
 
-        // 거리 기반 위치 계산
-        const targetDistance = circle.progress * TOTAL_DISTANCE;
-        let currentDistance = 0;
-        let segIdx = 0;
-        let t = 0;
-
-        for (let i = 0; i < BELT_POINTS.length - 1; i++) {
-          const p1 = BELT_POINTS[i];
-          const p2 = BELT_POINTS[i + 1];
-          const segmentDistance = Math.sqrt(
-            (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
-          );
-
-          if (currentDistance + segmentDistance >= targetDistance) {
-            segIdx = i;
-            t = (targetDistance - currentDistance) / segmentDistance;
-            break;
-          }
-          currentDistance += segmentDistance;
-        }
-
-        const p1 = BELT_POINTS[segIdx];
-        const p2 = BELT_POINTS[segIdx + 1] || p1;
-        const movingCircle = {
-          x: p1.x + (p2.x - p1.x) * t,
-          y: p1.y + (p2.y - p1.y) * t,
-        };
+        // 최적화된 위치 계산 사용
+        const movingCircle = calculatePositionOnBelt(circle.progress);
 
         const dx = w.x - movingCircle.x;
         const dy = w.y - movingCircle.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < WORKER_CATCH_RANGE) {
+        const distSquared = dx * dx + dy * dy;
+        const catchRangeSquared = WORKER_CATCH_RANGE * WORKER_CATCH_RANGE;
+        if (distSquared < catchRangeSquared) {
           // --- 고장 조건 체크 ---
           // 5% 확율로 고장: 끝 두자리의 차이가 2 이하일 때
           const cooldownLast2 = Math.round(workerCooldownWithScale) % 100;
@@ -779,35 +797,9 @@ export default function Warehouse2D() {
             하차
           </text>
 
-          {/* 이동하는 박스(물건, 여러 개) */}
+          {/* 이동하는 박스(물건, 여러 개) - 최적화된 렌더링 */}
           {circles.map((circle, i) => {
-            // 거리 기반 위치 계산
-            const targetDistance = circle.progress * TOTAL_DISTANCE;
-            let currentDistance = 0;
-            let segIdx = 0;
-            let t = 0;
-
-            for (let i = 0; i < BELT_POINTS.length - 1; i++) {
-              const p1 = BELT_POINTS[i];
-              const p2 = BELT_POINTS[i + 1];
-              const segmentDistance = Math.sqrt(
-                (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
-              );
-
-              if (currentDistance + segmentDistance >= targetDistance) {
-                segIdx = i;
-                t = (targetDistance - currentDistance) / segmentDistance;
-                break;
-              }
-              currentDistance += segmentDistance;
-            }
-
-            const p1 = BELT_POINTS[segIdx];
-            const p2 = BELT_POINTS[segIdx + 1] || p1;
-            const movingBox = {
-              x: p1.x + (p2.x - p1.x) * t,
-              y: p1.y + (p2.y - p1.y) * t,
-            };
+            const movingBox = calculatePositionOnBelt(circle.progress);
 
             return (
               <g key={i} filter="url(#shadow)">
@@ -817,6 +809,10 @@ export default function Warehouse2D() {
                   y={movingBox.y - 28}
                   width={40}
                   height={40}
+                  style={{
+                    willChange: "transform",
+                    transform: "translateZ(0)", // 하드웨어 가속 활성화
+                  }}
                 />
               </g>
             );
