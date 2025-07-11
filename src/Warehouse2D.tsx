@@ -6,6 +6,9 @@ import React, {
   useMemo,
 } from "react";
 import { useWebSocket } from "./App";
+import robotSvg from "./assets/robot.svg";
+import brokenRobotSvg from "./assets/broken-robot.svg";
+import truckSvg from "./assets/truck.svg";
 
 // 창고 2D 시각화: ㄷ자 컨베이어, 하차지점, 작업자들
 const boxColor = "#ffb300";
@@ -48,7 +51,7 @@ const WORKER_CATCH_RANGE = 60; // 30에서 60으로 증가하여 더 넓은 범�
 const WORKER_CATCH_RANGE_SQUARED = WORKER_CATCH_RANGE * WORKER_CATCH_RANGE; // 제곱값 미리 계산
 
 // 하차 관련 상수
-const TRUCK_BASE = { x: 100, y: 315, width: 60, height: 60 };
+const TRUCK_BASE = { x: 100, y: 315, width: 300, height: 300 };
 const UNLOAD_WORKER_OFFSET = { x: 20, y: 32 };
 
 // 작업자 스타일 상수
@@ -63,6 +66,9 @@ const BELT_WORKER_STYLE = {
   stroke: "#388e3c",
   strokeWidth: 2,
 };
+
+// 작업자 UI 오프셋 상수
+const WORKER_UI_OFFSET = { x: -15, y: 45 };
 
 // 화면 크기 상수
 const WIDTH = 1200;
@@ -112,8 +118,8 @@ const TRUCK = (() => {
   const beltStartY = BELT_POINTS[0].y;
 
   // 트럭을 벨트 시작점 왼쪽에 배치
-  const truckOffsetX = -80; // 벨트 시작점에서 왼쪽으로 80픽셀
-  const truckOffsetY = -30; // 벨트 시작점에서 위로 30픽셀
+  const truckOffsetX = -320; // 벨트 시작점에서 왼쪽으로 350픽셀
+  const truckOffsetY = -120; // 벨트 시작점에서 위로 100픽셀
 
   return {
     x: beltStartX + truckOffsetX,
@@ -149,7 +155,7 @@ function getWorkerPositionsOnBelt(workerCount: number) {
 
   // 중간 10명(B) 먼저 균등 분포
   for (let i = 0; i < midCount; i++) {
-    const t = i / (midCount - 1 || 1);
+    const t = i / (midCount || 1);
     const idxF = t * (WORKER_MID_INDICES.length - 1);
     const idx = Math.floor(idxF);
     const frac = idxF - idx;
@@ -179,7 +185,7 @@ function getWorkerPositionsOnBelt(workerCount: number) {
 
   // 위쪽 10명(A) 나중에 균등 분포
   for (let i = 0; i < topCount; i++) {
-    const t = i / (topCount - 1 || 1);
+    const t = i / (topCount || 1);
     const idxF = t * (WORKER_TOP_INDICES.length - 1);
     const idx = Math.floor(idxF);
     const frac = idxF - idx;
@@ -241,7 +247,6 @@ const MovingBox = React.memo(
 
     return (
       <g
-        filter="url(#shadow)"
         transform={`translate(${movingBox.x - 20}, ${movingBox.y - 28})`}
         style={{
           willChange: "transform",
@@ -780,28 +785,6 @@ export default function Warehouse2D() {
             return lines;
           })()}
 
-          {/* 하차 트럭 (네모) */}
-          <rect
-            x={TRUCK.x}
-            y={TRUCK.y}
-            width={TRUCK.width}
-            height={TRUCK.height}
-            fill="#90caf9"
-            stroke="#1976d2"
-            strokeWidth={4}
-            rx={10}
-          />
-          <text
-            x={TRUCK.x + TRUCK.width / 2}
-            y={TRUCK.y + TRUCK.height / 2 + 6}
-            textAnchor="middle"
-            fontSize={16}
-            fill="#1976d2"
-            fontWeight="bold"
-          >
-            트럭
-          </text>
-
           {/* 하차 작업자 (트럭 위/아래) */}
           {UNLOAD_WORKERS.map((w, i) => (
             <g key={i}>
@@ -850,8 +833,8 @@ export default function Warehouse2D() {
             const isTop = i < 10;
             const label = isTop ? `A${i + 1}` : `B${i - 9}`;
             const countY = isTop
-              ? RECEIVE_WORKERS[i].y + 34
-              : RECEIVE_WORKERS[i].y - 28;
+              ? RECEIVE_WORKERS[i].y - 24
+              : RECEIVE_WORKERS[i].y - 20;
 
             // 쿨다운 상태 확인
             const now = Date.now();
@@ -888,16 +871,37 @@ export default function Warehouse2D() {
 
             // 작업 중일 때 열린 박스 표시 (왼쪽 대각선 아래)
             const isWorking = cooldownLeft > 0;
-            const openedBoxOffset = toIsometric(-20, 0); // 왼쪽 대각선 아래, 더 멀리
+            const openedBoxOffset = toIsometric(-30, 0);
             const openedBoxX = cx + openedBoxOffset.x;
             const openedBoxY = cy + openedBoxOffset.y;
 
+            // 로봇팔 표시 여부 및 좌우반전 결정
+            const shouldShowRobot = true; // 항상 표시
+            const shouldFlip = isWorking || isBroken; // 작업 중이거나 고장났을 때만 좌우반전
+
             return (
               <g key={i}>
+                {/* 로봇팔 (작업 중이거나 고장났을 때만 표시) */}
+                {shouldShowRobot && (
+                  <g
+                    transform={`translate(${cx - 30}, ${cy - 35}) ${
+                      shouldFlip ? "scale(-1, 1) translate(-60, 0)" : ""
+                    }`}
+                  >
+                    <image
+                      href={isBroken ? brokenRobotSvg : robotSvg}
+                      x={0}
+                      y={0}
+                      width={60}
+                      height={90}
+                    />
+                  </g>
+                )}
+
                 {/* 기본 초록색 원 */}
                 <circle
-                  cx={cx}
-                  cy={cy}
+                  cx={cx + WORKER_UI_OFFSET.x}
+                  cy={cy - WORKER_UI_OFFSET.y}
                   r={r}
                   fill={BELT_WORKER_STYLE.fill}
                   stroke={BELT_WORKER_STYLE.stroke}
@@ -908,15 +912,15 @@ export default function Warehouse2D() {
                   <g>
                     <clipPath id={`cooldown-mask-${i}`}>
                       <rect
-                        x={cx - r}
-                        y={barY}
+                        x={cx + WORKER_UI_OFFSET.x - r}
+                        y={barY - WORKER_UI_OFFSET.y}
                         width={2 * r}
                         height={barHeight}
                       />
                     </clipPath>
                     <circle
-                      cx={cx}
-                      cy={cy}
+                      cx={cx + WORKER_UI_OFFSET.x}
+                      cy={cy - WORKER_UI_OFFSET.y}
                       r={r}
                       fill={barColor}
                       stroke={BELT_WORKER_STYLE.stroke}
@@ -928,9 +932,8 @@ export default function Warehouse2D() {
                 {/* 작업 중일 때 열린 박스 표시 */}
                 {(isWorking || isBroken) && (
                   <g
-                    filter="url(#shadow)"
                     transform={`translate(${openedBoxX - 20}, ${
-                      openedBoxY - 20
+                      openedBoxY - 10
                     })`}
                   >
                     <image
@@ -948,8 +951,8 @@ export default function Warehouse2D() {
                 )}
                 {/* 작업자 번호 */}
                 <text
-                  x={cx}
-                  y={cy + 6}
+                  x={cx + WORKER_UI_OFFSET.x}
+                  y={cy - (WORKER_UI_OFFSET.y - 6)}
                   textAnchor="middle"
                   fontSize={14}
                   fontWeight="bold"
@@ -959,8 +962,8 @@ export default function Warehouse2D() {
                 </text>
                 {/* 작업자별 카운트 */}
                 <text
-                  x={cx}
-                  y={countY}
+                  x={cx + WORKER_UI_OFFSET.x}
+                  y={countY - WORKER_UI_OFFSET.y}
                   textAnchor="middle"
                   fontSize={16}
                   fontWeight="bold"
@@ -971,6 +974,15 @@ export default function Warehouse2D() {
               </g>
             );
           })}
+
+          {/* 하차 트럭 (가장 앞에 표시) */}
+          <image
+            x={TRUCK.x}
+            y={TRUCK.y}
+            width={TRUCK.width}
+            height={TRUCK.height}
+            href={truckSvg}
+          />
         </svg>
       </div>
       {/* 전체 작업자들의 작업 속도 배열 표시 */}
