@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { useWebSocket } from "./App";
 
 // 창고 2D 시각화: ㄷ자 컨베이어, 하차지점, 작업자들
@@ -221,6 +227,31 @@ const WORKER_COOLDOWN_SCALES = Array(MAX_WORKERS)
   .fill(0)
   .map(() => Math.random() * 0.8 + 0.6);
 
+// 이동하는 박스 컴포넌트 (메모이제이션)
+const MovingBox = React.memo(
+  ({ circle }: { circle: { progress: number; id: number } }) => {
+    const movingBox = calculatePositionOnBelt(circle.progress);
+
+    return (
+      <g
+        filter="url(#shadow)"
+        transform={`translate(${movingBox.x - 20}, ${movingBox.y - 28})`}
+        style={{
+          willChange: "transform",
+        }}
+      >
+        <image
+          href="/src/assets/closed-box.svg"
+          x={0}
+          y={0}
+          width={40}
+          height={40}
+        />
+      </g>
+    );
+  }
+);
+
 // 위치 계산 최적화 함수 (캐싱)
 const calculatePositionOnBelt = (() => {
   const cache = new Map<number, { x: number; y: number }>();
@@ -273,8 +304,16 @@ export default function Warehouse2D() {
   // 레일 속도 (컨트롤)
   const [beltSpeed, setBeltSpeed] = useState(5); // 1~5
 
-  const speed = beltSpeed / 2 / (TOTAL_DISTANCE * 0.1); // 거리 기반 속도 계산
+  // 속도 계산을 useMemo로 최적화
+  const speed = useMemo(
+    () => beltSpeed / 2 / (TOTAL_DISTANCE * 0.1),
+    [beltSpeed]
+  );
   const requestRef = useRef<number | null>(null);
+
+  // 이벤트 핸들러들을 useCallback으로 최적화
+  const handleStopRunning = useCallback(() => setRunning(false), []);
+  const handleStartRunning = useCallback(() => setRunning(true), []);
 
   // 운송장 번호 상태 (UI 표시용 - 현재는 사용하지 않음)
   // const [itemSeq, setItemSeq] = useState(1200000001);
@@ -583,7 +622,7 @@ export default function Warehouse2D() {
               boxShadow: "0 2px 8px #0002",
               cursor: "pointer",
             }}
-            onClick={() => setRunning(false)}
+            onClick={handleStopRunning}
           >
             중단하기
           </button>
@@ -617,7 +656,7 @@ export default function Warehouse2D() {
                 boxShadow: "0 4px 16px #0002",
                 cursor: "pointer",
               }}
-              onClick={() => setRunning(true)}
+              onClick={handleStartRunning}
             >
               공장 가동 시작
             </button>
@@ -797,26 +836,10 @@ export default function Warehouse2D() {
             하차
           </text>
 
-          {/* 이동하는 박스(물건, 여러 개) - 최적화된 렌더링 */}
-          {circles.map((circle, i) => {
-            const movingBox = calculatePositionOnBelt(circle.progress);
-
-            return (
-              <g key={i} filter="url(#shadow)">
-                <image
-                  href="/src/assets/closed-box.svg"
-                  x={movingBox.x - 20}
-                  y={movingBox.y - 28}
-                  width={40}
-                  height={40}
-                  style={{
-                    willChange: "transform",
-                    transform: "translateZ(0)", // 하드웨어 가속 활성화
-                  }}
-                />
-              </g>
-            );
-          })}
+          {/* 이동하는 박스(물건, 여러 개) - 메모이제이션된 컴포넌트 */}
+          {circles.map((circle, i) => (
+            <MovingBox key={i} circle={circle} />
+          ))}
 
           {/* 벨트 작업자 */}
           {Array.from({ length: workerCount }).map((_, i) => {
@@ -901,15 +924,20 @@ export default function Warehouse2D() {
                 )}
                 {/* 작업 중일 때 열린 박스 표시 */}
                 {(isWorking || isBroken) && (
-                  <g filter="url(#shadow)">
+                  <g
+                    filter="url(#shadow)"
+                    transform={`translate(${openedBoxX - 20}, ${
+                      openedBoxY - 20
+                    })`}
+                  >
                     <image
                       href={
                         isBroken
                           ? "/src/assets/broken-box.svg"
                           : "/src/assets/opened-box.svg"
                       }
-                      x={openedBoxX - 20}
-                      y={openedBoxY - 20}
+                      x={0}
+                      y={0}
                       width={40}
                       height={40}
                     />
