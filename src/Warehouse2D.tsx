@@ -6,10 +6,12 @@ const boxColor = "#ffb300";
 
 export default function Warehouse2D() {
   // 컨트롤 상태
-  const [unloadInterval, setUnloadInterval] = useState(2000); // 물건 하차 속도(ms)
+  const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
   const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
   const MAX_WORKERS = 20;
   const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
+  // 레일 속도 (컨트롤)
+  const [beltSpeed, setBeltSpeed] = useState(3); // 1~5
 
   // SVG 크기
   const width = 600;
@@ -65,28 +67,18 @@ export default function Warehouse2D() {
 
   // 하차 작업자 위치 (하차지점 위/아래, 오른쪽으로 40 이동)
   const unloadWorkers = [
-    { x: unloadPoint.x + 40, y: unloadPoint.y - 32 }, // 하차지점 위
-    { x: unloadPoint.x + 40, y: unloadPoint.y + 32 }, // 하차지점 아래
+    { x: unloadPoint.x + 20, y: unloadPoint.y - 32 }, // 하차지점 위 (반칸 왼쪽)
+    { x: unloadPoint.x + 20, y: unloadPoint.y + 32 }, // 하차지점 아래 (반칸 왼쪽)
   ];
 
   // 작업자 위치: 위쪽(윗 가로) 10명, 중간(중간 가로) 10명으로 나눠서 배치
   function getWorkerPositionsOnBelt(workerCount: number) {
     const topIdxs = [19, 20, 21, 22, 23, 24, 25];
     const midIdxs = [10, 11, 12, 13, 14, 15, 16];
-    const topCount = Math.min(10, workerCount);
-    const midCount = Math.max(0, workerCount - 10);
+    const topCount = Math.max(0, workerCount - 10);
+    const midCount = Math.min(10, workerCount);
     const selected: { x: number; y: number }[] = [];
-    // 위쪽 10명 균등 분포 (x좌표 +40)
-    for (let i = 0; i < topCount; i++) {
-      const t = i / (topCount - 1 || 1);
-      const idxF = t * (topIdxs.length - 1);
-      const idx = Math.floor(idxF);
-      const frac = idxF - idx;
-      const p1 = beltPoints[topIdxs[idx]];
-      const p2 = beltPoints[topIdxs[idx + 1]] || p1;
-      selected.push({ x: p1.x + (p2.x - p1.x) * frac - 40, y: 100 - 28 });
-    }
-    // 중간 10명 균등 분포
+    // 중간 10명(B) 먼저 균등 분포
     for (let i = 0; i < midCount; i++) {
       const t = i / (midCount - 1 || 1);
       const idxF = t * (midIdxs.length - 1);
@@ -96,12 +88,22 @@ export default function Warehouse2D() {
       const p2 = beltPoints[midIdxs[idx + 1]] || p1;
       selected.push({ x: p1.x + (p2.x - p1.x) * frac, y: 200 + 28 });
     }
+    // 위쪽 10명(A) 나중에 균등 분포
+    for (let i = 0; i < topCount; i++) {
+      const t = i / (topCount - 1 || 1);
+      const idxF = t * (topIdxs.length - 1);
+      const idx = Math.floor(idxF);
+      const frac = idxF - idx;
+      const p1 = beltPoints[topIdxs[idx]];
+      const p2 = beltPoints[topIdxs[idx + 1]] || p1;
+      selected.push({ x: p1.x + (p2.x - p1.x) * frac - 40, y: 100 - 28 });
+    }
     return selected;
   }
   const receiveWorkers = getWorkerPositionsOnBelt(MAX_WORKERS);
 
   // 하차 원(물건) 이동 애니메이션 (더 느리게)
-  const speed = 1 / (beltPoints.length * 60);
+  const speed = beltSpeed / 2 / (beltPoints.length * 60); // beltSpeed=1~5, 0.5~2배속
   const requestRef = useRef<number | null>(null);
 
   // 여러 개의 하차 동그라미(물건) 상태
@@ -275,6 +277,19 @@ export default function Warehouse2D() {
             style={{ width: 48, marginLeft: 8 }}
           />
         </label>
+        <label>
+          레일 속도:
+          <input
+            type="range"
+            min={1}
+            max={5}
+            step={1}
+            value={beltSpeed}
+            onChange={(e) => setBeltSpeed(Number(e.target.value))}
+            style={{ width: 120, marginLeft: 8 }}
+          />
+          <span style={{ marginLeft: 8 }}>{beltSpeed}x</span>
+        </label>
         <label style={{ display: "flex", alignItems: "center" }}>
           작업 실패:
           <span
@@ -411,12 +426,12 @@ export default function Warehouse2D() {
 
         {/* 벨트 작업자 */}
         {Array.from({ length: workerCount }).map((_, i) => {
-          // 위쪽(A) 10명, 중간(B) 10명
+          // 작업자 1~10: A1~A10, 11~20: B1~B10
           const isTop = i < 10;
           const label = isTop ? `A${i + 1}` : `B${i - 9}`;
           const countY = isTop
-            ? receiveWorkers[i].y - 28
-            : receiveWorkers[i].y + 34;
+            ? receiveWorkers[i].y + 34
+            : receiveWorkers[i].y - 28;
           return (
             <g key={i}>
               <circle
