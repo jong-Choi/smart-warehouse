@@ -55,6 +55,10 @@ function DashboardMain() {
         fontSize: 28,
         color: "#1976d2",
         fontWeight: 700,
+        background: "rgba(255, 255, 255, 0.9)",
+        borderRadius: 16,
+        margin: "20px",
+        backdropFilter: "blur(10px)",
       }}
     >
       대시보드 메인
@@ -79,6 +83,10 @@ function DashboardToday() {
         fontSize: 20,
         color: "#388e3c",
         fontWeight: 700,
+        background: "rgba(255, 255, 255, 0.9)",
+        borderRadius: 16,
+        margin: "20px",
+        backdropFilter: "blur(10px)",
       }}
     >
       <div>오늘 현황 (실시간 데이터)</div>
@@ -197,7 +205,16 @@ function App() {
   return (
     <WebSocketProvider>
       <BrowserRouter>
-        <div>
+        <div
+          style={{
+            backgroundImage: "url('/background-full.svg')",
+            backgroundSize: "auto",
+            backgroundPosition: "calc(50% + 20px) calc(50% - 70px)",
+            backgroundRepeat: "no-repeat",
+            minHeight: "100vh",
+            position: "relative",
+          }}
+        >
           {/* 상단 토글 버튼 */}
           <div
             style={{

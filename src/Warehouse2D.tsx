@@ -10,9 +10,6 @@ import robotSvg from "./assets/robot.svg";
 import brokenRobotSvg from "./assets/broken-robot.svg";
 import truckSvg from "./assets/truck.svg";
 
-// 창고 2D 시각화: ㄷ자 컨베이어, 하차지점, 작업자들
-const boxColor = "#ffb300";
-
 // 미니어처 벨트 포인트 (기준 좌표)
 const MINIFIED_BELT_POINTS = [
   // 아래쪽 (좌→우)
@@ -51,15 +48,7 @@ const WORKER_CATCH_RANGE = 60; // 30에서 60으로 증가하여 더 넓은 범�
 const WORKER_CATCH_RANGE_SQUARED = WORKER_CATCH_RANGE * WORKER_CATCH_RANGE; // 제곱값 미리 계산
 
 // 하차 관련 상수
-const TRUCK_BASE = { x: 100, y: 315, width: 300, height: 300 };
-const UNLOAD_WORKER_OFFSET = { x: 20, y: 32 };
-
-// 작업자 스타일 상수
-const UNLOAD_WORKER_STYLE = {
-  fill: "#1976d2",
-  stroke: "#0d47a1",
-  strokeWidth: 4,
-};
+const TRUCK_BASE = { x: 100, y: 315, width: 400, height: 400 };
 
 const BELT_WORKER_STYLE = {
   fill: "#a5d6a7",
@@ -118,8 +107,8 @@ const TRUCK = (() => {
   const beltStartY = BELT_POINTS[0].y;
 
   // 트럭을 벨트 시작점 왼쪽에 배치
-  const truckOffsetX = -320; // 벨트 시작점에서 왼쪽으로 350픽셀
-  const truckOffsetY = -120; // 벨트 시작점에서 위로 100픽셀
+  const truckOffsetX = -420; // 벨트 시작점에서 왼쪽으로 420픽셀 (오른쪽으로 30px)
+  const truckOffsetY = -170; // 벨트 시작점에서 위로 170픽셀 (위로 20px 더)
 
   return {
     x: beltStartX + truckOffsetX,
@@ -128,24 +117,6 @@ const TRUCK = (() => {
     height: TRUCK_BASE.height * SCALE_Y,
   };
 })();
-
-// 하차 지점 (컨베이어 시작점)
-const UNLOAD_POINT = {
-  x: TRUCK.x + TRUCK.width,
-  y: TRUCK.y + TRUCK.height / 2,
-};
-
-// 하차 작업자 위치 (하차지점 위/아래)
-const UNLOAD_WORKERS = [
-  {
-    x: UNLOAD_POINT.x + UNLOAD_WORKER_OFFSET.x,
-    y: UNLOAD_POINT.y - UNLOAD_WORKER_OFFSET.y,
-  },
-  {
-    x: UNLOAD_POINT.x + UNLOAD_WORKER_OFFSET.x,
-    y: UNLOAD_POINT.y + UNLOAD_WORKER_OFFSET.y,
-  },
-];
 
 // 작업자 위치 계산 함수
 function getWorkerPositionsOnBelt(workerCount: number) {
@@ -675,7 +646,7 @@ export default function Warehouse2D() {
           width={WIDTH}
           height={HEIGHT}
           style={{
-            background: "#f5f5f5",
+            background: "transparent",
             borderRadius: 16,
             boxShadow: "0 2px 8px #0001",
           }}
@@ -784,43 +755,6 @@ export default function Warehouse2D() {
             }
             return lines;
           })()}
-
-          {/* 하차 작업자 (트럭 위/아래) */}
-          {UNLOAD_WORKERS.map((w, i) => (
-            <g key={i}>
-              <circle cx={w.x} cy={w.y} r={16} {...UNLOAD_WORKER_STYLE} />
-              {/* 하차 작업자 번호 */}
-              <text
-                x={w.x}
-                y={w.y + 6}
-                textAnchor="middle"
-                fontSize={14}
-                fontWeight="bold"
-                fill="#fff"
-              >
-                U{i + 1}
-              </text>
-            </g>
-          ))}
-
-          {/* 하차 지점 */}
-          <circle
-            cx={UNLOAD_POINT.x}
-            cy={UNLOAD_POINT.y}
-            r={18}
-            fill={boxColor}
-            stroke="#b26a00"
-            strokeWidth={3}
-          />
-          <text
-            x={UNLOAD_POINT.x}
-            y={UNLOAD_POINT.y + 5}
-            textAnchor="middle"
-            fontSize={14}
-            fill="#333"
-          >
-            하차
-          </text>
 
           {/* 이동하는 박스(물건, 여러 개) - 메모이제이션된 컴포넌트 */}
           {circles.map((circle, i) => (
