@@ -205,70 +205,60 @@ function App() {
   return (
     <WebSocketProvider>
       <BrowserRouter>
+        {/* 상단 토글 버튼 */}
         <div
           style={{
-            backgroundImage: "url('/background-full.svg')",
-            backgroundSize: "auto",
-            backgroundPosition: "calc(50% + 20px) calc(50% - 70px)",
-            backgroundRepeat: "no-repeat",
-            minHeight: "100vh",
-            position: "relative",
+            display: "flex",
+            gap: 16,
+            justifyContent: "center",
+            alignItems: "center",
+            margin: "32px 0 24px 0",
+            zIndex: 100,
           }}
         >
-          {/* 상단 토글 버튼 */}
-          <div
+          <button
+            onClick={() => setTab("factory")}
             style={{
-              display: "flex",
-              gap: 16,
-              justifyContent: "center",
-              alignItems: "center",
-              margin: "32px 0 24px 0",
+              padding: "10px 32px",
+              fontSize: 18,
+              fontWeight: 700,
+              borderRadius: 8,
+              border:
+                tab === "factory" ? "2px solid #1976d2" : "2px solid #bbb",
+              background: tab === "factory" ? "#1976d2" : "#fff",
+              color: tab === "factory" ? "#fff" : "#333",
+              cursor: "pointer",
+              transition: "all 0.2s",
             }}
           >
-            <button
-              onClick={() => setTab("factory")}
-              style={{
-                padding: "10px 32px",
-                fontSize: 18,
-                fontWeight: 700,
-                borderRadius: 8,
-                border:
-                  tab === "factory" ? "2px solid #1976d2" : "2px solid #bbb",
-                background: tab === "factory" ? "#1976d2" : "#fff",
-                color: tab === "factory" ? "#fff" : "#333",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-            >
-              공장 상황
-            </button>
-            <button
-              onClick={() => setTab("dashboard")}
-              style={{
-                padding: "10px 32px",
-                fontSize: 18,
-                fontWeight: 700,
-                borderRadius: 8,
-                border:
-                  tab === "dashboard" ? "2px solid #1976d2" : "2px solid #bbb",
-                background: tab === "dashboard" ? "#1976d2" : "#fff",
-                color: tab === "dashboard" ? "#fff" : "#333",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-            >
-              대시보드
-            </button>
+            공장 상황
+          </button>
+          <button
+            onClick={() => setTab("dashboard")}
+            style={{
+              padding: "10px 32px",
+              fontSize: 18,
+              fontWeight: 700,
+              borderRadius: 8,
+              border:
+                tab === "dashboard" ? "2px solid #1976d2" : "2px solid #bbb",
+              background: tab === "dashboard" ? "#1976d2" : "#fff",
+              color: tab === "dashboard" ? "#fff" : "#333",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            대시보드
+          </button>
+        </div>
+        {/* 실제 화면 */}
+        <div>
+          {/* Warehouse2D는 항상 렌더링, 대시보드에서는 숨김만 */}
+          <div style={{ display: tab === "factory" ? "block" : "none" }}>
+            <Warehouse2DWithWS />
           </div>
-          {/* 실제 화면 */}
-          <div>
-            {/* Warehouse2D는 항상 렌더링, 대시보드에서는 숨김만 */}
-            <div style={{ display: tab === "factory" ? "block" : "none" }}>
-              <Warehouse2DWithWS />
-            </div>
-            <div style={{ display: tab === "dashboard" ? "block" : "none" }}>
-              <DashboardRoutes />
-            </div>
+          <div style={{ display: tab === "dashboard" ? "block" : "none" }}>
+            <DashboardRoutes />
           </div>
         </div>
       </BrowserRouter>
@@ -278,7 +268,49 @@ function App() {
 
 // Warehouse2D에서 WebSocket으로 데이터 송출 예시 (1초마다)
 function Warehouse2DWithWS() {
-  return <Warehouse2D />;
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "1640px",
+        height: "940px",
+        margin: "0 auto",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {/* 배경 SVG */}
+      <img
+        src="/background-full.svg"
+        alt="Background"
+        style={{
+          position: "absolute",
+          top: -420,
+          left: 0,
+          width: "1640",
+          height: "1640",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* 검은 div - 가운데 겹치기 */}
+      <div
+        style={{
+          width: "1200px",
+          height: "800px",
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 0,
+        }}
+      >
+        <Warehouse2D />
+      </div>
+    </div>
+  );
 }
 
 export default App;

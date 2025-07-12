@@ -493,85 +493,93 @@ export default function Warehouse2D() {
   // 레일 작업자 스타일
 
   return (
-    <div style={{ width: WIDTH, margin: "0 auto" }}>
+    <div
+      style={{
+        width: WIDTH,
+        margin: "0 auto",
+        position: "relative",
+      }}
+    >
       {/* 컨트롤 UI */}
-      <div
-        style={{
-          display: "flex",
-          gap: 24,
-          marginBottom: 16,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <label>
-          물건 하차 속도(ms):
-          <input
-            type="range"
-            min={500}
-            max={5000}
-            step={100}
-            value={unloadInterval}
-            onChange={(e) => setUnloadInterval(Number(e.target.value))}
-          />
-          <span style={{ marginLeft: 8 }}>{unloadInterval}</span>
-        </label>
-        <label>
-          작업자 평균 작업 속도(ms):
-          <input
-            type="range"
-            min={1000}
-            max={10000}
-            step={500}
-            value={workerCooldown}
-            onChange={(e) => setWorkerCooldown(Number(e.target.value))}
-          />
-          <span style={{ marginLeft: 8 }}>{workerCooldown}</span>
-        </label>
-        <label>
-          작업자 수:
-          <input
-            type="number"
-            min={1}
-            max={20}
-            value={workerCount}
-            onChange={(e) => setWorkerCount(Number(e.target.value))}
-            style={{ width: 48, marginLeft: 8 }}
-          />
-        </label>
-        <label>
-          레일 속도:
-          <input
-            type="range"
-            min={1}
-            max={5}
-            step={1}
-            value={beltSpeed}
-            onChange={(e) => setBeltSpeed(Number(e.target.value))}
-            style={{ width: 120, marginLeft: 8 }}
-          />
-          <span style={{ marginLeft: 8 }}>{beltSpeed}x</span>
-        </label>
-        <label style={{ display: "flex", alignItems: "center" }}>
-          작업 실패:
-          <span
-            style={{
-              display: "inline-block",
-              background: "#c62828",
-              color: "#fff",
-              borderRadius: 12,
-              padding: "2px 16px",
-              fontWeight: 700,
-              fontSize: 16,
-              marginLeft: 8,
-              minWidth: 36,
-              textAlign: "center",
-              letterSpacing: 1,
-            }}
-          >
-            {failCount}
-          </span>
-        </label>
+      <div style={{ position: "absolute", top: 0, left: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            marginBottom: 16,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <label>
+            물건 하차 속도(ms):
+            <input
+              type="range"
+              min={500}
+              max={5000}
+              step={100}
+              value={unloadInterval}
+              onChange={(e) => setUnloadInterval(Number(e.target.value))}
+            />
+            <span style={{ marginLeft: 8 }}>{unloadInterval}</span>
+          </label>
+          <label>
+            작업자 평균 작업 속도(ms):
+            <input
+              type="range"
+              min={1000}
+              max={10000}
+              step={500}
+              value={workerCooldown}
+              onChange={(e) => setWorkerCooldown(Number(e.target.value))}
+            />
+            <span style={{ marginLeft: 8 }}>{workerCooldown}</span>
+          </label>
+          <label>
+            작업자 수:
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={workerCount}
+              onChange={(e) => setWorkerCount(Number(e.target.value))}
+              style={{ width: 48, marginLeft: 8 }}
+            />
+          </label>
+          <label>
+            레일 속도:
+            <input
+              type="range"
+              min={1}
+              max={5}
+              step={1}
+              value={beltSpeed}
+              onChange={(e) => setBeltSpeed(Number(e.target.value))}
+              style={{ width: 120, marginLeft: 8 }}
+            />
+            <span style={{ marginLeft: 8 }}>{beltSpeed}x</span>
+          </label>
+          <label style={{ display: "flex", alignItems: "center" }}>
+            작업 실패:
+            <span
+              style={{
+                display: "inline-block",
+                background: "#c62828",
+                color: "#fff",
+                borderRadius: 12,
+                padding: "2px 16px",
+                fontWeight: 700,
+                fontSize: 16,
+                marginLeft: 8,
+                minWidth: 36,
+                textAlign: "center",
+                letterSpacing: 1,
+              }}
+            >
+              {failCount}
+            </span>
+          </label>
+        </div>
       </div>
 
       {/* svg와 버튼을 감싸는 div */}
@@ -644,11 +652,10 @@ export default function Warehouse2D() {
         {/* SVG 시각화 */}
         <svg
           width={WIDTH}
-          height={HEIGHT}
+          height={900}
           style={{
             background: "transparent",
             borderRadius: 16,
-            boxShadow: "0 2px 8px #0001",
           }}
         >
           {/* 그림자 필터 정의 */}
@@ -920,46 +927,48 @@ export default function Warehouse2D() {
         </svg>
       </div>
       {/* 전체 작업자들의 작업 속도 배열 표시 */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          marginTop: 16,
-          height: 100,
-          justifyContent: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <span style={{ fontWeight: "bold", color: "#1976d2" }}>
-          작업자별 작업 속도(ms):
-        </span>
-        {WORKER_COOLDOWN_SCALES.slice(0, workerCount).map((scale, i) => {
-          const actualCooldown = Math.round(workerCooldown * scale);
-          const isTop = i < 10;
-          const label = isTop ? `A${i + 1}` : `B${i - 9}`;
-          return (
-            <span
-              key={i}
-              style={{
-                background: "#e3f2fd",
-                color: "#1976d2",
-                padding: "4px 8px",
-                borderRadius: 12,
-                fontSize: 12,
-                fontWeight: "bold",
-                border: "1px solid #bbdefb",
-                height: 24,
-                lineHeight: "16px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: "fit-content",
-              }}
-            >
-              {label}: {actualCooldown}
-            </span>
-          );
-        })}
+      <div style={{ position: "absolute", top: 0, left: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 16,
+            height: 100,
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={{ fontWeight: "bold", color: "#1976d2" }}>
+            작업자별 작업 속도(ms):
+          </span>
+          {WORKER_COOLDOWN_SCALES.slice(0, workerCount).map((scale, i) => {
+            const actualCooldown = Math.round(workerCooldown * scale);
+            const isTop = i < 10;
+            const label = isTop ? `A${i + 1}` : `B${i - 9}`;
+            return (
+              <span
+                key={i}
+                style={{
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  padding: "4px 8px",
+                  borderRadius: 12,
+                  fontSize: 12,
+                  fontWeight: "bold",
+                  border: "1px solid #bbdefb",
+                  height: 24,
+                  lineHeight: "16px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minWidth: "fit-content",
+                }}
+              >
+                {label}: {actualCooldown}
+              </span>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
