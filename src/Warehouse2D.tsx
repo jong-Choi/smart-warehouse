@@ -5,10 +5,13 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useWebSocket } from "./App";
-import robotSvg from "./assets/robot.svg";
-import brokenRobotSvg from "./assets/broken-robot.svg";
-import truckSvg from "./assets/truck.svg";
+import { useWebSocket } from "./AppDeprecated";
+import robotSvg from "@assets/svg/robot.svg";
+import brokenRobotSvg from "@assets/svg/broken-robot.svg";
+import truckSvg from "@assets/svg/truck.svg";
+import closedBoxSvg from "@assets/svg/closed-box.svg";
+import openedBoxSvg from "@assets/svg/opened-box.svg";
+import brokenBoxSvg from "@assets/svg/broken-box.svg";
 
 // 미니어처 벨트 포인트 (기준 좌표)
 const MINIFIED_BELT_POINTS = [
@@ -223,13 +226,7 @@ const MovingBox = React.memo(
           willChange: "transform",
         }}
       >
-        <image
-          href="/src/assets/closed-box.svg"
-          x={0}
-          y={0}
-          width={40}
-          height={40}
-        />
+        <image href={closedBoxSvg} x={0} y={0} width={40} height={40} />
       </g>
     );
   }
@@ -878,11 +875,7 @@ export default function Warehouse2D() {
                     })`}
                   >
                     <image
-                      href={
-                        isBroken
-                          ? "/src/assets/broken-box.svg"
-                          : "/src/assets/opened-box.svg"
-                      }
+                      href={isBroken ? brokenBoxSvg : openedBoxSvg}
                       x={0}
                       y={0}
                       width={40}

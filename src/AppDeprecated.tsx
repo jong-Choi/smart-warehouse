@@ -9,6 +9,7 @@ import React, {
   useEffect,
 } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import backgroundFullSvg from "@assets/backgrounds/background-full.svg";
 
 // 가상 WebSocket Context (브라우저 내 pub/sub)
 type MessageHandler = (data: unknown) => void;
@@ -267,7 +268,7 @@ function App() {
 }
 
 // Warehouse2D에서 WebSocket으로 데이터 송출 예시 (1초마다)
-function Warehouse2DWithWS() {
+export function Warehouse2DWithWS() {
   return (
     <div
       style={{
@@ -282,7 +283,7 @@ function Warehouse2DWithWS() {
     >
       {/* 배경 SVG */}
       <img
-        src="/background-full.svg"
+        src={backgroundFullSvg}
         alt="Background"
         style={{
           position: "absolute",
