@@ -65,3 +65,8 @@ data/
 !package.json
 !package-lock.json
 !tsconfig.json 
+/src/generated/prisma
+
+# SQLite database files
+*.db
+*.db-journal

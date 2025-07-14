@@ -1,27 +1,14 @@
-export interface Todo {
-  id: string;
-  title: string;
-  isComplete: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Todo, Prisma } from "@generated/prisma";
 
-export interface CreateTodoRequest {
-  title: string;
-  isComplete?: boolean;
-}
+// Prisma에서 생성한 Todo 타입을 재사용
+export type { Todo };
 
-export interface UpdateTodoRequest {
-  title?: string;
-  isComplete?: boolean;
-}
+// Prisma 유틸리티 타입 활용
+export type CreateTodoRequest = Prisma.TodoCreateInput;
+export type UpdateTodoRequest = Prisma.TodoUpdateInput;
 
-export interface TodoResponse {
-  id: string;
-  title: string;
-  isComplete: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+// API 응답 타입 (Prisma Todo 타입을 확장)
+export interface TodoResponse extends Todo {
   links: {
     self: string;
     update: string;

@@ -18,6 +18,7 @@
       "@models/*": ["src/models/*"],
       "@utils/*": ["src/utils/*"],
       "@typings/*": ["src/typings/*"],
+      "@generated/*": ["src/generated/*"],
       "@/*": ["src/*"]
     }
   },
