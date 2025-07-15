@@ -54,6 +54,18 @@ function DashboardLayout() {
               >
                 Parcels
               </NavLink>
+              <NavLink
+                to="/dashboard/location"
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  }`
+                }
+              >
+                Location
+              </NavLink>
             </nav>
           </div>
         </aside>

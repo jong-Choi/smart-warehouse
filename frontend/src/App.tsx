@@ -9,6 +9,7 @@ import DashboardLayout from "@components/dashboard/layout/DashboardLayout";
 import FactoryPage from "@pages/factory/FactoryPage";
 import DashboardHomePage from "@pages/dashboard/home/DashboardHomePage";
 import DashboardParcelsPage from "@pages/dashboard/parcels/DashboardParcelsPage";
+import DashboardLocationPage from "@pages/dashboard/location/DashboardLocationPage";
 
 function App() {
   return (
@@ -30,6 +31,10 @@ function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard/home" element={<DashboardHomePage />} />
           <Route path="/dashboard/parcels" element={<DashboardParcelsPage />} />
+          <Route
+            path="/dashboard/location"
+            element={<DashboardLocationPage />}
+          />
         </Route>
       </Routes>
     </Router>
