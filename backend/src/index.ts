@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import swaggerUi from "swagger-ui-express";
 import "module-alias/register";
 import parcelRoutes from "@src/routes/parcelRoutes";
 import waybillRoutes from "@src/routes/waybillRoutes";
 import operatorRoutes from "@src/routes/operatorRoutes";
 import locationRoutes from "@src/routes/locationRoutes";
+import { specs } from "./config/swagger";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -20,6 +22,16 @@ app.use(
 app.use(morgan("dev"));
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+
+// Swagger 문서
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, {
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "택배 관리 시스템 API 문서",
+  })
+);
 
 // 라우트
 app.use("/api/parcels", parcelRoutes);
@@ -70,6 +82,7 @@ app.use(
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
   console.log(`📦 Parcels API: http://localhost:${PORT}/api/parcels`);
   console.log(`📋 Waybills API: http://localhost:${PORT}/api/waybills`);
   console.log(`👷 Operators API: http://localhost:${PORT}/api/operators`);

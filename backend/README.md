@@ -136,10 +136,18 @@ GET /api/operators/stats
 GET /api/operators/:operatorId/shifts
 ```
 
+**근무 기록 정보:**
+
+- `date`: 근무 날짜 (하루 단위)
+- `startTime`: 해당 날의 근무 시작 시간
+- `endTime`: 해당 날의 근무 종료 시간
+
 **쿼리 파라미터:**
 
-- `startDate`: 시작일 (YYYY-MM-DD)
-- `endDate`: 종료일 (YYYY-MM-DD)
+- `startDate`: 조회 시작 날짜 (YYYY-MM-DD) - 해당 날짜부터의 근무 기록 조회
+- `endDate`: 조회 종료 날짜 (YYYY-MM-DD) - 해당 날짜까지의 근무 기록 조회
+
+**예시:** 2024-12-01부터 2024-12-07까지의 근무 기록 조회
 
 #### 작업자 작업 통계 조회
 
@@ -147,10 +155,20 @@ GET /api/operators/:operatorId/shifts
 GET /api/operators/:operatorId/works
 ```
 
+**작업 통계 정보:**
+
+- `date`: 작업 날짜 (하루 단위)
+- `processedCount`: 처리한 소포 수
+- `accidentCount`: 사고 처리 건수
+- `revenue`: 발생 매출 (정산 기준 단가 × 수량)
+- `errorCount`: 기타 오류 수
+
 **쿼리 파라미터:**
 
-- `startDate`: 시작일 (YYYY-MM-DD)
-- `endDate`: 종료일 (YYYY-MM-DD)
+- `startDate`: 조회 시작 날짜 (YYYY-MM-DD) - 해당 날짜부터의 작업 통계 조회
+- `endDate`: 조회 종료 날짜 (YYYY-MM-DD) - 해당 날짜까지의 작업 통계 조회
+
+**예시:** 2024-12-01부터 2024-12-07까지의 작업 통계 조회
 
 ### 배송지 (Locations)
 
@@ -265,10 +283,27 @@ npm run lint
 }
 ```
 
+## 📚 API 문서
+
+### Swagger UI
+
+인터랙티브한 API 문서를 확인할 수 있습니다:
+
+- **API 문서**: http://localhost:4000/api-docs
+
+Swagger UI에서는 다음 기능을 제공합니다:
+
+- 모든 API 엔드포인트 목록
+- 각 API의 상세 설명 및 파라미터
+- 실제 API 호출 테스트
+- 응답 스키마 확인
+- 예시 데이터 확인
+
 ## 🧪 테스트
 
 서버가 실행된 후 다음 URL로 API를 테스트할 수 있습니다:
 
+- **API 문서**: http://localhost:4000/api-docs
 - **헬스 체크**: http://localhost:4000/health
 - **소포 API**: http://localhost:4000/api/parcels
 - **운송장 API**: http://localhost:4000/api/waybills
