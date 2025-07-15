@@ -1,9 +1,9 @@
 import { useLocation } from "react-router-dom";
 
 import backgroundFullSvg from "@assets/backgrounds/background-full.svg";
-import Warehouse2D from "@/Warehouse2D";
-import LeftController from "./controllers/LeftController";
-import RightController from "./controllers/RightController";
+import Warehouse2D from "@/components/factory/Warehouse2D";
+import LeftController from "@/components/factory/controllers/LeftController";
+import RightController from "@/components/factory/controllers/RightController";
 
 function FactoryBackground() {
   const location = useLocation();

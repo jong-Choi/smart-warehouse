@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import { useWebSocket } from "./AppDeprecated";
-import { useFactoryStore } from "./stores/factoryStore";
+import { useWebSocket } from "@/AppDeprecated";
+import { useFactoryStore } from "@/stores/factoryStore";
 import robotSvg from "@assets/svg/robot.svg";
 import brokenRobotSvg from "@assets/svg/broken-robot.svg";
 import truckSvg from "@assets/svg/truck.svg";
