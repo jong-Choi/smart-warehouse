@@ -26,6 +26,9 @@ interface FactoryState {
   workerCooldown: number;
   failCount: number;
 
+  // 작업자별 작업속도 (20명)
+  workerSpeeds: number[];
+
   // 액션들
   setWorkerCount: (count: number) => void;
   setBeltSpeed: (speed: number) => void;
@@ -34,6 +37,7 @@ interface FactoryState {
   setUnloadInterval: (interval: number) => void;
   setWorkerCooldown: (cooldown: number) => void;
   setFailCount: (count: number) => void;
+  setWorkerSpeeds: (speeds: number[]) => void;
   toggleRunning: () => void;
   togglePaused: () => void;
   reset: () => void;
@@ -61,6 +65,11 @@ export const useFactoryStore = create<FactoryState>((set) => ({
   workerCooldown: 5000,
   failCount: 0,
 
+  // 작업자별 작업속도 초기화 (20명)
+  workerSpeeds: Array(20)
+    .fill(0)
+    .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
+
   // 액션들
   setWorkerCount: (count) => set({ workerCount: Math.min(count, 20) }),
   setBeltSpeed: (speed) => set({ beltSpeed: Math.min(speed, 5) }),
@@ -69,6 +78,7 @@ export const useFactoryStore = create<FactoryState>((set) => ({
   setUnloadInterval: (interval) => set({ unloadInterval: interval }),
   setWorkerCooldown: (cooldown) => set({ workerCooldown: cooldown }),
   setFailCount: (count) => set({ failCount: count }),
+  setWorkerSpeeds: (speeds) => set({ workerSpeeds: speeds }),
   toggleRunning: () => set((state) => ({ isRunning: !state.isRunning })),
   togglePaused: () => set((state) => ({ isPaused: !state.isPaused })),
   reset: () =>
@@ -82,5 +92,8 @@ export const useFactoryStore = create<FactoryState>((set) => ({
       unloadInterval: 1000,
       workerCooldown: 5000,
       failCount: 0,
+      workerSpeeds: Array(20)
+        .fill(0)
+        .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
     }),
 }));

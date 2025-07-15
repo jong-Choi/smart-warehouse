@@ -1,26 +1,10 @@
 import React from "react";
 import { useFactoryStore } from "../../../stores/factoryStore";
-import { ControlPanel, FactorySlider, MetricCard } from "../../ui";
-import {
-  Truck,
-  Activity,
-  BarChart3,
-  Clock,
-  Package,
-  Target,
-} from "lucide-react";
+import { ControlPanel, MetricCard } from "../../ui";
+import { BarChart3, Clock, Package, Target } from "lucide-react";
 
 const RightController: React.FC = () => {
-  const {
-    processingRate,
-    maxProcessingRate,
-    truckCount,
-    maxTruckCount,
-    workerCount,
-    failCount,
-    setProcessingRate,
-    setTruckCount,
-  } = useFactoryStore();
+  const { workerCount, failCount, workerSpeeds } = useFactoryStore();
 
   // 실시간 통계 계산
   const stats = {
@@ -34,30 +18,27 @@ const RightController: React.FC = () => {
 
   return (
     <div className="w-80 space-y-4 bg-slate-700/50 p-4 rounded-lg">
-      {/* 처리율 제어 */}
-      <ControlPanel title="처리율 관리">
-        <FactorySlider
-          value={processingRate}
-          min={0}
-          max={maxProcessingRate}
-          onChange={setProcessingRate}
-          label="처리율"
-          icon={<Activity className="w-4 h-4" />}
-          tooltip="물건 처리 효율을 조절합니다 (0-100%)"
-        />
-      </ControlPanel>
-
-      {/* 트럭 제어 */}
-      <ControlPanel title="트럭 관리">
-        <FactorySlider
-          value={truckCount}
-          min={1}
-          max={maxTruckCount}
-          onChange={setTruckCount}
-          label="트럭 수"
-          icon={<Truck className="w-4 h-4" />}
-          tooltip="운송 트럭의 수를 조절합니다 (1-10대)"
-        />
+      {/* 작업자별 작업속도 */}
+      <ControlPanel title="작업자별 작업속도">
+        <div className="h-48 overflow-y-auto">
+          <div className="grid grid-cols-3 gap-1">
+            {workerSpeeds.slice(0, workerCount).map((speed, i) => {
+              const isTop = i < 10;
+              const label = isTop ? `A${i + 1}` : `B${i - 9}`;
+              return (
+                <div
+                  key={i}
+                  className="bg-blue-50 border border-blue-200 rounded p-1 text-center"
+                >
+                  <div className="text-xs font-bold text-blue-700">{label}</div>
+                  <div className="text-xs font-mono text-blue-600">
+                    {speed}ms
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </ControlPanel>
 
       {/* 실시간 통계 */}

@@ -279,6 +279,7 @@ export default function Warehouse2D() {
     beltSpeed,
     failCount,
     setFailCount,
+    setWorkerSpeeds,
   } = useFactoryStore();
 
   // 속도 계산을 useMemo로 최적화 (상수 부분 분리)
@@ -328,6 +329,14 @@ export default function Warehouse2D() {
       itemSeqRef.current = 1200000001;
     }
   }, [running, setFailCount]);
+
+  // 작업자별 작업속도를 store에 업데이트
+  useEffect(() => {
+    const workerSpeeds = WORKER_COOLDOWN_SCALES.map((scale) =>
+      Math.round(workerCooldown * scale)
+    );
+    setWorkerSpeeds(workerSpeeds);
+  }, [workerCooldown, setWorkerSpeeds]);
 
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경 (running일 때만 동작)
   useEffect(() => {
@@ -773,50 +782,6 @@ export default function Warehouse2D() {
             href={truckSvg}
           />
         </svg>
-      </div>
-      {/* 전체 작업자들의 작업 속도 배열 표시 */}
-      <div style={{ position: "absolute", top: 0, left: 0 }}>
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginTop: 16,
-            height: 100,
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <span style={{ fontWeight: "bold", color: "#1976d2" }}>
-            작업자별 작업 속도(ms):
-          </span>
-          {WORKER_COOLDOWN_SCALES.slice(0, workerCount).map((scale, i) => {
-            const actualCooldown = Math.round(workerCooldown * scale);
-            const isTop = i < 10;
-            const label = isTop ? `A${i + 1}` : `B${i - 9}`;
-            return (
-              <span
-                key={i}
-                style={{
-                  background: "#e3f2fd",
-                  color: "#1976d2",
-                  padding: "4px 8px",
-                  borderRadius: 12,
-                  fontSize: 12,
-                  fontWeight: "bold",
-                  border: "1px solid #bbdefb",
-                  height: 24,
-                  lineHeight: "16px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: "fit-content",
-                }}
-              >
-                {label}: {actualCooldown}
-              </span>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
