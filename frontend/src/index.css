@@ -115,7 +115,7 @@
   }
 
   [data-slot="sidebar"] [data-slot="sidebar-menu-button"]:hover {
-    @apply bg-sidebar-accent/50 scale-105;
+    @apply bg-sidebar-accent/50;
   }
 
   /* collapsed 상태에서 아이콘 중앙 정렬 */

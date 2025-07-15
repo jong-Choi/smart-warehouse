@@ -20,21 +20,63 @@ import {
   SidebarRail,
 } from "../../ui/sidebar";
 
-const navigationData = [
+interface NavigationItem {
+  title: string;
+  url?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  children?: NavigationItem[];
+}
+
+const navigationData: NavigationItem[] = [
   {
     title: "대시보드",
-    url: "/dashboard/home",
     icon: Home,
+    children: [
+      {
+        title: "홈",
+        url: "/dashboard/home",
+      },
+      {
+        title: "개요",
+        url: "/dashboard/overview",
+      },
+    ],
   },
   {
     title: "소포 관리",
-    url: "/dashboard/parcels",
     icon: Package,
+    children: [
+      {
+        title: "전체보기",
+        url: "/dashboard/parcels",
+      },
+      {
+        title: "소포목록",
+        url: "/dashboard/parcels/list",
+      },
+      {
+        title: "입고 관리",
+        url: "/dashboard/parcels/inbound",
+      },
+      {
+        title: "출고 관리",
+        url: "/dashboard/parcels/outbound",
+      },
+    ],
   },
   {
     title: "위치 관리",
-    url: "/dashboard/location",
     icon: MapPin,
+    children: [
+      {
+        title: "전체보기",
+        url: "/dashboard/location",
+      },
+      {
+        title: "위치목록",
+        url: "/dashboard/location/list",
+      },
+    ],
   },
   {
     title: "운송 관리",
@@ -56,6 +98,62 @@ const navigationData = [
 export function DashboardSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const renderMenuItem = (item: NavigationItem) => {
+    if (item.children) {
+      return (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton tooltip={item.title} className="group">
+            {item.icon && (
+              <item.icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+            )}
+            <span className="font-medium">{item.title}</span>
+          </SidebarMenuButton>
+          <div className="ml-4 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
+            {item.children.map((child: NavigationItem) => (
+              <SidebarMenuItem key={child.title}>
+                <NavLink
+                  to={child.url || "#"}
+                  className="w-full"
+                  end={child.title === "전체보기"}
+                >
+                  {({ isActive }: { isActive: boolean }) => (
+                    <SidebarMenuButton
+                      tooltip={child.title}
+                      isActive={isActive}
+                      className="group w-full"
+                    >
+                      <span className="font-medium text-sm">{child.title}</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
+              </SidebarMenuItem>
+            ))}
+          </div>
+        </SidebarMenuItem>
+      );
+    }
+
+    return (
+      <SidebarMenuItem key={item.title}>
+        <SidebarMenuButton tooltip={item.title} asChild className="group">
+          <NavLink
+            to={item.url || "#"}
+            className={({ isActive }) =>
+              isActive
+                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                : "hover:bg-sidebar-accent/50"
+            }
+          >
+            {item.icon && (
+              <item.icon className="h-5 w-5 transition-transform duration-200 " />
+            )}
+            <span className="font-medium">{item.title}</span>
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -78,27 +176,7 @@ export function DashboardSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu className="gap-1">
-            {navigationData.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  asChild
-                  className="group"
-                >
-                  <NavLink
-                    to={item.url}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                        : "hover:bg-sidebar-accent/50"
-                    }
-                  >
-                    <item.icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-                    <span className="font-medium">{item.title}</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {navigationData.map(renderMenuItem)}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
