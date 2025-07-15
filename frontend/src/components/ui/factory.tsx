@@ -1,13 +1,8 @@
 import React from "react";
 import { Button } from "./button";
 import { Slider } from "./slider";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./tooltip";
-import { Play, Pause, RotateCcw, Settings } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
+import { Play, Pause, RotateCcw, Settings, HelpCircle } from "lucide-react";
 
 // 슬라이더 컴포넌트
 interface SliderProps {
@@ -30,33 +25,41 @@ export const FactorySlider: React.FC<SliderProps> = ({
   tooltip,
 }) => {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center space-x-2">
-              {icon && <span className="text-gray-500">{icon}</span>}
-              <label className="text-sm font-medium text-gray-700">
-                {label}
-              </label>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Slider
-                value={[value]}
-                min={min}
-                max={max}
-                onValueChange={(values) => onChange(values[0])}
-                className="flex-1"
-              />
-              <span className="text-sm font-mono text-gray-600 min-w-[3rem] text-right">
-                {value}
-              </span>
-            </div>
-          </div>
-        </TooltipTrigger>
-        {tooltip && <TooltipContent>{tooltip}</TooltipContent>}
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex flex-col space-y-2 relative">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          {icon && <span className="text-gray-500">{icon}</span>}
+          <label className="text-sm font-medium text-gray-700">{label}</label>
+        </div>
+        {tooltip && (
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-64">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">{label} 설정</h4>
+                <p className="text-sm text-gray-600">{tooltip}</p>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+        )}
+      </div>
+      <div className="flex items-center space-x-3">
+        <Slider
+          value={[value]}
+          min={min}
+          max={max}
+          onValueChange={(values) => onChange(values[0])}
+          className="flex-1"
+        />
+        <span className="text-sm font-mono text-gray-600 min-w-[3rem] text-right">
+          {value}
+        </span>
+      </div>
+    </div>
   );
 };
 
