@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { WaybillService, WaybillFilters } from "@services/waybillService";
+import { WaybillService } from "@services/waybillService";
+import { WaybillFilters, WaybillStatus } from "@typings/index";
 
 const waybillService = new WaybillService();
 
@@ -13,7 +14,7 @@ export class WaybillController {
 
       // 쿼리 파라미터 파싱
       if (req.query.status) {
-        filters.status = req.query.status as any;
+        filters.status = req.query.status as WaybillStatus;
       }
       if (req.query.startDate) {
         filters.startDate = new Date(req.query.startDate as string);

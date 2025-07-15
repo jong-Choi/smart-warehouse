@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { ParcelService, ParcelFilters } from "@services/parcelService";
+import { ParcelService } from "@services/parcelService";
+import { ParcelFilters, ParcelStatus } from "@typings/index";
 
 const parcelService = new ParcelService();
 
@@ -13,7 +14,7 @@ export class ParcelController {
 
       // 쿼리 파라미터 파싱
       if (req.query.status) {
-        filters.status = req.query.status as any;
+        filters.status = req.query.status as ParcelStatus;
       }
       if (req.query.operatorId) {
         filters.operatorId = parseInt(req.query.operatorId as string);

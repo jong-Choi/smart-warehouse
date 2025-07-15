@@ -1,0 +1,160 @@
+/**
+ * 중앙화된 타입 정의 파일
+ *
+ * 이 파일은 Prisma 스키마를 기반으로 한 타입 시스템을 제공합니다.
+ * 모든 API 요청/응답, 필터, 통계 등의 타입이 여기에 정의되어 있습니다.
+ */
+
+// ============================================================================
+// Prisma 모델 타입들 (데이터베이스 엔티티)
+// ============================================================================
+export type {
+  Operator,
+  OperatorShift,
+  OperatorWork,
+  Location,
+  Waybill,
+  Parcel,
+} from "@generated/prisma";
+
+// ============================================================================
+// Zod 검증 스키마에서 추론된 타입들
+// ============================================================================
+export type {
+  // Enum 타입들
+  OperatorType,
+  ParcelStatus,
+  WaybillStatus,
+
+  // 기본 필터 타입
+  DateRangeFilter,
+
+  // API 요청 타입들
+  CreateOperatorRequest,
+  CreateLocationRequest,
+  CreateWaybillRequest,
+  CreateParcelRequest,
+  CreateOperatorShiftRequest,
+  CreateOperatorWorkRequest,
+
+  // 필터 타입들
+  OperatorFilters,
+  WaybillFilters,
+  ParcelFilters,
+
+  // 업데이트 요청 타입들
+  UpdateOperatorRequest,
+  UpdateLocationRequest,
+  UpdateWaybillRequest,
+  UpdateParcelRequest,
+
+  // 페이지네이션 타입
+  PaginationParams,
+} from "@utils/validation";
+
+// ============================================================================
+// API 응답 타입들
+// ============================================================================
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// ============================================================================
+// 통계 타입들
+// ============================================================================
+export interface OperatorStats {
+  total: number;
+  byType: Array<{
+    type: "HUMAN" | "MACHINE";
+    count: number;
+  }>;
+}
+
+export interface WaybillStats {
+  total: number;
+  byStatus: Array<{
+    status: "IN_TRANSIT" | "DELIVERED" | "RETURNED" | "ERROR";
+    count: number;
+  }>;
+}
+
+export interface ParcelStats {
+  total: number;
+  byStatus: Array<{
+    status: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
+    count: number;
+  }>;
+  accidents: number;
+}
+
+export interface LocationStats {
+  total: number;
+  locations: Array<{
+    id: number;
+    name: string;
+    address: string | null;
+    parcelCount: number;
+    workCount: number;
+  }>;
+}
+
+// ============================================================================
+// Prisma Where 조건 타입들 (타입 안전성을 위한)
+// ============================================================================
+export interface OperatorWhereInput {
+  type?: "HUMAN" | "MACHINE";
+  createdAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+}
+
+export interface WaybillWhereInput {
+  status?: "IN_TRANSIT" | "DELIVERED" | "RETURNED" | "ERROR";
+  shippedAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+}
+
+export interface ParcelWhereInput {
+  status?: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
+  operatorId?: number;
+  locationId?: number;
+  waybillId?: number;
+  isAccident?: boolean;
+  processedAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+}
+
+export interface OperatorShiftWhereInput {
+  operatorId: number;
+  date?: {
+    gte?: Date;
+    lte?: Date;
+  };
+}
+
+export interface OperatorWorkWhereInput {
+  operatorId?: number;
+  locationId?: number;
+  date?: {
+    gte?: Date;
+    lte?: Date;
+  };
+}

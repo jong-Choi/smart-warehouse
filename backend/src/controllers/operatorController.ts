@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { OperatorService, OperatorFilters } from "@services/operatorService";
+import { OperatorService } from "@services/operatorService";
+import { OperatorFilters, OperatorType } from "@typings/index";
+import { parseEnumQuery, parseDateQuery } from "@utils/queryParser";
+import { OPERATOR_TYPES } from "@utils/validation";
 
 const operatorService = new OperatorService();
 
@@ -12,14 +15,19 @@ export class OperatorController {
       const filters: OperatorFilters = {};
 
       // 쿼리 파라미터 파싱
-      if (req.query.type) {
-        filters.type = req.query.type as any;
+      const type = parseEnumQuery(req.query, "type", OPERATOR_TYPES);
+      if (type) {
+        filters.type = type;
       }
-      if (req.query.startDate) {
-        filters.startDate = new Date(req.query.startDate as string);
+
+      const startDate = parseDateQuery(req.query, "startDate");
+      if (startDate) {
+        filters.startDate = startDate;
       }
-      if (req.query.endDate) {
-        filters.endDate = new Date(req.query.endDate as string);
+
+      const endDate = parseDateQuery(req.query, "endDate");
+      if (endDate) {
+        filters.endDate = endDate;
       }
 
       const operators = await operatorService.getAllOperators(filters);

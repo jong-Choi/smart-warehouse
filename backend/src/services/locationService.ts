@@ -1,4 +1,5 @@
 import { PrismaClient } from "@generated/prisma";
+import { LocationStats } from "@typings/index";
 
 const prisma = new PrismaClient();
 
@@ -75,7 +76,7 @@ export class LocationService {
   /**
    * 배송지별 통계를 조회합니다.
    */
-  async getLocationStats() {
+  async getLocationStats(): Promise<LocationStats> {
     const locations = await prisma.location.findMany({
       include: {
         _count: {

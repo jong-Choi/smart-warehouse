@@ -1,19 +1,18 @@
-import { PrismaClient, WaybillStatus } from "@generated/prisma";
+import { PrismaClient } from "@generated/prisma";
+import {
+  WaybillFilters,
+  WaybillWhereInput,
+  WaybillStats,
+} from "@typings/index";
 
 const prisma = new PrismaClient();
-
-export interface WaybillFilters {
-  status?: WaybillStatus;
-  startDate?: Date;
-  endDate?: Date;
-}
 
 export class WaybillService {
   /**
    * 모든 운송장 목록을 조회합니다.
    */
   async getAllWaybills(filters: WaybillFilters = {}) {
-    const where: any = {};
+    const where: WaybillWhereInput = {};
 
     if (filters.status) {
       where.status = filters.status;
@@ -121,7 +120,7 @@ export class WaybillService {
   /**
    * 운송장 상태별 통계를 조회합니다.
    */
-  async getWaybillStats() {
+  async getWaybillStats(): Promise<WaybillStats> {
     const stats = await prisma.waybill.groupBy({
       by: ["status"],
       _count: {
@@ -133,7 +132,7 @@ export class WaybillService {
 
     return {
       total: totalCount,
-      byStatus: stats.map((stat: any) => ({
+      byStatus: stats.map((stat) => ({
         status: stat.status,
         count: stat._count.id,
       })),

@@ -1,19 +1,18 @@
-import { PrismaClient, OperatorType } from "@generated/prisma";
+import { PrismaClient } from "@generated/prisma";
+import {
+  OperatorFilters,
+  OperatorWhereInput,
+  OperatorStats,
+} from "@typings/index";
 
 const prisma = new PrismaClient();
-
-export interface OperatorFilters {
-  type?: OperatorType;
-  startDate?: Date;
-  endDate?: Date;
-}
 
 export class OperatorService {
   /**
    * 모든 작업자 목록을 조회합니다.
    */
   async getAllOperators(filters: OperatorFilters = {}) {
-    const where: any = {};
+    const where: OperatorWhereInput = {};
 
     if (filters.type) {
       where.type = filters.type;
@@ -111,7 +110,7 @@ export class OperatorService {
   /**
    * 작업자별 KPI 통계를 조회합니다.
    */
-  async getOperatorStats() {
+  async getOperatorStats(): Promise<OperatorStats> {
     const stats = await prisma.operator.groupBy({
       by: ["type"],
       _count: {
@@ -123,7 +122,7 @@ export class OperatorService {
 
     return {
       total: totalCount,
-      byType: stats.map((stat: any) => ({
+      byType: stats.map((stat) => ({
         type: stat.type,
         count: stat._count.id,
       })),

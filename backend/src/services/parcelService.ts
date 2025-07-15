@@ -1,23 +1,14 @@
-import { PrismaClient, ParcelStatus } from "@generated/prisma";
+import { PrismaClient } from "@generated/prisma";
+import { ParcelFilters, ParcelWhereInput, ParcelStats } from "@typings/index";
 
 const prisma = new PrismaClient();
-
-export interface ParcelFilters {
-  status?: ParcelStatus;
-  operatorId?: number;
-  locationId?: number;
-  waybillId?: number;
-  isAccident?: boolean;
-  startDate?: Date;
-  endDate?: Date;
-}
 
 export class ParcelService {
   /**
    * 모든 소포 목록을 조회합니다.
    */
   async getAllParcels(filters: ParcelFilters = {}) {
-    const where: any = {};
+    const where: ParcelWhereInput = {};
 
     if (filters.status) {
       where.status = filters.status;
@@ -119,7 +110,7 @@ export class ParcelService {
   /**
    * 소포 상태별 통계를 조회합니다.
    */
-  async getParcelStats() {
+  async getParcelStats(): Promise<ParcelStats> {
     const stats = await prisma.parcel.groupBy({
       by: ["status"],
       _count: {
@@ -134,7 +125,7 @@ export class ParcelService {
 
     return {
       total: totalCount,
-      byStatus: stats.map((stat: any) => ({
+      byStatus: stats.map((stat) => ({
         status: stat.status,
         count: stat._count.id,
       })),
