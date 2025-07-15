@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { TabSwitcher } from "../ui/TabSwitcher";
+import { TabSwitcher } from "@components/ui/TabSwitcher";
 import FactoryBackground from "../factory/FactoryBackground";
 
 function RootLayout() {

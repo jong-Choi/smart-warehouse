@@ -33,3 +33,10 @@ export {
   TooltipTrigger,
 } from "./tooltip";
 export { Skeleton } from "./skeleton";
+export {
+  FactorySlider,
+  ControlPanel,
+  StatusIndicator,
+  MetricCard,
+} from "./factory";
+export { Slider } from "./slider";
