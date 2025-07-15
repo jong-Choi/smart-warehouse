@@ -205,6 +205,107 @@ const options = {
             location: { $ref: "#/components/schemas/Location" },
           },
         },
+        // 배송지 통계 스키마
+        LocationStats: {
+          type: "object",
+          properties: {
+            total: {
+              type: "integer",
+              description: "전체 배송지 개수",
+            },
+            locations: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "integer" },
+                  name: { type: "string" },
+                  address: { type: "string", nullable: true },
+                  parcelCount: { type: "integer" },
+                  workCount: { type: "integer" },
+                  pendingUnloadCount: {
+                    type: "integer",
+                    description: "하차 예정 수량",
+                  },
+                  totalProcessedCount: {
+                    type: "integer",
+                    description: "전체 처리 개수",
+                  },
+                  accidentCount: {
+                    type: "integer",
+                    description: "사고 건수",
+                  },
+                  totalRevenue: {
+                    type: "integer",
+                    description: "처리 금액",
+                  },
+                  accidentAmount: {
+                    type: "integer",
+                    description: "사고 금액",
+                  },
+                },
+              },
+            },
+          },
+        },
+        // 작업자 통계 스키마
+        OperatorStats: {
+          type: "object",
+          properties: {
+            total: {
+              type: "integer",
+              description: "전체 작업자 개수",
+            },
+            byType: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  type: {
+                    type: "string",
+                    enum: ["HUMAN", "MACHINE"],
+                  },
+                  count: { type: "integer" },
+                },
+              },
+            },
+            operators: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "integer" },
+                  name: { type: "string" },
+                  code: { type: "string" },
+                  type: {
+                    type: "string",
+                    enum: ["HUMAN", "MACHINE"],
+                  },
+                  totalProcessedCount: {
+                    type: "integer",
+                    description: "총 처리한 소포 수",
+                  },
+                  accidentCount: {
+                    type: "integer",
+                    description: "사고 처리 건수",
+                  },
+                  totalRevenue: {
+                    type: "integer",
+                    description: "총 처리 금액",
+                  },
+                  accidentAmount: {
+                    type: "integer",
+                    description: "사고 금액",
+                  },
+                  averageDailyProcessed: {
+                    type: "integer",
+                    description: "일평균 처리량",
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       parameters: {
         // 공통 파라미터

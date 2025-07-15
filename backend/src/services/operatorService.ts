@@ -174,7 +174,22 @@ export class OperatorService {
   /**
    * 작업자별 KPI 통계를 조회합니다.
    */
-  async getOperatorStats(): Promise<OperatorStats> {
+  async getOperatorStats(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<OperatorStats> {
+    // 날짜 필터 조건 설정
+    const dateFilter: any = {};
+    if (startDate || endDate) {
+      if (startDate) {
+        dateFilter.gte = startDate;
+      }
+      if (endDate) {
+        dateFilter.lte = endDate;
+      }
+    }
+
+    // 기본 통계 (타입별 개수)
     const stats = await prisma.operator.groupBy({
       by: ["type"],
       _count: {
@@ -184,12 +199,96 @@ export class OperatorService {
 
     const totalCount = await prisma.operator.count();
 
+    // 모든 작업자 조회
+    const operators = await prisma.operator.findMany();
+
+    // 각 작업자별 상세 통계 계산
+    const operatorStats = await Promise.all(
+      operators.map(async (operator) => {
+        // 총 처리한 소포 수 (NORMAL + ACCIDENT)
+        const totalProcessedCount = await prisma.parcel.count({
+          where: {
+            operatorId: operator.id,
+            status: { in: ["NORMAL", "ACCIDENT"] },
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+        });
+
+        // 사고 처리 건수 (ACCIDENT)
+        const accidentCount = await prisma.parcel.count({
+          where: {
+            operatorId: operator.id,
+            status: "ACCIDENT",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+        });
+
+        // 총 처리 금액 (정상 처리된 소포들의 declaredValue 합계)
+        const totalRevenueResult = await prisma.parcel.aggregate({
+          where: {
+            operatorId: operator.id,
+            status: "NORMAL",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+          _sum: {
+            declaredValue: true,
+          },
+        });
+
+        // 사고 금액 (사고 처리된 소포들의 declaredValue 합계)
+        const accidentAmountResult = await prisma.parcel.aggregate({
+          where: {
+            operatorId: operator.id,
+            status: "ACCIDENT",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+          _sum: {
+            declaredValue: true,
+          },
+        });
+
+        // 일평균 처리량 계산
+        let averageDailyProcessed = 0;
+        if (Object.keys(dateFilter).length > 0) {
+          const start = startDate || new Date(0);
+          const end = endDate || new Date();
+          const daysDiff = Math.ceil(
+            (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          if (daysDiff > 0) {
+            averageDailyProcessed = Math.round(totalProcessedCount / daysDiff);
+          }
+        }
+
+        return {
+          id: operator.id,
+          name: operator.name,
+          code: operator.code,
+          type: operator.type,
+          totalProcessedCount,
+          accidentCount,
+          totalRevenue: totalRevenueResult._sum.declaredValue || 0,
+          accidentAmount: accidentAmountResult._sum.declaredValue || 0,
+          averageDailyProcessed,
+        };
+      })
+    );
+
     return {
       total: totalCount,
       byType: stats.map((stat) => ({
         type: stat.type,
         count: stat._count.id,
       })),
+      operators: operatorStats,
     };
   }
 

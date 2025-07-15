@@ -81,6 +81,18 @@ export interface OperatorStats {
     type: "HUMAN" | "MACHINE";
     count: number;
   }>;
+  // 상세 통계 정보 추가
+  operators: Array<{
+    id: number;
+    name: string;
+    code: string;
+    type: "HUMAN" | "MACHINE";
+    totalProcessedCount: number; // 총 처리한 소포 수
+    accidentCount: number; // 사고 처리 건수
+    totalRevenue: number; // 총 처리 금액
+    accidentAmount: number; // 사고 금액
+    averageDailyProcessed: number; // 일평균 처리량
+  }>;
 }
 
 export interface WaybillStats {
@@ -108,6 +120,12 @@ export interface LocationStats {
     address: string | null;
     parcelCount: number;
     workCount: number;
+    // 상세 통계 정보 추가
+    pendingUnloadCount: number; // 하차 예정 수량
+    totalProcessedCount: number; // 전체 처리 개수
+    accidentCount: number; // 사고 건수
+    totalRevenue: number; // 처리 금액
+    accidentAmount: number; // 사고 금액
   }>;
 }
 

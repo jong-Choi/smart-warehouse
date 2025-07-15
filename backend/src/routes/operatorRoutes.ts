@@ -43,8 +43,11 @@ router.get("/", operatorController.getAllOperators);
  * /api/operators/stats:
  *   get:
  *     summary: 작업자별 통계 조회
- *     description: 작업자의 유형별 통계 정보를 조회합니다.
+ *     description: 작업자별 상세 통계 정보를 조회합니다. 날짜 범위를 지정하면 해당 기간의 통계를 조회하고, 지정하지 않으면 전체 기간의 통계를 조회합니다.
  *     tags: [작업자 (Operators)]
+ *     parameters:
+ *       - $ref: '#/components/parameters/StartDate'
+ *       - $ref: '#/components/parameters/EndDate'
  *     responses:
  *       200:
  *         description: 성공적으로 통계를 조회했습니다.
@@ -57,22 +60,7 @@ router.get("/", operatorController.getAllOperators);
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   type: object
- *                   properties:
- *                     total:
- *                       type: integer
- *                       example: 4
- *                     byType:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           type:
- *                             type: string
- *                             example: HUMAN
- *                           count:
- *                             type: integer
- *                             example: 2
+ *                   $ref: '#/components/schemas/OperatorStats'
  */
 router.get("/stats", operatorController.getOperatorStats);
 

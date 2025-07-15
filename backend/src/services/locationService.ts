@@ -128,7 +128,22 @@ export class LocationService {
   /**
    * 배송지별 통계를 조회합니다.
    */
-  async getLocationStats(): Promise<LocationStats> {
+  async getLocationStats(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<LocationStats> {
+    // 날짜 필터 조건 설정
+    const dateFilter: any = {};
+    if (startDate || endDate) {
+      if (startDate) {
+        dateFilter.gte = startDate;
+      }
+      if (endDate) {
+        dateFilter.lte = endDate;
+      }
+    }
+
+    // 모든 배송지 조회
     const locations = await prisma.location.findMany({
       include: {
         _count: {
@@ -140,15 +155,88 @@ export class LocationService {
       },
     });
 
+    // 각 배송지별 상세 통계 계산
+    const locationStats = await Promise.all(
+      locations.map(async (location) => {
+        // 하차 예정 수량 (PENDING_UNLOAD)
+        const pendingUnloadCount = await prisma.parcel.count({
+          where: {
+            locationId: location.id,
+            status: "PENDING_UNLOAD",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+        });
+
+        // 전체 처리 개수 (NORMAL + ACCIDENT)
+        const totalProcessedCount = await prisma.parcel.count({
+          where: {
+            locationId: location.id,
+            status: { in: ["NORMAL", "ACCIDENT"] },
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+        });
+
+        // 사고 건수 (ACCIDENT)
+        const accidentCount = await prisma.parcel.count({
+          where: {
+            locationId: location.id,
+            status: "ACCIDENT",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+        });
+
+        // 처리 금액 (정상 처리된 소포들의 declaredValue 합계)
+        const totalRevenueResult = await prisma.parcel.aggregate({
+          where: {
+            locationId: location.id,
+            status: "NORMAL",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+          _sum: {
+            declaredValue: true,
+          },
+        });
+
+        // 사고 금액 (사고 처리된 소포들의 declaredValue 합계)
+        const accidentAmountResult = await prisma.parcel.aggregate({
+          where: {
+            locationId: location.id,
+            status: "ACCIDENT",
+            ...(Object.keys(dateFilter).length > 0 && {
+              processedAt: dateFilter,
+            }),
+          },
+          _sum: {
+            declaredValue: true,
+          },
+        });
+
+        return {
+          id: location.id,
+          name: location.name,
+          address: location.address,
+          parcelCount: location._count.parcels,
+          workCount: location._count.operatorWorks,
+          pendingUnloadCount,
+          totalProcessedCount,
+          accidentCount,
+          totalRevenue: totalRevenueResult._sum.declaredValue || 0,
+          accidentAmount: accidentAmountResult._sum.declaredValue || 0,
+        };
+      })
+    );
+
     return {
       total: locations.length,
-      locations: locations.map((location) => ({
-        id: location.id,
-        name: location.name,
-        address: location.address,
-        parcelCount: location._count.parcels,
-        workCount: location._count.operatorWorks,
-      })),
+      locations: locationStats,
     };
   }
 

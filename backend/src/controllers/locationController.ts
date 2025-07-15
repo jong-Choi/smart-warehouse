@@ -70,7 +70,17 @@ export class LocationController {
    */
   async getLocationStats(req: Request, res: Response) {
     try {
-      const stats = await locationService.getLocationStats();
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+
+      if (req.query.startDate) {
+        startDate = new Date(req.query.startDate as string);
+      }
+      if (req.query.endDate) {
+        endDate = new Date(req.query.endDate as string);
+      }
+
+      const stats = await locationService.getLocationStats(startDate, endDate);
 
       res.json({
         success: true,

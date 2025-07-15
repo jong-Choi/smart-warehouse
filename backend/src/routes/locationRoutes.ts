@@ -40,8 +40,11 @@ router.get("/", locationController.getAllLocations);
  * /api/locations/stats:
  *   get:
  *     summary: 배송지별 통계 조회
- *     description: 배송지별 통계 정보를 조회합니다.
+ *     description: 배송지별 상세 통계 정보를 조회합니다. 날짜 범위를 지정하면 해당 기간의 통계를 조회하고, 지정하지 않으면 전체 기간의 통계를 조회합니다.
  *     tags: [배송지 (Locations)]
+ *     parameters:
+ *       - $ref: '#/components/parameters/StartDate'
+ *       - $ref: '#/components/parameters/EndDate'
  *     responses:
  *       200:
  *         description: 성공적으로 통계를 조회했습니다.
@@ -54,26 +57,7 @@ router.get("/", locationController.getAllLocations);
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   type: object
- *                   properties:
- *                     total:
- *                       type: integer
- *                       example: 4
- *                     locations:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: integer
- *                           name:
- *                             type: string
- *                           address:
- *                             type: string
- *                           parcelCount:
- *                             type: integer
- *                           workCount:
- *                             type: integer
+ *                   $ref: '#/components/schemas/LocationStats'
  */
 router.get("/stats", locationController.getLocationStats);
 

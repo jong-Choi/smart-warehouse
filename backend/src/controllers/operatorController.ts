@@ -130,7 +130,17 @@ export class OperatorController {
    */
   async getOperatorStats(req: Request, res: Response) {
     try {
-      const stats = await operatorService.getOperatorStats();
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+
+      if (req.query.startDate) {
+        startDate = new Date(req.query.startDate as string);
+      }
+      if (req.query.endDate) {
+        endDate = new Date(req.query.endDate as string);
+      }
+
+      const stats = await operatorService.getOperatorStats(startDate, endDate);
 
       res.json({
         success: true,
