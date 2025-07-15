@@ -1,11 +1,6 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useWebSocket } from "./AppDeprecated";
+import { useFactoryStore } from "./stores/factoryStore";
 import robotSvg from "@assets/svg/robot.svg";
 import brokenRobotSvg from "@assets/svg/broken-robot.svg";
 import truckSvg from "@assets/svg/truck.svg";
@@ -275,22 +270,22 @@ const calculatePositionOnBelt = (() => {
 })();
 
 export default function Warehouse2D() {
-  // 공장 가동 상태
-  const [running, setRunning] = useState(true);
-  // 컨트롤 상태
-  const [unloadInterval, setUnloadInterval] = useState(1000); // 물건 하차 속도(ms)
-  const [workerCooldown, setWorkerCooldown] = useState(5000); // 작업자 작업 속도(ms)
-  const [workerCount, setWorkerCount] = useState(5); // 활성 작업자 수
-  // 레일 속도 (컨트롤)
-  const [beltSpeed, setBeltSpeed] = useState(5); // 1~5
+  // factoryStore에서 상태 가져오기
+  const {
+    isRunning: running,
+    unloadInterval,
+    workerCooldown,
+    workerCount,
+    beltSpeed,
+    failCount,
+    setFailCount,
+  } = useFactoryStore();
 
   // 속도 계산을 useMemo로 최적화 (상수 부분 분리)
   const speed = useMemo(() => beltSpeed / 2 / SPEED_DENOMINATOR, [beltSpeed]);
   const requestRef = useRef<number | null>(null);
 
-  // 이벤트 핸들러들을 useCallback으로 최적화
-  const handleStopRunning = useCallback(() => setRunning(false), []);
-  const handleStartRunning = useCallback(() => setRunning(true), []);
+  // 이벤트 핸들러들은 컨트롤러에서 관리하므로 제거
 
   // 운송장 번호 상태 (UI 표시용 - 현재는 사용하지 않음)
   // const [itemSeq, setItemSeq] = useState(1200000001);
@@ -312,9 +307,6 @@ export default function Warehouse2D() {
     Array(MAX_WORKERS).fill(0)
   );
 
-  // 작업 실패(벨트 끝까지 도달한 동그라미) 카운트
-  const [failCount, setFailCount] = useState(0);
-
   const ws = useWebSocket();
 
   // 운송장 번호 ref (타이머에서 사용)
@@ -335,7 +327,7 @@ export default function Warehouse2D() {
       setFailCount(0);
       itemSeqRef.current = 1200000001;
     }
-  }, [running]);
+  }, [running, setFailCount]);
 
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경 (running일 때만 동작)
   useEffect(() => {
@@ -481,10 +473,10 @@ export default function Warehouse2D() {
       })
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
-      setFailCount((failCount) => failCount + failedIdxs.length);
+      setFailCount(failCount + failedIdxs.length);
       setCircles((prev) => prev.filter((_, i) => !failedIdxs.includes(i)));
     }
-  }, [circles, running]); // TOTAL_DISTANCE는 상수이므로 의존성에서 제거
+  }, [circles, running, failCount, setFailCount]); // TOTAL_DISTANCE는 상수이므로 의존성에서 제거
 
   // 하차 작업자 스타일
   // 레일 작업자 스타일
@@ -497,87 +489,7 @@ export default function Warehouse2D() {
         position: "relative",
       }}
     >
-      {/* 컨트롤 UI */}
-      <div style={{ position: "absolute", top: 0, left: 0 }}>
-        <div
-          style={{
-            display: "flex",
-            gap: 24,
-            marginBottom: 16,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <label>
-            물건 하차 속도(ms):
-            <input
-              type="range"
-              min={500}
-              max={5000}
-              step={100}
-              value={unloadInterval}
-              onChange={(e) => setUnloadInterval(Number(e.target.value))}
-            />
-            <span style={{ marginLeft: 8 }}>{unloadInterval}</span>
-          </label>
-          <label>
-            작업자 평균 작업 속도(ms):
-            <input
-              type="range"
-              min={1000}
-              max={10000}
-              step={500}
-              value={workerCooldown}
-              onChange={(e) => setWorkerCooldown(Number(e.target.value))}
-            />
-            <span style={{ marginLeft: 8 }}>{workerCooldown}</span>
-          </label>
-          <label>
-            작업자 수:
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={workerCount}
-              onChange={(e) => setWorkerCount(Number(e.target.value))}
-              style={{ width: 48, marginLeft: 8 }}
-            />
-          </label>
-          <label>
-            레일 속도:
-            <input
-              type="range"
-              min={1}
-              max={5}
-              step={1}
-              value={beltSpeed}
-              onChange={(e) => setBeltSpeed(Number(e.target.value))}
-              style={{ width: 120, marginLeft: 8 }}
-            />
-            <span style={{ marginLeft: 8 }}>{beltSpeed}x</span>
-          </label>
-          <label style={{ display: "flex", alignItems: "center" }}>
-            작업 실패:
-            <span
-              style={{
-                display: "inline-block",
-                background: "#c62828",
-                color: "#fff",
-                borderRadius: 12,
-                padding: "2px 16px",
-                fontWeight: 700,
-                fontSize: 16,
-                marginLeft: 8,
-                minWidth: 36,
-                textAlign: "center",
-                letterSpacing: 1,
-              }}
-            >
-              {failCount}
-            </span>
-          </label>
-        </div>
-      </div>
+      {/* 컨트롤 UI는 컨트롤러에서 관리하므로 제거 */}
 
       {/* svg와 버튼을 감싸는 div */}
       <div
@@ -588,64 +500,7 @@ export default function Warehouse2D() {
           margin: "0 auto",
         }}
       >
-        {/* 공장 가동 중단 버튼 (왼쪽 상단) */}
-        {running && (
-          <button
-            style={{
-              position: "absolute",
-              top: 24,
-              left: 24,
-              zIndex: 10,
-              fontSize: 16,
-              padding: "8px 20px",
-              background: "#c62828",
-              color: "#fff",
-              border: "none",
-              borderRadius: 6,
-              fontWeight: "bold",
-              boxShadow: "0 2px 8px #0002",
-              cursor: "pointer",
-            }}
-            onClick={handleStopRunning}
-          >
-            중단하기
-          </button>
-        )}
-        {/* 공장 가동 시작 버튼 (중앙) */}
-        {!running && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 20,
-              background: "#fff9",
-              borderRadius: 16,
-            }}
-          >
-            <button
-              style={{
-                fontSize: 36,
-                padding: "32px 64px",
-                background: "#1976d2",
-                color: "#fff",
-                border: "none",
-                borderRadius: 16,
-                fontWeight: "bold",
-                boxShadow: "0 4px 16px #0002",
-                cursor: "pointer",
-              }}
-              onClick={handleStartRunning}
-            >
-              공장 가동 시작
-            </button>
-          </div>
-        )}
+        {/* 공장 가동 버튼은 컨트롤러에서 관리하므로 제거 */}
         {/* SVG 시각화 */}
         <svg
           width={WIDTH}

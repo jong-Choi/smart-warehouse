@@ -44,7 +44,7 @@ export const useFactoryStore = create<FactoryState>((set) => ({
   workerCount: 5,
   maxWorkers: 20,
 
-  beltSpeed: 5,
+  beltSpeed: 1,
   maxBeltSpeed: 5,
 
   processingRate: 75,
