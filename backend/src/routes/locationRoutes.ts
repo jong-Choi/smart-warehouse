@@ -8,9 +8,13 @@ const locationController = new LocationController();
  * @swagger
  * /api/locations:
  *   get:
- *     summary: 모든 배송지 목록 조회
- *     description: 모든 배송지 목록을 조회합니다.
+ *     summary: 모든 배송지 목록 조회 (페이지네이션 지원)
+ *     description: 모든 배송지 목록을 페이지네이션과 함께 조회합니다.
  *     tags: [배송지 (Locations)]
+ *     parameters:
+ *       - $ref: '#/components/parameters/Page'
+ *       - $ref: '#/components/parameters/Limit'
+ *       - $ref: '#/components/parameters/GetAll'
  *     responses:
  *       200:
  *         description: 성공적으로 배송지 목록을 조회했습니다.
@@ -26,9 +30,8 @@ const locationController = new LocationController();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Location'
- *                 count:
- *                   type: integer
- *                   example: 4
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationInfo'
  */
 router.get("/", locationController.getAllLocations);
 

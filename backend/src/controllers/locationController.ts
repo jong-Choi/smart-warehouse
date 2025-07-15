@@ -1,20 +1,24 @@
 import { Request, Response } from "express";
 import { LocationService } from "@services/locationService";
+import { parsePaginationQuery } from "@utils/queryParser";
 
 const locationService = new LocationService();
 
 export class LocationController {
   /**
-   * 모든 배송지 목록을 조회합니다.
+   * 모든 배송지 목록을 조회합니다. (페이지네이션 지원)
    */
   async getAllLocations(req: Request, res: Response) {
     try {
-      const locations = await locationService.getAllLocations();
+      // 페이지네이션 파라미터 파싱
+      const pagination = parsePaginationQuery(req.query);
+
+      const result = await locationService.getAllLocations(pagination);
 
       res.json({
         success: true,
-        data: locations,
-        count: locations.length,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       console.error("Error fetching locations:", error);

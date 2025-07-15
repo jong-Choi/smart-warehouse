@@ -1,13 +1,21 @@
 import { PrismaClient } from "@generated/prisma";
-import { ParcelFilters, ParcelWhereInput, ParcelStats } from "@typings/index";
+import {
+  ParcelFilters,
+  ParcelWhereInput,
+  ParcelStats,
+  PaginationParams,
+} from "@typings/index";
 
 const prisma = new PrismaClient();
 
 export class ParcelService {
   /**
-   * 모든 소포 목록을 조회합니다.
+   * 모든 소포 목록을 조회합니다. (페이지네이션 지원)
    */
-  async getAllParcels(filters: ParcelFilters = {}) {
+  async getAllParcels(
+    filters: ParcelFilters = {},
+    pagination?: { page?: number; limit?: number; getAll?: boolean }
+  ) {
     const where: ParcelWhereInput = {};
 
     if (filters.status) {
@@ -40,36 +48,101 @@ export class ParcelService {
       }
     }
 
-    return await prisma.parcel.findMany({
-      where,
-      include: {
-        operator: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            type: true,
+    // getAll이 true이면 전체 조회
+    if (pagination?.getAll) {
+      const data = await prisma.parcel.findMany({
+        where,
+        include: {
+          operator: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              type: true,
+            },
+          },
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
+          waybill: {
+            select: {
+              id: true,
+              number: true,
+              status: true,
+            },
           },
         },
-        location: {
-          select: {
-            id: true,
-            name: true,
-            address: true,
+        orderBy: {
+          processedAt: "desc",
+        },
+      });
+
+      return {
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    // 페이지네이션 파라미터 설정
+    const page = pagination?.page || 1;
+    const limit = Math.min(pagination?.limit || 20, 100); // 최대 100개로 제한
+    const skip = (page - 1) * limit;
+
+    // 데이터와 전체 개수를 병렬로 조회
+    const [data, total] = await Promise.all([
+      prisma.parcel.findMany({
+        where,
+        include: {
+          operator: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              type: true,
+            },
+          },
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
+          waybill: {
+            select: {
+              id: true,
+              number: true,
+              status: true,
+            },
           },
         },
-        waybill: {
-          select: {
-            id: true,
-            number: true,
-            status: true,
-          },
+        orderBy: {
+          processedAt: "desc",
         },
+        skip,
+        take: limit,
+      }),
+      prisma.parcel.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        processedAt: "desc",
-      },
-    });
+    };
   }
 
   /**

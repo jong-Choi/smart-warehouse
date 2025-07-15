@@ -3,15 +3,19 @@ import {
   WaybillFilters,
   WaybillWhereInput,
   WaybillStats,
+  PaginationParams,
 } from "@typings/index";
 
 const prisma = new PrismaClient();
 
 export class WaybillService {
   /**
-   * 모든 운송장 목록을 조회합니다.
+   * 모든 운송장 목록을 조회합니다. (페이지네이션 지원)
    */
-  async getAllWaybills(filters: WaybillFilters = {}) {
+  async getAllWaybills(
+    filters: WaybillFilters = {},
+    pagination?: { page?: number; limit?: number; getAll?: boolean }
+  ) {
     const where: WaybillWhereInput = {};
 
     if (filters.status) {
@@ -28,33 +32,95 @@ export class WaybillService {
       }
     }
 
-    return await prisma.waybill.findMany({
-      where,
-      include: {
-        parcels: {
-          include: {
-            operator: {
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                type: true,
+    // getAll이 true이면 전체 조회
+    if (pagination?.getAll) {
+      const data = await prisma.waybill.findMany({
+        where,
+        include: {
+          parcels: {
+            include: {
+              operator: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                  type: true,
+                },
               },
-            },
-            location: {
-              select: {
-                id: true,
-                name: true,
-                address: true,
+              location: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true,
+                },
               },
             },
           },
         },
+        orderBy: {
+          shippedAt: "desc",
+        },
+      });
+
+      return {
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    // 페이지네이션 파라미터 설정
+    const page = pagination?.page || 1;
+    const limit = Math.min(pagination?.limit || 20, 100); // 최대 100개로 제한
+    const skip = (page - 1) * limit;
+
+    // 데이터와 전체 개수를 병렬로 조회
+    const [data, total] = await Promise.all([
+      prisma.waybill.findMany({
+        where,
+        include: {
+          parcels: {
+            include: {
+              operator: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                  type: true,
+                },
+              },
+              location: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          shippedAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.waybill.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        shippedAt: "desc",
-      },
-    });
+    };
   }
 
   /**

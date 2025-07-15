@@ -8,13 +8,16 @@ const waybillController = new WaybillController();
  * @swagger
  * /api/waybills:
  *   get:
- *     summary: 모든 운송장 목록 조회
- *     description: 필터링 옵션을 사용하여 운송장 목록을 조회합니다.
+ *     summary: 모든 운송장 목록 조회 (페이지네이션 지원)
+ *     description: 필터링 옵션과 페이지네이션을 사용하여 운송장 목록을 조회합니다.
  *     tags: [운송장 (Waybills)]
  *     parameters:
  *       - $ref: '#/components/parameters/WaybillStatus'
  *       - $ref: '#/components/parameters/StartDate'
  *       - $ref: '#/components/parameters/EndDate'
+ *       - $ref: '#/components/parameters/Page'
+ *       - $ref: '#/components/parameters/Limit'
+ *       - $ref: '#/components/parameters/GetAll'
  *     responses:
  *       200:
  *         description: 성공적으로 운송장 목록을 조회했습니다.
@@ -30,9 +33,8 @@ const waybillController = new WaybillController();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Waybill'
- *                 count:
- *                   type: integer
- *                   example: 4
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationInfo'
  */
 router.get("/", waybillController.getAllWaybills);
 

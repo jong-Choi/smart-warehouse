@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import { ParcelService } from "@services/parcelService";
 import { ParcelFilters, ParcelStatus } from "@typings/index";
+import { parsePaginationQuery } from "@utils/queryParser";
 
 const parcelService = new ParcelService();
 
 export class ParcelController {
   /**
-   * 모든 소포 목록을 조회합니다.
+   * 모든 소포 목록을 조회합니다. (페이지네이션 지원)
    */
   async getAllParcels(req: Request, res: Response) {
     try {
@@ -35,12 +36,15 @@ export class ParcelController {
         filters.endDate = new Date(req.query.endDate as string);
       }
 
-      const parcels = await parcelService.getAllParcels(filters);
+      // 페이지네이션 파라미터 파싱
+      const pagination = parsePaginationQuery(req.query);
+
+      const result = await parcelService.getAllParcels(filters, pagination);
 
       res.json({
         success: true,
-        data: parcels,
-        count: parcels.length,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       console.error("Error fetching parcels:", error);

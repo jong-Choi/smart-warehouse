@@ -1,14 +1,18 @@
 import { Request, Response } from "express";
 import { OperatorService } from "@services/operatorService";
 import { OperatorFilters, OperatorType } from "@typings/index";
-import { parseEnumQuery, parseDateQuery } from "@utils/queryParser";
+import {
+  parseEnumQuery,
+  parseDateQuery,
+  parsePaginationQuery,
+} from "@utils/queryParser";
 import { OPERATOR_TYPES } from "@utils/validation";
 
 const operatorService = new OperatorService();
 
 export class OperatorController {
   /**
-   * 모든 작업자 목록을 조회합니다.
+   * 모든 작업자 목록을 조회합니다. (페이지네이션 지원)
    */
   async getAllOperators(req: Request, res: Response) {
     try {
@@ -30,12 +34,15 @@ export class OperatorController {
         filters.endDate = endDate;
       }
 
-      const operators = await operatorService.getAllOperators(filters);
+      // 페이지네이션 파라미터 파싱
+      const pagination = parsePaginationQuery(req.query);
+
+      const result = await operatorService.getAllOperators(filters, pagination);
 
       res.json({
         success: true,
-        data: operators,
-        count: operators.length,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       console.error("Error fetching operators:", error);

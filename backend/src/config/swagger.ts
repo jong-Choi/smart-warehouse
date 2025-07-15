@@ -7,7 +7,7 @@ const options = {
       title: "택배 관리 시스템 API",
       version: "1.0.0",
       description:
-        "택배 배송 과정을 관리하는 REST API입니다. 소포, 운송장, 작업자, 배송지 정보를 조회할 수 있습니다.",
+        "택배 배송 과정을 관리하는 REST API입니다. 소포, 운송장, 작업자, 배송지 정보를 조회할 수 있습니다. 모든 목록 조회 API는 페이지네이션을 지원합니다.",
       contact: {
         name: "API Support",
         email: "support@example.com",
@@ -32,13 +32,38 @@ const options = {
             data: {
               description: "응답 데이터",
             },
-            count: {
-              type: "integer",
-              description: "데이터 개수",
+            pagination: {
+              $ref: "#/components/schemas/PaginationInfo",
             },
             message: {
               type: "string",
               description: "응답 메시지",
+            },
+          },
+        },
+        // 페이지네이션 정보 스키마
+        PaginationInfo: {
+          type: "object",
+          properties: {
+            page: {
+              type: "integer",
+              description: "현재 페이지 번호 (1부터 시작)",
+              example: 1,
+            },
+            limit: {
+              type: "integer",
+              description: "페이지당 데이터 개수",
+              example: 20,
+            },
+            total: {
+              type: "integer",
+              description: "전체 데이터 개수",
+              example: 150,
+            },
+            totalPages: {
+              type: "integer",
+              description: "전체 페이지 개수",
+              example: 8,
             },
           },
         },
@@ -257,11 +282,36 @@ const options = {
           schema: { type: "string", format: "date" },
           description: "종료일 (YYYY-MM-DD)",
         },
+        // 페이지네이션 파라미터
+        Page: {
+          name: "page",
+          in: "query",
+          schema: {
+            type: "integer",
+            minimum: 1,
+            default: 1,
+          },
+          description: "페이지 번호 (1부터 시작)",
+        },
         Limit: {
           name: "limit",
           in: "query",
-          schema: { type: "integer", default: 50 },
-          description: "조회할 데이터 수",
+          schema: {
+            type: "integer",
+            minimum: 1,
+            maximum: 100,
+            default: 20,
+          },
+          description: "페이지당 데이터 개수 (최대 100개)",
+        },
+        GetAll: {
+          name: "getAll",
+          in: "query",
+          schema: {
+            type: "boolean",
+            default: false,
+          },
+          description: "전체 데이터 조회 여부 (true일 때 페이지네이션 무시)",
         },
       },
     },

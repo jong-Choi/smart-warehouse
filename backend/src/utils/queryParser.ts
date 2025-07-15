@@ -70,14 +70,25 @@ export function parseEnumQuery<T extends string>(
  * 페이지네이션 파라미터를 안전하게 추출
  */
 export function parsePaginationQuery(query: any): {
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
+  getAll?: boolean;
 } {
+  const getAll = parseBooleanQuery(query, "getAll");
+
+  // getAll이 true이면 page와 limit은 무시
+  if (getAll) {
+    return {
+      getAll: true,
+    };
+  }
+
   const page = parseNumberQuery(query, "page") || 1;
   const limit = parseNumberQuery(query, "limit") || 20;
 
   return {
     page: Math.max(1, page),
     limit: Math.min(100, Math.max(1, limit)),
+    getAll: false,
   };
 }

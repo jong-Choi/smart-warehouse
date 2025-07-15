@@ -131,14 +131,31 @@ export const UpdateParcelSchema = z.object({
 // ============================================================================
 // 페이지네이션 스키마
 // ============================================================================
-export const PaginationSchema = z.object({
-  page: z.number().min(1, "페이지는 1 이상이어야 합니다").default(1),
-  limit: z
-    .number()
-    .min(1, "제한은 1 이상이어야 합니다")
-    .max(100, "제한은 100 이하여야 합니다")
-    .default(20),
-});
+export const PaginationSchema = z
+  .object({
+    getAll: z.boolean().optional(),
+    page: z.number().min(1, "페이지는 1 이상이어야 합니다").optional(),
+    limit: z
+      .number()
+      .min(1, "제한은 1 이상이어야 합니다")
+      .max(100, "제한은 100 이하여야 합니다")
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      // getAll이 true이면 page와 limit은 선택적
+      if (data.getAll === true) {
+        return true;
+      }
+      // getAll이 false이거나 undefined이면 page와 limit이 필요
+      return data.page !== undefined && data.limit !== undefined;
+    },
+    {
+      message:
+        "getAll이 false이거나 undefined일 때는 page와 limit이 필요합니다",
+      path: ["page", "limit"],
+    }
+  );
 
 // ============================================================================
 // 타입 추론 (Zod 스키마에서 TypeScript 타입 생성)

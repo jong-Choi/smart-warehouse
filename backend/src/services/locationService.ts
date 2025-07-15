@@ -1,26 +1,78 @@
 import { PrismaClient } from "@generated/prisma";
-import { LocationStats } from "@typings/index";
+import { LocationStats, PaginationParams } from "@typings/index";
 
 const prisma = new PrismaClient();
 
 export class LocationService {
   /**
-   * 모든 배송지 목록을 조회합니다.
+   * 모든 배송지 목록을 조회합니다. (페이지네이션 지원)
    */
-  async getAllLocations() {
-    return await prisma.location.findMany({
-      include: {
-        _count: {
-          select: {
-            parcels: true,
-            operatorWorks: true,
+  async getAllLocations(pagination?: {
+    page?: number;
+    limit?: number;
+    getAll?: boolean;
+  }) {
+    // getAll이 true이면 전체 조회
+    if (pagination?.getAll) {
+      const data = await prisma.location.findMany({
+        include: {
+          _count: {
+            select: {
+              parcels: true,
+              operatorWorks: true,
+            },
           },
         },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return {
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    // 페이지네이션 파라미터 설정
+    const page = pagination?.page || 1;
+    const limit = Math.min(pagination?.limit || 20, 100); // 최대 100개로 제한
+    const skip = (page - 1) * limit;
+
+    // 데이터와 전체 개수를 병렬로 조회
+    const [data, total] = await Promise.all([
+      prisma.location.findMany({
+        include: {
+          _count: {
+            select: {
+              parcels: true,
+              operatorWorks: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.location.count(),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    };
   }
 
   /**

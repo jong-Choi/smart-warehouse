@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import { WaybillService } from "@services/waybillService";
 import { WaybillFilters, WaybillStatus } from "@typings/index";
+import { parsePaginationQuery } from "@utils/queryParser";
 
 const waybillService = new WaybillService();
 
 export class WaybillController {
   /**
-   * 모든 운송장 목록을 조회합니다.
+   * 모든 운송장 목록을 조회합니다. (페이지네이션 지원)
    */
   async getAllWaybills(req: Request, res: Response) {
     try {
@@ -23,12 +24,15 @@ export class WaybillController {
         filters.endDate = new Date(req.query.endDate as string);
       }
 
-      const waybills = await waybillService.getAllWaybills(filters);
+      // 페이지네이션 파라미터 파싱
+      const pagination = parsePaginationQuery(req.query);
+
+      const result = await waybillService.getAllWaybills(filters, pagination);
 
       res.json({
         success: true,
-        data: waybills,
-        count: waybills.length,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       console.error("Error fetching waybills:", error);

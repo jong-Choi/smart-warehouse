@@ -3,36 +3,100 @@ import {
   OperatorFilters,
   OperatorWhereInput,
   OperatorStats,
+  PaginationParams,
 } from "@typings/index";
 
 const prisma = new PrismaClient();
 
 export class OperatorService {
   /**
-   * 모든 작업자 목록을 조회합니다.
+   * 모든 작업자 목록을 조회합니다. (페이지네이션 지원)
    */
-  async getAllOperators(filters: OperatorFilters = {}) {
+  async getAllOperators(
+    filters: OperatorFilters = {},
+    pagination?: { page?: number; limit?: number; getAll?: boolean }
+  ) {
     const where: OperatorWhereInput = {};
 
     if (filters.type) {
       where.type = filters.type;
     }
 
-    return await prisma.operator.findMany({
-      where,
-      include: {
-        _count: {
-          select: {
-            shifts: true,
-            works: true,
-            parcels: true,
+    if (filters.startDate || filters.endDate) {
+      where.createdAt = {};
+      if (filters.startDate) {
+        where.createdAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        where.createdAt.lte = filters.endDate;
+      }
+    }
+
+    // getAll이 true이면 전체 조회
+    if (pagination?.getAll) {
+      const data = await prisma.operator.findMany({
+        where,
+        include: {
+          _count: {
+            select: {
+              shifts: true,
+              works: true,
+              parcels: true,
+            },
           },
         },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return {
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    // 페이지네이션 파라미터 설정
+    const page = pagination?.page || 1;
+    const limit = Math.min(pagination?.limit || 20, 100); // 최대 100개로 제한
+    const skip = (page - 1) * limit;
+
+    // 데이터와 전체 개수를 병렬로 조회
+    const [data, total] = await Promise.all([
+      prisma.operator.findMany({
+        where,
+        include: {
+          _count: {
+            select: {
+              shifts: true,
+              works: true,
+              parcels: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.operator.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    };
   }
 
   /**
