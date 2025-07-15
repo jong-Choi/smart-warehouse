@@ -14,12 +14,125 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Todo {
-  id        String   @id @default(cuid())
-  title     String
-  isComplete Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+/// 작업을 수행하는 주체의 유형 구분
+enum OperatorType {
+  HUMAN     // 사람 작업자
+  MACHINE   // 자동 기계
+}
 
-  @@map("todos")
+/// 개별 소포(Parcel)의 처리 상태
+enum ParcelStatus {
+  PENDING_UNLOAD  // 아직 하차되지 않은 상태
+  UNLOADED        // 하차 완료됨
+  NORMAL          // 정상 처리됨
+  ACCIDENT        // 사고 발생 처리됨
+}
+
+/// 운송장(Waybill)의 전체 배송 상태
+enum WaybillStatus {
+  IN_TRANSIT   // 배송 중
+  DELIVERED    // 배송 완료
+  RETURNED     // 반송됨
+  ERROR        // 시스템 오류 혹은 분실
+}
+
+/// Operator는 작업을 수행하는 주체로, 사람(HUMAN) 또는 기계(MACHINE)일 수 있음.
+/// code 필드는 사번 또는 기계 고유 코드로 활용.
+/// createdAt은 등록 일시.
+/// 관계: Shift (근무 기록), Work (KPI 집계), Parcel (작업한 소포)
+model Operator {
+  id        Int             @id @default(autoincrement())
+  name      String
+  code      String          @unique      // 사번 또는 기계 ID
+  type      OperatorType
+  createdAt DateTime        @default(now())
+
+  shifts    OperatorShift[]  // 해당 작업자의 근무 기록
+  works     OperatorWork[]   // 날짜별 KPI
+  parcels   Parcel[]         // 실제 처리한 소포 목록
+
+  @@map("operators")
+}
+
+/// OperatorShift는 작업자 또는 기계의 하루 출퇴근(가동) 기록
+/// 동일 작업자는 하루에 한 Shift만 기록되도록 unique 제한
+model OperatorShift {
+  id         Int       @id @default(autoincrement())
+  operatorId Int
+  date       DateTime  // 날짜 (yyyy-mm-dd 기준)
+  startTime  DateTime  // 근무 시작 시각
+  endTime    DateTime  // 근무 종료 시각
+
+  @@unique([operatorId, date])  // 1일 1교대만 가능
+
+  operator   Operator  @relation(fields: [operatorId], references: [id])
+
+  @@map("operator_shifts")
+}
+
+/// Location은 배송지 (예: 서울 강남구, 부산 해운대 등)
+/// 작업자는 이곳으로 소포를 배달하거나 배송 처리를 수행함
+model Location {
+  id        Int             @id @default(autoincrement())
+  name      String          // 배송지 이름 (예: 서울 강남구)
+  address   String?         // 상세 주소 (선택)
+  createdAt DateTime        @default(now())
+
+  parcels         Parcel[]         // 이 배송지로 전달된 소포들
+  operatorWorks   OperatorWork[]   // 이 배송지에서 작업한 결과 집계
+
+  @@map("locations")
+}
+
+/// OperatorWork는 작업자가 특정 날짜에 특정 배송지(Location)에서 처리한 업무 통계
+/// 하루 기준 단일 배송지에 대해 하나의 KPI 레코드
+model OperatorWork {
+  id             Int       @id @default(autoincrement())
+  operatorId     Int       // 작업 주체
+  date           DateTime  // 집계 날짜
+  locationId     Int       // 어떤 배송지에서 작업했는지
+  processedCount Int       // 처리한 소포 수
+  accidentCount  Int       // 사고 처리 건수
+  revenue        Int       // 발생 매출 (정산 기준 단가 × 수량)
+  errorCount     Int       // 기타 오류 수 (옵션)
+  createdAt      DateTime  @default(now())
+
+  @@unique([operatorId, date, locationId])  // 하루에 한 배송지당 한 번만 기록
+
+  operator   Operator  @relation(fields: [operatorId], references: [id])
+  location   Location  @relation(fields: [locationId], references: [id])
+
+  @@map("operator_works")
+}
+
+/// Waybill은 운송장. 여러 소포(Parcel)가 같은 운송장 아래 있을 수 있음.
+/// 배송 단위로 조회하거나 상태를 파악할 때 사용
+model Waybill {
+  id          Int           @id @default(autoincrement())
+  number      String        @unique        // 운송장 번호
+  status      WaybillStatus                 // 전체 배송 상태
+  shippedAt   DateTime                      // 발송 시각
+  deliveredAt DateTime?                     // 도착 시각
+  parcels     Parcel[]                      // 소속된 개별 소포들
+
+  @@map("waybills")
+}
+
+/// Parcel은 실제로 처리되는 개별 소포 단위
+/// 작업자(Operator), 배송지(Location), 운송장(Waybill)에 연결되어 있음
+model Parcel {
+  id            Int          @id @default(autoincrement())
+  waybillId     Int
+  operatorId    Int?                              // 처리한 작업자/기계
+  locationId    Int                               // 배송지
+  status        ParcelStatus
+  declaredValue Int                               // 소포 가격
+  processedAt   DateTime     @default(now())      // 처리 일시
+  isAccident    Boolean      @default(false)      // 사고 여부
+
+  waybill       Waybill      @relation(fields: [waybillId], references: [id])
+  operator      Operator?    @relation(fields: [operatorId], references: [id])
+  location      Location     @relation(fields: [locationId], references: [id])
+
+  @@map("parcels")
 }

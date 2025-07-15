@@ -1,114 +1,287 @@
-# Todo Backend API
+# 택배 관리 시스템 API
 
-TypeScript Express 백엔드 API with Prisma ORM and SQLite
+택배 배송 과정을 관리하는 REST API입니다. 소포, 운송장, 작업자, 배송지 정보를 조회할 수 있습니다.
 
-## 기술 스택
+## 🚀 시작하기
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Language**: TypeScript
-- **ORM**: Prisma
-- **Database**: SQLite
-- **Validation**: Zod
-
-## 설치 및 설정
-
-### 1. 의존성 설치
+### 설치 및 실행
 
 ```bash
+# 의존성 설치
 npm install
+
+# 데이터베이스 설정
+npm run db:push
+
+# 샘플 데이터 생성
+npm run seed
+
+# 개발 서버 실행
+npm run dev
 ```
 
-### 2. 환경 변수 설정
+### 환경 변수
 
 `.env` 파일을 생성하고 다음 내용을 추가하세요:
 
 ```env
 DATABASE_URL="file:./dev.db"
+PORT=4000
+CORS_ORIGIN=http://localhost:3000
 ```
 
-> **참고**: SQLite 데이터베이스 파일(`dev.db`)은 자동으로 생성됩니다.
+## 📚 API 엔드포인트
 
-### 3. Prisma 설정
+### 소포 (Parcels)
+
+#### 모든 소포 조회
+
+```
+GET /api/parcels
+```
+
+**쿼리 파라미터:**
+
+- `status`: 소포 상태 필터 (PENDING_UNLOAD, UNLOADED, NORMAL, ACCIDENT)
+- `operatorId`: 작업자 ID 필터
+- `locationId`: 배송지 ID 필터
+- `waybillId`: 운송장 ID 필터
+- `isAccident`: 사고 여부 필터 (true/false)
+- `startDate`: 처리 시작일 (YYYY-MM-DD)
+- `endDate`: 처리 종료일 (YYYY-MM-DD)
+
+**예시:**
 
 ```bash
-# Prisma 클라이언트 생성
-npm run db:generate
+curl "http://localhost:4000/api/parcels?status=NORMAL&isAccident=false"
+```
 
-# 데이터베이스 스키마 적용
-npm run db:push
+#### 소포 상세 조회
 
-# 또는 마이그레이션 사용 (권장)
+```
+GET /api/parcels/:id
+```
+
+#### 소포 통계 조회
+
+```
+GET /api/parcels/stats
+```
+
+### 운송장 (Waybills)
+
+#### 모든 운송장 조회
+
+```
+GET /api/waybills
+```
+
+**쿼리 파라미터:**
+
+- `status`: 운송장 상태 필터 (IN_TRANSIT, DELIVERED, RETURNED, ERROR)
+- `startDate`: 발송 시작일 (YYYY-MM-DD)
+- `endDate`: 발송 종료일 (YYYY-MM-DD)
+
+#### 운송장 상세 조회
+
+```
+GET /api/waybills/:id
+```
+
+#### 운송장 번호로 조회
+
+```
+GET /api/waybills/number/:number
+```
+
+#### 운송장 통계 조회
+
+```
+GET /api/waybills/stats
+```
+
+### 작업자 (Operators)
+
+#### 모든 작업자 조회
+
+```
+GET /api/operators
+```
+
+**쿼리 파라미터:**
+
+- `type`: 작업자 유형 필터 (HUMAN, MACHINE)
+
+#### 작업자 상세 조회
+
+```
+GET /api/operators/:id
+```
+
+#### 작업자 코드로 조회
+
+```
+GET /api/operators/code/:code
+```
+
+#### 작업자 통계 조회
+
+```
+GET /api/operators/stats
+```
+
+#### 작업자 근무 기록 조회
+
+```
+GET /api/operators/:operatorId/shifts
+```
+
+**쿼리 파라미터:**
+
+- `startDate`: 시작일 (YYYY-MM-DD)
+- `endDate`: 종료일 (YYYY-MM-DD)
+
+#### 작업자 작업 통계 조회
+
+```
+GET /api/operators/:operatorId/works
+```
+
+**쿼리 파라미터:**
+
+- `startDate`: 시작일 (YYYY-MM-DD)
+- `endDate`: 종료일 (YYYY-MM-DD)
+
+### 배송지 (Locations)
+
+#### 모든 배송지 조회
+
+```
+GET /api/locations
+```
+
+#### 배송지 상세 조회
+
+```
+GET /api/locations/:id
+```
+
+#### 배송지 통계 조회
+
+```
+GET /api/locations/stats
+```
+
+#### 배송지 소포 목록 조회
+
+```
+GET /api/locations/:locationId/parcels
+```
+
+**쿼리 파라미터:**
+
+- `limit`: 조회할 소포 수 (기본값: 50)
+
+#### 배송지 작업 통계 조회
+
+```
+GET /api/locations/:locationId/works
+```
+
+**쿼리 파라미터:**
+
+- `startDate`: 시작일 (YYYY-MM-DD)
+- `endDate`: 종료일 (YYYY-MM-DD)
+
+## 📊 데이터 모델
+
+### 소포 상태 (ParcelStatus)
+
+- `PENDING_UNLOAD`: 아직 하차되지 않은 상태
+- `UNLOADED`: 하차 완료됨
+- `NORMAL`: 정상 처리됨
+- `ACCIDENT`: 사고 발생 처리됨
+
+### 운송장 상태 (WaybillStatus)
+
+- `IN_TRANSIT`: 배송 중
+- `DELIVERED`: 배송 완료
+- `RETURNED`: 반송됨
+- `ERROR`: 시스템 오류 혹은 분실
+
+### 작업자 유형 (OperatorType)
+
+- `HUMAN`: 사람 작업자
+- `MACHINE`: 자동 기계
+
+## 🔧 개발 도구
+
+### Prisma Studio
+
+데이터베이스를 시각적으로 확인할 수 있습니다:
+
+```bash
+npm run db:studio
+```
+
+### 데이터베이스 마이그레이션
+
+```bash
 npm run db:migrate
 ```
 
-### 4. 개발 서버 실행
+### 타입 체크
 
 ```bash
-npm run dev
+npm run type-check
 ```
 
-## API 엔드포인트
+### 린팅
 
-### Todos
+```bash
+npm run lint
+```
 
-- `GET /api/todos` - 모든 todo 조회
-- `GET /api/todos/:id` - 특정 todo 조회
-- `POST /api/todos` - 새 todo 생성
-- `PUT /api/todos/:id` - todo 수정
-- `DELETE /api/todos/:id` - todo 삭제
+## 📝 응답 형식
 
-### Todo 생성 예시
+모든 API 응답은 다음 형식을 따릅니다:
+
+### 성공 응답
 
 ```json
 {
-  "title": "새로운 할 일",
-  "isComplete": false
+  "success": true,
+  "data": [...],
+  "count": 10
 }
 ```
 
-## 개발 도구
+### 오류 응답
 
-- `npm run dev` - 개발 서버 실행
-- `npm run build` - TypeScript 컴파일
-- `npm run start` - 프로덕션 서버 실행
-- `npm run type-check` - 타입 체크
-- `npm run lint` - ESLint 실행
-- `npm run db:studio` - Prisma Studio 실행 (데이터베이스 GUI)
-
-## 프로젝트 구조
-
-```
-src/
-├── controllers/     # API 컨트롤러
-├── models/         # Prisma 모델
-├── services/       # 비즈니스 로직
-├── routes/         # 라우터
-├── utils/          # 유틸리티 함수
-├── typings/        # TypeScript 타입 정의 (Prisma 타입 통합)
-└── generated/      # Prisma 생성 파일
+```json
+{
+  "success": false,
+  "message": "오류 메시지"
+}
 ```
 
-## 모듈 별칭 (Alias)
+## 🧪 테스트
 
-프로젝트에서 사용하는 모듈 별칭들:
+서버가 실행된 후 다음 URL로 API를 테스트할 수 있습니다:
 
-- `@src/*` → `src/*`
-- `@controllers/*` → `src/controllers/*`
-- `@services/*` → `src/services/*`
-- `@models/*` → `src/models/*`
-- `@utils/*` → `src/utils/*`
-- `@typings/*` → `src/typings/*`
-- `@generated/*` → `src/generated/*`
-- `@/*` → `src/*`
+- **헬스 체크**: http://localhost:4000/health
+- **소포 API**: http://localhost:4000/api/parcels
+- **운송장 API**: http://localhost:4000/api/waybills
+- **작업자 API**: http://localhost:4000/api/operators
+- **배송지 API**: http://localhost:4000/api/locations
 
-## 타입 시스템
+## 📋 샘플 데이터
 
-이 프로젝트는 Prisma의 자동 생성 타입을 최대한 활용합니다:
+시스템에는 다음과 같은 샘플 데이터가 포함되어 있습니다:
 
-- **Todo 타입**: Prisma에서 자동 생성된 `Todo` 타입을 재사용
-- **CreateTodoRequest**: `Prisma.TodoCreateInput` 타입 활용
-- **UpdateTodoRequest**: `Prisma.TodoUpdateInput` 타입 활용
-- **TodoResponse**: Prisma `Todo` 타입을 확장하여 API 응답에 필요한 `links` 추가
-
-이렇게 함으로써 데이터베이스 스키마와 TypeScript 타입이 완전히 동기화되어 타입 안정성을 보장합니다.
+- **배송지**: 서울 강남구, 부산 해운대구, 대구 중구, 인천 연수구
+- **작업자**: 김택배, 이배송, 자동분류기-A, 자동분류기-B
+- **운송장**: 4개의 다양한 상태의 운송장
+- **소포**: 6개의 다양한 상태의 소포
+- **근무 기록**: 3개의 작업자 근무 기록
+- **작업 통계**: 3개의 작업자별 KPI 데이터
