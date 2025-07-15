@@ -26,7 +26,7 @@ export { useWebSocket };
 
 function WebSocketProvider({ children }: { children: React.ReactNode }) {
   const handlers = useRef<MessageHandler[]>([]);
-  const ws = useRef<FakeWebSocket>();
+  const ws = useRef<FakeWebSocket | null>(null);
   if (!ws.current) {
     ws.current = {
       send: (data) => {

@@ -1,1 +1,247 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-secondary: var(--sidebar-secondary);
+  --color-sidebar-secondary-foreground: var(--sidebar-secondary-foreground);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-secondary: oklch(0.97 0 0);
+  --sidebar-secondary-foreground: oklch(0.205 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-secondary: oklch(0.269 0 0);
+  --sidebar-secondary-foreground: oklch(0.985 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* 사이드바 collapsed 상태 스타일 개선 */
+@layer components {
+  /* 사이드바 아이콘 버튼 호버 효과 */
+  [data-slot="sidebar"] [data-slot="sidebar-menu-button"] {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  [data-slot="sidebar"] [data-slot="sidebar-menu-button"]:hover {
+    @apply bg-sidebar-accent/50 scale-105;
+  }
+
+  /* collapsed 상태에서 아이콘 중앙 정렬 */
+  [data-collapsible="icon"] [data-slot="sidebar-menu-button"] {
+    @apply justify-center;
+  }
+
+  /* 사이드바 헤더 collapsed 상태 스타일 */
+  [data-collapsible="icon"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"] {
+    @apply justify-center;
+  }
+
+  /* 사이드바 레일 버튼 스타일 */
+  [data-slot="sidebar-rail"] {
+    @apply hover:bg-sidebar-accent/50 transition-colors duration-200;
+  }
+
+  /* 툴팁 스타일 개선 */
+  [data-radix-tooltip-content] {
+    @apply bg-sidebar-foreground text-sidebar text-sm px-2 py-1 rounded-md shadow-lg border border-sidebar-border;
+  }
+
+  /* 사이드바 floating variant 스타일 개선 */
+  [data-variant="floating"] [data-slot="sidebar-inner"] {
+    @apply shadow-lg border border-sidebar-border/50;
+  }
+
+  /* collapsed 상태에서 사이드바 간격 조정 */
+  [data-collapsible="icon"] [data-slot="sidebar-menu"] {
+    @apply gap-1;
+  }
+
+  /* 사이드바 아이콘 크기 조정 */
+  [data-collapsible="icon"] [data-slot="sidebar-menu-button"] svg {
+    @apply size-5;
+  }
+
+  /* 사이드바 헤더 아이콘 크기 조정 */
+  [data-collapsible="icon"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"]
+    svg {
+    @apply size-5;
+  }
+
+  /* 사이드바 버튼 패딩 조정 */
+  [data-collapsible="icon"] [data-slot="sidebar-menu-button"] {
+    @apply px-3 py-2;
+  }
+
+  /* 사이드바 헤더 버튼 패딩 조정 */
+  [data-collapsible="icon"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"] {
+    @apply px-3 py-3;
+  }
+
+  /* collapsed 상태에서 텍스트 숨기기 */
+  [data-collapsible="icon"] [data-slot="sidebar-menu-button"] span {
+    @apply hidden;
+  }
+
+  /* collapsed 상태에서 헤더 텍스트 숨기기 */
+  [data-collapsible="icon"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"]
+    span {
+    @apply hidden;
+  }
+
+  /* collapsed 상태에서 헤더의 두 번째 div 숨기기 */
+  [data-collapsible="icon"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"]
+    > div:last-child {
+    @apply hidden;
+  }
+
+  /* 텍스트 애니메이션 - expanded 상태로 전환될 때 */
+  [data-slot="sidebar-menu-button"] span {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* expanded 상태에서 텍스트가 나타날 때 지연 효과 */
+  [data-state="expanded"] [data-slot="sidebar-menu-button"] span {
+    @apply opacity-0;
+    animation: fadeInText 0.4s ease-out 0.15s forwards;
+  }
+
+  /* 헤더 텍스트 애니메이션 */
+  [data-slot="sidebar-header"] [data-slot="sidebar-menu-button"] span {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  [data-state="expanded"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"]
+    span {
+    @apply opacity-0;
+    animation: fadeInText 0.4s ease-out 0.15s forwards;
+  }
+
+  /* 헤더의 두 번째 div 애니메이션 */
+  [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"]
+    > div:last-child {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  [data-state="expanded"]
+    [data-slot="sidebar-header"]
+    [data-slot="sidebar-menu-button"]
+    > div:last-child {
+    @apply opacity-0;
+    animation: fadeInText 0.4s ease-out 0.15s forwards;
+  }
+}
+
+/* 텍스트 페이드인 애니메이션 */
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
