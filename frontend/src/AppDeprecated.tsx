@@ -1,6 +1,6 @@
 // useState는 아래에서만 import
 import "./App.css";
-import Warehouse2D from "@/components/factory/Warehouse2D";
+import Warehouse2D from "@/components/factory/warehouse2d/Warehouse2D";
 import React, {
   useState,
   createContext,
