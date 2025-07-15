@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import RootLayout from "@components/layout/RootLayout";
 import FactoryLayout from "@components/factory/layout/FactoryLayout";
 import DashboardLayout from "@components/dashboard/layout/DashboardLayout";
 import FactoryPage from "@pages/factory/FactoryPage";
@@ -23,43 +24,49 @@ function App() {
         {/* Root route with redirect */}
         <Route path="/" element={<Navigate to="/factory" replace />} />
 
-        {/* Factory routes */}
-        <Route element={<FactoryLayout />}>
-          <Route path="/factory" element={<FactoryPage />} />
-        </Route>
+        {/* Root layout with tab switcher */}
+        <Route element={<RootLayout />}>
+          {/* Factory routes */}
+          <Route element={<FactoryLayout />}>
+            <Route path="/factory" element={<FactoryPage />} />
+          </Route>
 
-        {/* Dashboard routes */}
-        <Route
-          path="/dashboard"
-          element={<Navigate to="/dashboard/home" replace />}
-        />
-        <Route element={<DashboardLayout />}>
-          <Route path="/dashboard/home" element={<DashboardHomePage />} />
+          {/* Dashboard routes */}
           <Route
-            path="/dashboard/overview"
-            element={<DashboardOverviewPage />}
+            path="/dashboard"
+            element={<Navigate to="/dashboard/home" replace />}
           />
-          <Route path="/dashboard/parcels" element={<DashboardParcelsPage />} />
-          <Route
-            path="/dashboard/parcels/list"
-            element={<DashboardParcelsListPage />}
-          />
-          <Route
-            path="/dashboard/parcels/inbound"
-            element={<DashboardParcelsInboundPage />}
-          />
-          <Route
-            path="/dashboard/parcels/outbound"
-            element={<DashboardParcelsOutboundPage />}
-          />
-          <Route
-            path="/dashboard/location"
-            element={<DashboardLocationPage />}
-          />
-          <Route
-            path="/dashboard/location/list"
-            element={<DashboardLocationListPage />}
-          />
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard/home" element={<DashboardHomePage />} />
+            <Route
+              path="/dashboard/overview"
+              element={<DashboardOverviewPage />}
+            />
+            <Route
+              path="/dashboard/parcels"
+              element={<DashboardParcelsPage />}
+            />
+            <Route
+              path="/dashboard/parcels/list"
+              element={<DashboardParcelsListPage />}
+            />
+            <Route
+              path="/dashboard/parcels/inbound"
+              element={<DashboardParcelsInboundPage />}
+            />
+            <Route
+              path="/dashboard/parcels/outbound"
+              element={<DashboardParcelsOutboundPage />}
+            />
+            <Route
+              path="/dashboard/location"
+              element={<DashboardLocationPage />}
+            />
+            <Route
+              path="/dashboard/location/list"
+              element={<DashboardLocationListPage />}
+            />
+          </Route>
         </Route>
       </Routes>
     </Router>

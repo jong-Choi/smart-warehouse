@@ -155,7 +155,7 @@ function SidebarProvider({
             } as React.CSSProperties
           }
           className={cn(
-            "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+            "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex h-full w-full",
             className
           )}
           {...props}
@@ -246,7 +246,7 @@ function Sidebar({
       <div
         data-slot="sidebar-container"
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+          "absolute inset-y-0 z-10 hidden h-full w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -300,7 +300,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   return (
     <button
       className={cn(
-        "group/sidebar-rail fixed left-0 top-0 z-20 h-full w-1 bg-transparent transition-colors hover:bg-sidebar-border/50",
+        "group/sidebar-rail absolute left-0 top-0 z-20 h-full w-1 bg-transparent transition-colors hover:bg-sidebar-border/50",
         className
       )}
       onClick={toggleSidebar}

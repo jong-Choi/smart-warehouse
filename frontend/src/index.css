@@ -204,7 +204,7 @@
   /* expanded 상태에서 텍스트가 나타날 때 지연 효과 */
   [data-state="expanded"] [data-slot="sidebar-menu-button"] span {
     @apply opacity-0;
-    animation: fadeInText 0.4s ease-out 0.15s forwards;
+    animation: fadeInText 0.4s ease-out 0.1s forwards;
   }
 
   /* 헤더 텍스트 애니메이션 */
@@ -217,7 +217,7 @@
     [data-slot="sidebar-menu-button"]
     span {
     @apply opacity-0;
-    animation: fadeInText 0.4s ease-out 0.15s forwards;
+    animation: fadeInText 0.4s ease-out 0.1s forwards;
   }
 
   /* 헤더의 두 번째 div 애니메이션 */
@@ -232,7 +232,7 @@
     [data-slot="sidebar-menu-button"]
     > div:last-child {
     @apply opacity-0;
-    animation: fadeInText 0.4s ease-out 0.15s forwards;
+    animation: fadeInText 0.4s ease-out 0.1s forwards;
   }
 }
 
