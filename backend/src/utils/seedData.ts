@@ -3,7 +3,7 @@ import {
   OperatorType,
   ParcelStatus,
   WaybillStatus,
-} from "../generated/prisma";
+} from "@generated/prisma";
 
 const prisma = new PrismaClient();
 

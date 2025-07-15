@@ -1,4 +1,4 @@
-import { PrismaClient, OperatorType } from "../generated/prisma";
+import { PrismaClient, OperatorType } from "@generated/prisma";
 
 const prisma = new PrismaClient();
 

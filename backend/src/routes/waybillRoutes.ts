@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { WaybillController } from "../controllers/waybillController";
+import { WaybillController } from "@controllers/waybillController";
 
 const router = Router();
 const waybillController = new WaybillController();

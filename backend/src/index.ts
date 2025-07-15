@@ -7,7 +7,7 @@ import parcelRoutes from "@src/routes/parcelRoutes";
 import waybillRoutes from "@src/routes/waybillRoutes";
 import operatorRoutes from "@src/routes/operatorRoutes";
 import locationRoutes from "@src/routes/locationRoutes";
-import { specs } from "./config/swagger";
+import { specs } from "@src/config/swagger";
 
 const app = express();
 const PORT = process.env.PORT || 4000;

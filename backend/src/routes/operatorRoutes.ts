@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { OperatorController } from "../controllers/operatorController";
+import { OperatorController } from "@controllers/operatorController";
 
 const router = Router();
 const operatorController = new OperatorController();

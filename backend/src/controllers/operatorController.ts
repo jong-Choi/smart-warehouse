@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { OperatorService, OperatorFilters } from "../services/operatorService";
+import { OperatorService, OperatorFilters } from "@services/operatorService";
 
 const operatorService = new OperatorService();
 

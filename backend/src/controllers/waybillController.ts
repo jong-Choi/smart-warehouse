@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { WaybillService, WaybillFilters } from "../services/waybillService";
+import { WaybillService, WaybillFilters } from "@services/waybillService";
 
 const waybillService = new WaybillService();
 

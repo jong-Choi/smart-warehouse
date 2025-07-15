@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ParcelController } from "../controllers/parcelController";
+import { ParcelController } from "@controllers/parcelController";
 
 const router = Router();
 const parcelController = new ParcelController();

@@ -1,4 +1,4 @@
-import { PrismaClient, ParcelStatus } from "../generated/prisma";
+import { PrismaClient, ParcelStatus } from "@generated/prisma";
 
 const prisma = new PrismaClient();
 

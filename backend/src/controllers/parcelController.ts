@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ParcelService, ParcelFilters } from "../services/parcelService";
+import { ParcelService, ParcelFilters } from "@services/parcelService";
 
 const parcelService = new ParcelService();
 

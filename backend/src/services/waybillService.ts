@@ -1,4 +1,4 @@
-import { PrismaClient, WaybillStatus } from "../generated/prisma";
+import { PrismaClient, WaybillStatus } from "@generated/prisma";
 
 const prisma = new PrismaClient();
 
