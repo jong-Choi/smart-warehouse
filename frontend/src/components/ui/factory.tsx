@@ -91,26 +91,22 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 // 상태 표시 컴포넌트
 interface StatusIndicatorProps {
   isRunning: boolean;
-  isPaused: boolean;
   onToggleRunning: () => void;
-  onTogglePaused: () => void;
   onReset: () => void;
 }
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   isRunning,
-  isPaused,
   onToggleRunning,
-  onTogglePaused,
   onReset,
 }) => {
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center justify-between w-full">
       <Button
-        size="sm"
-        variant={isRunning ? "default" : "secondary"}
+        size="default"
+        variant={isRunning ? "secondary" : "default"}
         onClick={onToggleRunning}
-        className="flex items-center space-x-1"
+        className="flex items-center space-x-1 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
       >
         {isRunning ? (
           <Pause className="w-4 h-4" />
@@ -122,21 +118,12 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
 
       <Button
         size="sm"
-        variant={isPaused ? "default" : "outline"}
-        onClick={onTogglePaused}
-        disabled={!isRunning}
-      >
-        일시정지
-      </Button>
-
-      <Button
-        size="sm"
-        variant="outline"
+        variant="ghost"
         onClick={onReset}
-        className="flex items-center space-x-1"
+        className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 text-xs"
       >
-        <RotateCcw className="w-4 h-4" />
-        <span>리셋</span>
+        <RotateCcw className="w-3 h-3" />
+        <span>설정 초기화</span>
       </Button>
     </div>
   );

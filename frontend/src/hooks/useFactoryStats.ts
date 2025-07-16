@@ -4,7 +4,7 @@ import { createChannelInterface, type BroadcastMessage } from "@/utils";
 export interface FactoryStats {
   unloadExpected: number;
   unloadCompleted: number;
-  averageTime: string;
+  processedCount: number;
   accidentRate: string;
 }
 
@@ -62,11 +62,6 @@ export function useFactoryStats(): FactoryStats {
   // 실시간 통계 계산
   return useMemo(() => {
     const unloadExpected = 2000; // 하차 예정수량 (고정값)
-    const averageTime =
-      stats.processingTimes.length > 0
-        ? stats.processingTimes.reduce((sum, time) => sum + time, 0) /
-          stats.processingTimes.length
-        : 0;
 
     // 사고율 계산 (사고 수 / 총 처리 수량 * 100)
     const accidentRate =
@@ -77,8 +72,7 @@ export function useFactoryStats(): FactoryStats {
     return {
       unloadExpected, // 하차 예정수량
       unloadCompleted: stats.unloadCompleted, // 하차 완료 수량
-      averageTime:
-        averageTime > 0 ? `${(averageTime / 1000).toFixed(1)}초` : "0.0초", // 평균 처리시간
+      processedCount: stats.workerProcessed, // 작업자가 처리한 갯수
       accidentRate: `${accidentRate}%`, // 사고율
     };
   }, [stats]);

@@ -7,7 +7,7 @@ export const WorkerSpeedPanel: React.FC = () => {
 
   return (
     <ControlPanel title="작업자별 작업속도">
-      <div className="h-48 overflow-y-auto">
+      <div className="h-32 overflow-y-auto">
         <WorkerGrid cols={3} gap={1}>
           {workerSpeeds.slice(0, workerCount).map((speed, i) => {
             const isTop = i < 10;

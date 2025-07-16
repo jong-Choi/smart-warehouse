@@ -1,5 +1,24 @@
 import { create } from "zustand";
 
+// 초기값을 별도 객체로 분리하여 유지보수성 향상
+const INITIAL_STATE = {
+  workerCount: 5,
+  maxWorkers: 20,
+  beltSpeed: 1,
+  maxBeltSpeed: 5,
+  processingRate: 75,
+  maxProcessingRate: 100,
+  truckCount: 3,
+  maxTruckCount: 10,
+  isRunning: false,
+  unloadInterval: 1000,
+  workerCooldown: 5000,
+  failCount: 0,
+  workerSpeeds: Array(20)
+    .fill(0)
+    .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
+};
+
 interface FactoryState {
   // 작업자 관련
   workerCount: number;
@@ -19,7 +38,6 @@ interface FactoryState {
 
   // 시스템 상태
   isRunning: boolean;
-  isPaused: boolean;
 
   // Warehouse2D 관련 상태들
   unloadInterval: number;
@@ -39,36 +57,12 @@ interface FactoryState {
   setFailCount: (count: number) => void;
   setWorkerSpeeds: (speeds: number[]) => void;
   toggleRunning: () => void;
-  togglePaused: () => void;
   reset: () => void;
 }
 
 export const useFactoryStore = create<FactoryState>((set) => ({
-  // 초기 상태
-  workerCount: 5,
-  maxWorkers: 20,
-
-  beltSpeed: 1,
-  maxBeltSpeed: 5,
-
-  processingRate: 75,
-  maxProcessingRate: 100,
-
-  truckCount: 3,
-  maxTruckCount: 10,
-
-  isRunning: true,
-  isPaused: false,
-
-  // Warehouse2D 관련 초기 상태
-  unloadInterval: 1000,
-  workerCooldown: 5000,
-  failCount: 0,
-
-  // 작업자별 작업속도 초기화 (20명)
-  workerSpeeds: Array(20)
-    .fill(0)
-    .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
+  // 초기 상태 - INITIAL_STATE 객체 사용
+  ...INITIAL_STATE,
 
   // 액션들
   setWorkerCount: (count) => set({ workerCount: Math.min(count, 20) }),
@@ -80,18 +74,10 @@ export const useFactoryStore = create<FactoryState>((set) => ({
   setFailCount: (count) => set({ failCount: count }),
   setWorkerSpeeds: (speeds) => set({ workerSpeeds: speeds }),
   toggleRunning: () => set((state) => ({ isRunning: !state.isRunning })),
-  togglePaused: () => set((state) => ({ isPaused: !state.isPaused })),
   reset: () =>
     set({
-      workerCount: 5,
-      beltSpeed: 5,
-      processingRate: 75,
-      truckCount: 3,
-      isRunning: true,
-      isPaused: false,
-      unloadInterval: 1000,
-      workerCooldown: 5000,
-      failCount: 0,
+      ...INITIAL_STATE,
+      // workerSpeeds는 매번 새로운 랜덤값으로 초기화
       workerSpeeds: Array(20)
         .fill(0)
         .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),

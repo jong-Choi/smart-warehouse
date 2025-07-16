@@ -22,8 +22,8 @@ export const RealTimeStats: React.FC = () => {
           color="green"
         />
         <MetricCard
-          title="평균 처리시간"
-          value={stats.averageTime}
+          title="처리된 갯수"
+          value={stats.processedCount}
           icon={<Clock className="w-5 h-5" />}
           color="orange"
         />
