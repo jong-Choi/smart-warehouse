@@ -35,7 +35,7 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
   return (
     <div
       className={cn(
-        "flex justify-center items-center py-4 px-4 w-full",
+        "flex justify-center items-center py-4 px-4 w-fit absolute top-0 left-[50%] translate-x-[-50%]",
         className
       )}
       style={{ zIndex: 100 }}
