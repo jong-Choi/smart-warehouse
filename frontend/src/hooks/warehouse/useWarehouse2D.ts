@@ -63,6 +63,54 @@ export function useWarehouse2D() {
   const channelRef = useRef(channel);
   channelRef.current = channel;
 
+  // 이전 상태를 저장하는 ref
+  const prevRunningRef = useRef(running);
+  const prevPausedRef = useRef(paused);
+
+  // running과 paused 상태 변경 감지하여 브로드캐스트 메시지 전송
+  useEffect(() => {
+    const now = Date.now();
+
+    // running이 false에서 true로 변경되면 "작업 시작" 메시지
+    if (!prevRunningRef.current && running) {
+      channelRef.current?.send({
+        ts: now,
+        msg: "작업 시작",
+        category: "SYSTEM",
+        severity: "INFO",
+        asset: "CONVEYOR",
+      });
+    }
+
+    // running이 true일 때 paused 상태 변경 감지
+    if (running) {
+      // paused가 true에서 false로 변경되면 "하차 시작" 메시지
+      if (prevPausedRef.current && !paused) {
+        channelRef.current?.send({
+          ts: now,
+          msg: "하차 시작",
+          category: "STATUS",
+          severity: "INFO",
+          asset: "UNLOADER",
+        });
+      }
+      // paused가 false에서 true로 변경되면 "하차 중단" 메시지
+      else if (!prevPausedRef.current && paused) {
+        channelRef.current?.send({
+          ts: now,
+          msg: "하차 중단",
+          category: "STATUS",
+          severity: "WARNING",
+          asset: "UNLOADER",
+        });
+      }
+    }
+
+    // 현재 상태를 이전 상태로 저장
+    prevRunningRef.current = running;
+    prevPausedRef.current = paused;
+  }, [running, paused]);
+
   // running이 false로 바뀔 때 상태 초기화
   useEffect(() => {
     if (!running) {
@@ -100,6 +148,9 @@ export function useWarehouse2D() {
       channelRef.current?.send({
         ts: Date.now(),
         msg: "하차된 물건",
+        category: "PROCESS",
+        severity: "INFO",
+        asset: "UNLOADER",
         unloadWorkerId: unloadWorkerId,
         itemId: currentItemSeq,
       });
@@ -172,6 +223,9 @@ export function useWarehouse2D() {
             channel?.send({
               ts: now,
               msg: "작업자 고장",
+              category: "ALARM",
+              severity: "ERROR",
+              asset: "WORKER",
               workerId:
                 workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
               itemId: circle.id,
@@ -187,6 +241,9 @@ export function useWarehouse2D() {
             channel?.send({
               ts: now,
               msg: "작업자 처리",
+              category: "PROCESS",
+              severity: "INFO",
+              asset: "WORKER",
               workerId:
                 workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
               itemId: circle.id,

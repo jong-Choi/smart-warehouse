@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { createChannelInterface, type BroadcastMessage } from "@/utils";
+import { createChannelInterface } from "@/utils";
+import { type BroadcastMessage } from "@/types/broadcast";
 
 export interface FactoryStats {
   unloadExpected: number;

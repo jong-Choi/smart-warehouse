@@ -1,17 +1,10 @@
 // BroadcastChannel API를 사용한 웹소켓 유사 인터페이스
 // 나중에 실제 웹소켓으로 쉽게 교체할 수 있도록 동일한 인터페이스 제공
 
-export interface BroadcastMessage {
-  ts: number;
-  msg: string;
-  [key: string]: unknown;
-}
-
-export interface BroadcastChannelInterface {
-  send: (data: BroadcastMessage) => void;
-  subscribe: (handler: (data: BroadcastMessage) => void) => () => void;
-  disconnect: () => void;
-}
+import type {
+  BroadcastMessage,
+  BroadcastChannelInterface,
+} from "@/types/broadcast";
 
 class BroadcastChannelManager implements BroadcastChannelInterface {
   private channel: BroadcastChannel;

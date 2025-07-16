@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { ControlPanel, SystemInfoContainer, SystemInfoRow } from "../../../ui";
-import { createChannelInterface, type BroadcastMessage } from "@/utils";
+import { createChannelInterface } from "@/utils";
+import { type BroadcastMessage } from "@/types/broadcast";
 
 interface MessageItem {
   id: string;
@@ -53,8 +54,6 @@ export const SystemInfoPanel: React.FC = () => {
         color,
       };
 
-      console.log(newMessage);
-
       setMessages((prev) => {
         const updated = [newMessage, ...prev].slice(0, 5); // 최신 5개만 유지
         return updated;
@@ -70,6 +69,7 @@ export const SystemInfoPanel: React.FC = () => {
         <SystemInfoContainer>
           {Array.from({ length: 5 }, (_, index) => {
             const msg = messages[index];
+
             if (msg) {
               return (
                 <SystemInfoRow
