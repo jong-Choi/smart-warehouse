@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect } from "react";
+import { cn } from "../../lib/utils";
 
 interface TabSwitcherProps {
   className?: string;
@@ -33,11 +34,27 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
 
   return (
     <div
-      className={`flex justify-center items-center py-4 px-4 ${className}`}
+      className={cn(
+        "flex justify-center items-center py-4 px-4 w-full",
+        className
+      )}
       style={{ zIndex: 100 }}
     >
       {/* 알약 모양 컨테이너 */}
-      <div className="relative bg-gray-100 rounded-full p-1 shadow-lg border border-gray-200">
+      <motion.div
+        className="relative bg-gray-100 rounded-full p-1 shadow-lg border border-gray-200"
+        animate={{
+          x: isFactory ? 0 : "calc(50vw - 150px)",
+        }}
+        initial={{
+          x: isFactory ? 0 : "calc(50vw - 150px)",
+        }}
+        transition={{
+          type: "tween",
+          ease: [0.1, 0.2, 0.3, 0.94],
+          duration: 0.8,
+        }}
+      >
         {/* 움직이는 원형 인디케이터 */}
         <motion.div
           className="absolute top-1 w-24 h-10 bg-slate-800 rounded-full shadow-lg"
@@ -71,7 +88,7 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
             📊 대시보드
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

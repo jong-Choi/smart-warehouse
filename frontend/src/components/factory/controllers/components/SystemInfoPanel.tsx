@@ -53,6 +53,8 @@ export const SystemInfoPanel: React.FC = () => {
         color,
       };
 
+      console.log(newMessage);
+
       setMessages((prev) => {
         const updated = [newMessage, ...prev].slice(0, 5); // 최신 5개만 유지
         return updated;
