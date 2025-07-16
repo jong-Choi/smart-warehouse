@@ -29,7 +29,7 @@ export const FactorySlider: React.FC<SliderProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {icon && <span className="text-gray-500">{icon}</span>}
-          <label className="text-sm font-medium text-gray-700">{label}</label>
+          <TypographyLabel>{label}</TypographyLabel>
         </div>
         {tooltip && (
           <HoverCard>
@@ -55,9 +55,9 @@ export const FactorySlider: React.FC<SliderProps> = ({
           onValueChange={(values) => onChange(values[0])}
           className="flex-1"
         />
-        <span className="text-sm font-mono text-gray-600 min-w-[3rem] text-right">
+        <TypographyMono className="min-w-[3rem] text-right">
           {value}
-        </span>
+        </TypographyMono>
       </div>
     </div>
   );
@@ -79,10 +79,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     <div
       className={`bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 shadow-lg p-4 ${className}`}
     >
-      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+      <TypographyHeading>
         <Settings className="w-5 h-5 mr-2 text-blue-600" />
         {title}
-      </h3>
+      </TypographyHeading>
       <div className="space-y-4">{children}</div>
     </div>
   );
@@ -167,8 +167,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 p-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className="text-xl font-bold text-gray-800">{value}</p>
+          <TypographyTitle>{title}</TypographyTitle>
+          <TypographyValue>{value}</TypographyValue>
         </div>
         <div
           className={`p-2 rounded-full ${
@@ -180,4 +180,181 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
     </div>
   );
+};
+
+// 컨트롤러 레이아웃 컴포넌트
+interface ControllerLayoutProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const ControllerLayout: React.FC<ControllerLayoutProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <div
+      className={`w-80 space-y-4 bg-slate-700/50 p-4 rounded-lg ${className} max-h-[calc(100vh-2rem)] overflow-y-auto`}
+    >
+      {children}
+    </div>
+  );
+};
+
+// 작업자 카드 컴포넌트
+interface WorkerCardProps {
+  label: string;
+  value: string | number;
+  className?: string;
+}
+
+export const WorkerCard: React.FC<WorkerCardProps> = ({
+  label,
+  value,
+  className = "",
+}) => {
+  return (
+    <div
+      className={`bg-blue-50 border border-blue-200 rounded p-1 text-center ${className}`}
+    >
+      <div className="text-xs font-bold text-blue-700">{label}</div>
+      <div className="text-xs font-mono text-blue-600">{value}</div>
+    </div>
+  );
+};
+
+// 작업자 그리드 컴포넌트
+interface WorkerGridProps {
+  children: React.ReactNode;
+  cols?: 2 | 3 | 4;
+  gap?: 1 | 2 | 3;
+  className?: string;
+}
+
+export const WorkerGrid: React.FC<WorkerGridProps> = ({
+  children,
+  cols = 3,
+  gap = 1,
+  className = "",
+}) => {
+  const gridCols = {
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+  };
+
+  const gridGap = {
+    1: "gap-1",
+    2: "gap-2",
+    3: "gap-3",
+  };
+
+  return (
+    <div className={`grid ${gridCols[cols]} ${gridGap[gap]} ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+// 시스템 정보 컨테이너 컴포넌트
+interface SystemInfoContainerProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const SystemInfoContainer: React.FC<SystemInfoContainerProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <div className={`text-sm space-y-2 text-gray-600 ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+// 시스템 정보 행 컴포넌트
+interface SystemInfoRowProps {
+  label: string;
+  value: React.ReactNode;
+  valueColor?: "default" | "green" | "red" | "blue";
+  className?: string;
+}
+
+export const SystemInfoRow: React.FC<SystemInfoRowProps> = ({
+  label,
+  value,
+  valueColor = "default",
+  className = "",
+}) => {
+  const valueColorClasses = {
+    default: "font-medium",
+    green: "text-green-600 font-medium",
+    red: "font-medium text-red-600",
+    blue: "text-blue-600 font-medium",
+  };
+
+  return (
+    <div className={`flex justify-between ${className}`}>
+      <span>{label}:</span>
+      <span className={valueColorClasses[valueColor]}>{value}</span>
+    </div>
+  );
+};
+
+// 타이포그래피 컴포넌트들
+interface TypographyProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const TypographyLabel: React.FC<TypographyProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <span className={`text-sm font-medium text-gray-700 ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+export const TypographyMono: React.FC<TypographyProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <span className={`text-sm font-mono text-gray-600 ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+export const TypographyHeading: React.FC<TypographyProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <h3
+      className={`text-lg font-semibold text-gray-800 mb-3 flex items-center ${className}`}
+    >
+      {children}
+    </h3>
+  );
+};
+
+export const TypographyValue: React.FC<TypographyProps> = ({
+  children,
+  className = "",
+}) => {
+  return (
+    <p className={`text-xl font-bold text-gray-800 ${className}`}>{children}</p>
+  );
+};
+
+export const TypographyTitle: React.FC<TypographyProps> = ({
+  children,
+  className = "",
+}) => {
+  return <p className={`text-sm text-gray-600 ${className}`}>{children}</p>;
 };

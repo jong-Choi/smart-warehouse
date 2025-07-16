@@ -38,5 +38,15 @@ export {
   ControlPanel,
   StatusIndicator,
   MetricCard,
+  ControllerLayout,
+  WorkerCard,
+  WorkerGrid,
+  SystemInfoContainer,
+  SystemInfoRow,
+  TypographyLabel,
+  TypographyMono,
+  TypographyHeading,
+  TypographyValue,
+  TypographyTitle,
 } from "./factory";
 export { Slider } from "./slider";

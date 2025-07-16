@@ -5,6 +5,8 @@ import {
   FactorySlider,
   StatusIndicator,
   MetricCard,
+  ControllerLayout,
+  WorkerGrid,
 } from "../../ui";
 import { Users, Zap, Activity, Clock, AlertTriangle } from "lucide-react";
 
@@ -29,7 +31,7 @@ const LeftController: React.FC = () => {
   } = useFactoryStore();
 
   return (
-    <div className="w-80 space-y-4 bg-slate-700/50 p-4 rounded-lg">
+    <ControllerLayout>
       {/* 상태 표시 */}
       <ControlPanel title="시스템 제어">
         <StatusIndicator
@@ -42,7 +44,7 @@ const LeftController: React.FC = () => {
       </ControlPanel>
 
       {/* 메트릭 카드들 */}
-      <div className="grid grid-cols-2 gap-3">
+      <WorkerGrid cols={2} gap={3}>
         <MetricCard
           title="작업자"
           value={workerCount}
@@ -67,7 +69,7 @@ const LeftController: React.FC = () => {
           icon={<AlertTriangle className="w-5 h-5" />}
           color="red"
         />
-      </div>
+      </WorkerGrid>
 
       {/* 작업자 제어 */}
       <ControlPanel title="작업자 관리">
@@ -120,7 +122,7 @@ const LeftController: React.FC = () => {
           tooltip="작업자의 작업 쿨다운을 조절합니다 (1000-10000ms)"
         />
       </ControlPanel>
-    </div>
+    </ControllerLayout>
   );
 };
 

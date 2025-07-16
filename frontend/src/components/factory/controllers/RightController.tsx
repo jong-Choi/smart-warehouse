@@ -1,6 +1,14 @@
 import React from "react";
 import { useFactoryStore } from "../../../stores/factoryStore";
-import { ControlPanel, MetricCard } from "../../ui";
+import {
+  ControlPanel,
+  MetricCard,
+  ControllerLayout,
+  WorkerCard,
+  WorkerGrid,
+  SystemInfoContainer,
+  SystemInfoRow,
+} from "../../ui";
 import { BarChart3, Clock, Package, Target } from "lucide-react";
 
 const RightController: React.FC = () => {
@@ -17,27 +25,17 @@ const RightController: React.FC = () => {
   };
 
   return (
-    <div className="w-80 space-y-4 bg-slate-700/50 p-4 rounded-lg">
+    <ControllerLayout>
       {/* 작업자별 작업속도 */}
       <ControlPanel title="작업자별 작업속도">
         <div className="h-48 overflow-y-auto">
-          <div className="grid grid-cols-3 gap-1">
+          <WorkerGrid cols={3} gap={1}>
             {workerSpeeds.slice(0, workerCount).map((speed, i) => {
               const isTop = i < 10;
               const label = isTop ? `A${i + 1}` : `B${i - 9}`;
-              return (
-                <div
-                  key={i}
-                  className="bg-blue-50 border border-blue-200 rounded p-1 text-center"
-                >
-                  <div className="text-xs font-bold text-blue-700">{label}</div>
-                  <div className="text-xs font-mono text-blue-600">
-                    {speed}ms
-                  </div>
-                </div>
-              );
+              return <WorkerCard key={i} label={label} value={`${speed}ms`} />;
             })}
-          </div>
+          </WorkerGrid>
         </div>
       </ControlPanel>
 
@@ -73,34 +71,20 @@ const RightController: React.FC = () => {
 
       {/* 시스템 정보 */}
       <ControlPanel title="시스템 정보">
-        <div className="text-sm space-y-2 text-gray-600">
-          <div className="flex justify-between">
-            <span>시스템 상태:</span>
-            <span className="text-green-600 font-medium">정상</span>
-          </div>
-          <div className="flex justify-between">
-            <span>메모리 사용량:</span>
-            <span className="font-medium">67%</span>
-          </div>
-          <div className="flex justify-between">
-            <span>CPU 사용량:</span>
-            <span className="font-medium">42%</span>
-          </div>
-          <div className="flex justify-between">
-            <span>네트워크:</span>
-            <span className="text-green-600 font-medium">연결됨</span>
-          </div>
-          <div className="flex justify-between">
-            <span>작업자 수:</span>
-            <span className="font-medium">{workerCount}명</span>
-          </div>
-          <div className="flex justify-between">
-            <span>실패 건수:</span>
-            <span className="font-medium text-red-600">{failCount}건</span>
-          </div>
-        </div>
+        <SystemInfoContainer>
+          <SystemInfoRow label="시스템 상태" value="정상" valueColor="green" />
+          <SystemInfoRow label="메모리 사용량" value="67%" />
+          <SystemInfoRow label="CPU 사용량" value="42%" />
+          <SystemInfoRow label="네트워크" value="연결됨" valueColor="green" />
+          <SystemInfoRow label="작업자 수" value={`${workerCount}명`} />
+          <SystemInfoRow
+            label="실패 건수"
+            value={`${failCount}건`}
+            valueColor="red"
+          />
+        </SystemInfoContainer>
       </ControlPanel>
-    </div>
+    </ControllerLayout>
   );
 };
 

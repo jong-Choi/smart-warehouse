@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useFactoryStore } from "@/stores/factoryStore";
 import truckSvg from "@assets/svg/truck.svg";
 import { WIDTH, HEIGHT } from "@/utils/warehouse/constants";
