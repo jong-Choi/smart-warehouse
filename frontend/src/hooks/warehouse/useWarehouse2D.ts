@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { useWebSocket } from "@/AppDeprecated";
+import { createChannelInterface } from "@/utils";
 import { useFactoryStore } from "@/stores/factoryStore";
 import {
   MAX_WORKERS,
@@ -53,13 +53,14 @@ export function useWarehouse2D() {
     Array(MAX_WORKERS).fill(0)
   );
 
-  const ws = useWebSocket();
+  // 브로드캐스트 채널 인터페이스 생성
+  const channel = useMemo(() => createChannelInterface("factory-events"), []);
 
   // 운송장 번호 ref (타이머에서 사용)
   const itemSeqRef = useRef(INITIAL_ITEM_SEQ);
-  // WebSocket ref (타이머에서 사용)
-  const wsRef = useRef(ws);
-  wsRef.current = ws;
+  // 브로드캐스트 채널 ref (타이머에서 사용)
+  const channelRef = useRef(channel);
+  channelRef.current = channel;
 
   // running이 false로 바뀔 때 상태 초기화
   useEffect(() => {
@@ -95,7 +96,7 @@ export function useWarehouse2D() {
       itemSeqRef.current += 1; // 실제 번호용
 
       // --- 하차 작업자 하차 완료 메시지 송출 ---
-      wsRef.current?.send({
+      channelRef.current?.send({
         ts: Date.now(),
         msg: "하차된 물건",
         unloadWorkerId: unloadWorkerId,
@@ -167,7 +168,7 @@ export function useWarehouse2D() {
             // 고장 발생!
             newBrokenUntil[workerIdx] = now + WORKER_BROKEN_DURATION;
             // 고장 발생 메시지 송출
-            ws?.send({
+            channel?.send({
               ts: now,
               msg: "작업자 고장",
               workerId:
@@ -181,8 +182,8 @@ export function useWarehouse2D() {
             caughtCircleSet.add(cIdx);
             newCatchTimes[workerIdx].push(now);
             caught = true;
-            // --- 여기서 WebSocket으로 송출 ---
-            ws?.send({
+            // --- 여기서 브로드캐스트 채널로 송출 ---
+            channel?.send({
               ts: now,
               msg: "작업자 처리",
               workerId:

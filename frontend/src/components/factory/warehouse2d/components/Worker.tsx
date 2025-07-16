@@ -25,75 +25,95 @@ const CooldownTimer = React.memo<{
   catchTimes: number[];
   brokenUntil: number;
   workerCooldown: number;
-}>(({ index, position, catchTimes, brokenUntil, workerCooldown }) => {
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  setIsWorking: (working: boolean) => void;
+  setIsBroken: (broken: boolean) => void;
+}>(
+  ({
+    index,
+    position,
+    catchTimes,
+    brokenUntil,
+    workerCooldown,
+    setIsWorking,
+    setIsBroken,
+  }) => {
+    const [currentTime, setCurrentTime] = useState(Date.now());
 
-  useEffect(() => {
-    let animationId: number;
+    useEffect(() => {
+      let animationId: number;
 
-    const updateTime = () => {
-      setCurrentTime(Date.now());
+      const updateTime = () => {
+        setCurrentTime(Date.now());
+        animationId = requestAnimationFrame(updateTime);
+      };
+
       animationId = requestAnimationFrame(updateTime);
-    };
 
-    animationId = requestAnimationFrame(updateTime);
+      return () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      };
+    }, []);
 
-    return () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
-    };
-  }, []);
+    const now = currentTime;
+    const lastCatchTime =
+      catchTimes.length > 0 ? catchTimes[catchTimes.length - 1] : 0;
+    const workerCooldownWithScale =
+      workerCooldown * WORKER_COOLDOWN_SCALES[index];
+    const cooldownLeft = Math.max(
+      0,
+      workerCooldownWithScale - (now - lastCatchTime)
+    );
+    const cooldownRatio = Math.min(1, cooldownLeft / workerCooldownWithScale);
+    const r = 15;
+    const cx = position.x;
+    const cy = position.y;
 
-  const now = currentTime;
-  const lastCatchTime =
-    catchTimes.length > 0 ? catchTimes[catchTimes.length - 1] : 0;
-  const workerCooldownWithScale =
-    workerCooldown * WORKER_COOLDOWN_SCALES[index];
-  const cooldownLeft = Math.max(
-    0,
-    workerCooldownWithScale - (now - lastCatchTime)
-  );
-  const cooldownRatio = Math.min(1, cooldownLeft / workerCooldownWithScale);
-  const r = 15;
-  const cx = position.x;
-  const cy = position.y;
+    const isBroken = brokenUntil > now;
+    const isWorking = cooldownLeft > 0 && !isBroken;
 
-  const isBroken = brokenUntil > now;
-  let barRatio = cooldownRatio;
-  let barColor = "#fff59d";
-  if (isBroken) {
-    const brokenLeft = brokenUntil - now;
-    barRatio = Math.min(1, Math.max(0, brokenLeft / 15000));
-    barColor = "#ef5350";
-  }
-  const barHeight = 2 * r * barRatio;
-  const barY = cy + r - barHeight;
+    // 상태 업데이트
+    useEffect(() => {
+      setIsWorking(isWorking);
+      setIsBroken(isBroken);
+    }, [isWorking, isBroken, setIsWorking, setIsBroken]);
 
-  if (barRatio <= 0) return null;
+    let barRatio = cooldownRatio;
+    let barColor = "#fff59d";
+    if (isBroken) {
+      const brokenLeft = brokenUntil - now;
+      barRatio = Math.min(1, Math.max(0, brokenLeft / 15000));
+      barColor = "#ef5350";
+    }
+    const barHeight = 2 * r * barRatio;
+    const barY = cy + r - barHeight;
 
-  return (
-    <g>
-      <clipPath id={`cooldown-mask-${index}`}>
-        <rect
-          x={cx + WORKER_UI_OFFSET.x - r}
-          y={barY - WORKER_UI_OFFSET.y}
-          width={2 * r}
-          height={barHeight}
+    if (barRatio <= 0) return null;
+
+    return (
+      <g>
+        <clipPath id={`cooldown-mask-${index}`}>
+          <rect
+            x={cx + WORKER_UI_OFFSET.x - r}
+            y={barY - WORKER_UI_OFFSET.y}
+            width={2 * r}
+            height={barHeight}
+          />
+        </clipPath>
+        <circle
+          cx={cx + WORKER_UI_OFFSET.x}
+          cy={cy - WORKER_UI_OFFSET.y}
+          r={r}
+          fill={barColor}
+          stroke={BELT_WORKER_STYLE.stroke}
+          strokeWidth={BELT_WORKER_STYLE.strokeWidth}
+          clipPath={`url(#cooldown-mask-${index})`}
         />
-      </clipPath>
-      <circle
-        cx={cx + WORKER_UI_OFFSET.x}
-        cy={cy - WORKER_UI_OFFSET.y}
-        r={r}
-        fill={barColor}
-        stroke={BELT_WORKER_STYLE.stroke}
-        strokeWidth={BELT_WORKER_STYLE.strokeWidth}
-        clipPath={`url(#cooldown-mask-${index})`}
-      />
-    </g>
-  );
-});
+      </g>
+    );
+  }
+);
 
 export const Worker = React.memo<WorkerProps>(
   ({ index, position, catchTimes, brokenUntil, workerCooldown }) => {
@@ -106,18 +126,9 @@ export const Worker = React.memo<WorkerProps>(
     const cx = position.x;
     const cy = position.y;
 
-    // 작업 중일 때 열린 박스 표시 (왼쪽 대각선 아래)
-    const now = Date.now();
-    const lastCatchTime =
-      catchTimes.length > 0 ? catchTimes[catchTimes.length - 1] : 0;
-    const workerCooldownWithScale =
-      workerCooldown * WORKER_COOLDOWN_SCALES[index];
-    const cooldownLeft = Math.max(
-      0,
-      workerCooldownWithScale - (now - lastCatchTime)
-    );
-    const isWorking = cooldownLeft > 0;
-    const isBroken = brokenUntil > now;
+    // 상태를 useState로 관리
+    const [isWorking, setIsWorking] = useState(false);
+    const [isBroken, setIsBroken] = useState(false);
 
     const openedBoxOffset = toIsometric(-30, 0);
     const openedBoxX = cx + openedBoxOffset.x;
@@ -163,6 +174,8 @@ export const Worker = React.memo<WorkerProps>(
           catchTimes={catchTimes}
           brokenUntil={brokenUntil}
           workerCooldown={workerCooldown}
+          setIsWorking={setIsWorking}
+          setIsBroken={setIsBroken}
         />
 
         {/* 작업 중일 때 열린 박스 표시 */}
