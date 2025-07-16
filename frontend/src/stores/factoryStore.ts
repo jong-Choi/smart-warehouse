@@ -11,6 +11,7 @@ const INITIAL_STATE = {
   truckCount: 3,
   maxTruckCount: 10,
   isRunning: false,
+  isPaused: true,
   unloadInterval: 1000,
   workerCooldown: 5000,
   failCount: 0,
@@ -38,6 +39,7 @@ interface FactoryState {
 
   // 시스템 상태
   isRunning: boolean;
+  isPaused: boolean;
 
   // Warehouse2D 관련 상태들
   unloadInterval: number;
@@ -57,6 +59,8 @@ interface FactoryState {
   setFailCount: (count: number) => void;
   setWorkerSpeeds: (speeds: number[]) => void;
   toggleRunning: () => void;
+  startUnload: () => void;
+  stopUnload: () => void;
   reset: () => void;
 }
 
@@ -74,12 +78,17 @@ export const useFactoryStore = create<FactoryState>((set) => ({
   setFailCount: (count) => set({ failCount: count }),
   setWorkerSpeeds: (speeds) => set({ workerSpeeds: speeds }),
   toggleRunning: () => set((state) => ({ isRunning: !state.isRunning })),
+  startUnload: () => set({ isRunning: true, isPaused: false }),
+  stopUnload: () => set({ isRunning: true, isPaused: true }),
   reset: () =>
-    set({
+    set((state) => ({
       ...INITIAL_STATE,
+      // isRunning과 isPaused는 현재 상태 유지
+      isRunning: state.isRunning,
+      isPaused: state.isPaused,
       // workerSpeeds는 매번 새로운 랜덤값으로 초기화
       workerSpeeds: Array(20)
         .fill(0)
         .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
-    }),
+    })),
 }));

@@ -90,31 +90,41 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
 // 상태 표시 컴포넌트
 interface StatusIndicatorProps {
-  isRunning: boolean;
-  onToggleRunning: () => void;
+  isPaused: boolean;
+  onStartUnload: () => void;
+  onStopUnload: () => void;
   onReset: () => void;
 }
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
-  isRunning,
-  onToggleRunning,
+  isPaused,
+  onStartUnload,
+  onStopUnload,
   onReset,
 }) => {
   return (
     <div className="flex items-center justify-between w-full">
-      <Button
-        size="default"
-        variant={isRunning ? "secondary" : "default"}
-        onClick={onToggleRunning}
-        className="flex items-center space-x-1 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
-      >
-        {isRunning ? (
-          <Pause className="w-4 h-4" />
-        ) : (
+      {isPaused ? (
+        <Button
+          size="default"
+          variant="default"
+          onClick={onStartUnload}
+          className="flex items-center space-x-1 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+        >
           <Play className="w-4 h-4" />
-        )}
-        <span>{isRunning ? "정지" : "시작"}</span>
-      </Button>
+          <span>하차 시작</span>
+        </Button>
+      ) : (
+        <Button
+          size="default"
+          variant="secondary"
+          onClick={onStopUnload}
+          className="flex items-center space-x-1 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Pause className="w-4 h-4" />
+          <span>하차 정지</span>
+        </Button>
+      )}
 
       <Button
         size="sm"

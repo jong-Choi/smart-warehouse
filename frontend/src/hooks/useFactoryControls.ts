@@ -7,6 +7,7 @@ export interface FactoryControls {
   beltSpeed: number;
   maxBeltSpeed: number;
   isRunning: boolean;
+  isPaused: boolean;
   unloadInterval: number;
   workerCooldown: number;
   failCount: number;
@@ -16,7 +17,8 @@ export interface FactoryControls {
   setBeltSpeed: (speed: number) => void;
   setUnloadInterval: (interval: number) => void;
   setWorkerCooldown: (cooldown: number) => void;
-  toggleRunning: () => void;
+  startUnload: () => void;
+  stopUnload: () => void;
   reset: () => void;
 }
 
@@ -27,6 +29,7 @@ export function useFactoryControls(): FactoryControls {
     beltSpeed,
     maxBeltSpeed,
     isRunning,
+    isPaused,
     unloadInterval,
     workerCooldown,
     failCount,
@@ -34,7 +37,8 @@ export function useFactoryControls(): FactoryControls {
     setBeltSpeed,
     setUnloadInterval,
     setWorkerCooldown,
-    toggleRunning,
+    startUnload,
+    stopUnload,
     reset,
   } = useFactoryStore();
 
@@ -45,6 +49,7 @@ export function useFactoryControls(): FactoryControls {
     beltSpeed,
     maxBeltSpeed,
     isRunning,
+    isPaused,
     unloadInterval,
     workerCooldown,
     failCount,
@@ -54,7 +59,8 @@ export function useFactoryControls(): FactoryControls {
     setBeltSpeed,
     setUnloadInterval,
     setWorkerCooldown,
-    toggleRunning,
+    startUnload,
+    stopUnload,
     reset,
   };
 }

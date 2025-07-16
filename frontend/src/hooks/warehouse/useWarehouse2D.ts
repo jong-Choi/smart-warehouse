@@ -25,6 +25,7 @@ export function useWarehouse2D() {
   // factoryStore에서 상태 가져오기
   const {
     isRunning: running,
+    isPaused: paused,
     unloadInterval,
     workerCooldown,
     workerCount,
@@ -84,9 +85,9 @@ export function useWarehouse2D() {
     setWorkerSpeeds(workerSpeeds);
   }, [workerCooldown, setWorkerSpeeds]);
 
-  // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경 (running일 때만 동작)
+  // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경 (running이고 paused가 아닐 때만 동작)
   useEffect(() => {
-    if (!running) return;
+    if (!running || paused) return;
     const timer = setInterval(() => {
       // 하차 작업자 랜덤 선택 (U1 또는 U2)
       const unloadWorkerId = Math.random() < 0.5 ? "U1" : "U2";
@@ -104,7 +105,7 @@ export function useWarehouse2D() {
       });
     }, unloadInterval);
     return () => clearInterval(timer);
-  }, [unloadInterval, running]); // running 추가
+  }, [unloadInterval, running, paused]); // paused 추가
 
   // 각 동그라미의 progress를 부드럽게 업데이트 (running일 때만 동작)
   useEffect(() => {
