@@ -217,11 +217,32 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
                   {dummyRows}
                 </>
               ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
-                    하차 대기 중인 운송장이 없습니다.
-                  </TableCell>
-                </TableRow>
+                <>
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-12 text-center">
+                      {(() => {
+                        console.log("Current statusFilter:", statusFilter); // 디버깅용
+                        switch (statusFilter) {
+                          case "PENDING_UNLOAD":
+                            return "하차 대기 운송장이 없습니다.";
+                          case "UNLOADED":
+                            return "하차 완료 운송장이 없습니다.";
+                          case "NORMAL":
+                            return "정상 운송장이 없습니다.";
+                          case "ACCIDENT":
+                            return "사고 운송장이 없습니다.";
+                          case "all":
+                          default:
+                            return "하차 대기 중인 운송장이 없습니다.";
+                        }
+                      })()}
+                    </TableCell>
+                  </TableRow>
+                  {/* 빈 상태에서도 레이아웃 시프트 방지를 위한 더미 row (pageSize-1개) */}
+                  {Array.from({ length: pageSize - 1 }, (_, index) => (
+                    <DummyRow key={`dummy-empty-${index}`} />
+                  ))}
+                </>
               )}
             </TableBody>
           </Table>
