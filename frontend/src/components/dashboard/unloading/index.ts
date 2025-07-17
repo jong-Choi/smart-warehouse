@@ -1,5 +1,3 @@
-export { StatusCell } from "./StatusCell";
-export { ParcelRow } from "./ParcelRow";
 export { UnloadingTable } from "./UnloadingTable";
 export { UnloadingInfo } from "./UnloadingInfo";
 export { useUnloadingBroadcast } from "./hooks/useUnloadingBroadcast";
