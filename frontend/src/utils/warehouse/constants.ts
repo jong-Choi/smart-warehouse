@@ -62,4 +62,3 @@ export const WORKER_BROKEN_PROBABILITY = 0.05; // 5% 확률
 export const WORKER_BROKEN_THRESHOLD = 2; // 끝 두자리 차이가 2 이하일 때
 
 // 초기 운송장 번호
-export const INITIAL_ITEM_SEQ = 1200000001;

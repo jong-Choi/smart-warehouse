@@ -44,7 +44,7 @@ export const SystemInfoPanel: React.FC = () => {
           </>
         );
       } else if (message.msg === "하차된 물건") {
-        displayMessage = "하차";
+        displayMessage = `하차 (${String(message.waybillId).slice(-4)})`;
       }
 
       const newMessage: MessageItem = {

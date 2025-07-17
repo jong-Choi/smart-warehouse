@@ -15,7 +15,8 @@ export default function Warehouse2D() {
   const { workerCount, workerCooldown } = useFactoryStore();
 
   // 커스텀 훅에서 상태 가져오기
-  const { circles, workerCatchTimes, workerBrokenUntil } = useWarehouse2D();
+  const { loadedParcels, workerCatchTimes, workerBrokenUntil } =
+    useWarehouse2D();
 
   // Worker 컴포넌트들
   const workerComponents = Array.from({ length: workerCount }).map((_, i) => (
@@ -31,8 +32,10 @@ export default function Warehouse2D() {
 
   // MovingBox 컴포넌트들을 메모이제이션
   const movingBoxComponents = useMemo(() => {
-    return circles.map((circle, i) => <MovingBox key={i} circle={circle} />);
-  }, [circles]);
+    return loadedParcels.map((loadedParcel, i) => (
+      <MovingBox key={i} loadedParcel={loadedParcel} />
+    ));
+  }, [loadedParcels]);
 
   return (
     <div

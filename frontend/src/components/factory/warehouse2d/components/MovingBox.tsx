@@ -3,12 +3,12 @@ import closedBoxSvg from "@assets/svg/closed-box.svg";
 import { calculatePositionOnBelt } from "@/utils/warehouse/calculations";
 
 interface MovingBoxProps {
-  circle: { progress: number; id: number };
+  loadedParcel: { progress: number; id: number };
 }
 
 // 이동하는 박스 컴포넌트 (메모이제이션)
-export const MovingBox = React.memo(({ circle }: MovingBoxProps) => {
-  const movingBox = calculatePositionOnBelt(circle.progress);
+export const MovingBox = React.memo(({ loadedParcel }: MovingBoxProps) => {
+  const movingBox = calculatePositionOnBelt(loadedParcel.progress);
 
   return (
     <g

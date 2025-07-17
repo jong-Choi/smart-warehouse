@@ -7,7 +7,6 @@ import {
   WORKER_CATCH_RANGE_SQUARED,
   WORKER_BROKEN_DURATION,
   WORKER_BROKEN_THRESHOLD,
-  INITIAL_ITEM_SEQ,
 } from "@/utils/warehouse/constants";
 import {
   calculatePositionOnBelt,
@@ -15,8 +14,9 @@ import {
   BELT_END_THRESHOLD,
   RECEIVE_WORKERS,
 } from "@/utils/warehouse/calculations";
+import { useUnloadingParcels } from "@hooks/useWaybills";
 
-export interface Circle {
+export interface LoadedParcel {
   progress: number;
   id: number;
 }
@@ -33,14 +33,15 @@ export function useWarehouse2D() {
     failCount,
     setFailCount,
     setWorkerSpeeds,
+    stopUnload,
   } = useFactoryStore();
 
   // 속도 계산을 useMemo로 최적화 (상수 부분 분리)
   const speed = useMemo(() => beltSpeed / 2 / SPEED_DENOMINATOR, [beltSpeed]);
   const requestRef = useRef<number | null>(null);
 
-  // 여러 개의 하차 동그라미(물건) 상태
-  const [circles, setCircles] = useState<Circle[]>([]);
+  // 여러 개의 하차된 물건 상태
+  const [loadedParcels, setLoadedParcels] = useState<LoadedParcel[]>([]);
 
   // 벨트 작업자별로 잡은 시간 배열
   const [workerCatchTimes, setWorkerCatchTimes] = useState<number[][]>(() =>
@@ -58,7 +59,7 @@ export function useWarehouse2D() {
   const channel = useMemo(() => createChannelInterface("factory-events"), []);
 
   // 운송장 번호 ref (타이머에서 사용)
-  const itemSeqRef = useRef(INITIAL_ITEM_SEQ);
+
   // 브로드캐스트 채널 ref (타이머에서 사용)
   const channelRef = useRef(channel);
   channelRef.current = channel;
@@ -111,20 +112,6 @@ export function useWarehouse2D() {
     prevPausedRef.current = paused;
   }, [running, paused]);
 
-  // running이 false로 바뀔 때 상태 초기화
-  useEffect(() => {
-    if (!running) {
-      setCircles([]);
-      setWorkerCatchTimes(
-        Array(MAX_WORKERS)
-          .fill(0)
-          .map(() => [])
-      );
-      setFailCount(0);
-      itemSeqRef.current = INITIAL_ITEM_SEQ;
-    }
-  }, [running, setFailCount]);
-
   // 작업자별 작업속도를 store에 업데이트
   useEffect(() => {
     const workerSpeeds = WORKER_COOLDOWN_SCALES.map((scale) =>
@@ -133,16 +120,28 @@ export function useWarehouse2D() {
     setWorkerSpeeds(workerSpeeds);
   }, [workerCooldown, setWorkerSpeeds]);
 
+  const { data: unloadingData } = useUnloadingParcels();
+  const percels = useMemo(
+    () =>
+      unloadingData
+        ? Array.from(unloadingData.parcels.sort(() => Math.random() - 0.5))
+        : [],
+    [unloadingData]
+  );
+
   // 2초마다 새로운 동그라미 추가 → unloadInterval로 변경 (running이고 paused가 아닐 때만 동작)
   useEffect(() => {
-    if (!running || paused) return;
+    if (!running || paused || !unloadingData) return;
     const timer = setInterval(() => {
+      if (percels.length === 0) return stopUnload();
       // 하차 작업자 랜덤 선택 (U1 또는 U2)
       const unloadWorkerId = Math.random() < 0.5 ? "U1" : "U2";
-      const currentItemSeq = itemSeqRef.current;
 
-      setCircles((prev) => [...prev, { progress: 0, id: currentItemSeq }]);
-      itemSeqRef.current += 1; // 실제 번호용
+      const parcel = percels.pop();
+      setLoadedParcels((prev) => [
+        ...prev,
+        { progress: 0, id: parcel!.waybillId },
+      ]);
 
       // --- 하차 작업자 하차 완료 메시지 송출 ---
       channelRef.current?.send({
@@ -152,17 +151,17 @@ export function useWarehouse2D() {
         severity: "INFO",
         asset: "UNLOADER",
         unloadWorkerId: unloadWorkerId,
-        itemId: currentItemSeq,
+        waybillId: parcel!.waybillId,
       });
     }, unloadInterval);
     return () => clearInterval(timer);
-  }, [unloadInterval, running, paused]); // paused 추가
+  }, [unloadInterval, running, paused, stopUnload, percels, unloadingData]); // paused 추가
 
   // 각 동그라미의 progress를 부드럽게 업데이트 (running일 때만 동작)
   useEffect(() => {
     if (!running) return;
     const animate = () => {
-      setCircles((prev) =>
+      setLoadedParcels((prev) =>
         prev.map((c) => {
           let next = c.progress + speed;
           if (next >= 1) next = 0;
@@ -200,7 +199,7 @@ export function useWarehouse2D() {
       if (workerBrokenUntil[workerIdx] > now) continue;
       if (now - last < workerCooldownWithScale) continue;
       let caught = false;
-      circles.forEach((circle, cIdx) => {
+      loadedParcels.forEach((circle, cIdx) => {
         if (caughtCircleSet.has(cIdx) || caught) return;
 
         // 최적화된 위치 계산 사용
@@ -213,9 +212,9 @@ export function useWarehouse2D() {
           // --- 고장 조건 체크 ---
           // 5% 확율로 고장: 끝 두자리의 차이가 2 이하일 때
           const cooldownLast2 = Math.round(workerCooldownWithScale) % 100;
-          const itemIdLast2 = circle.id % 100;
+          const waybillIdLast2 = circle.id % 100;
           if (
-            Math.abs(cooldownLast2 - itemIdLast2) <= WORKER_BROKEN_THRESHOLD
+            Math.abs(cooldownLast2 - waybillIdLast2) <= WORKER_BROKEN_THRESHOLD
           ) {
             // 고장 발생!
             newBrokenUntil[workerIdx] = now + WORKER_BROKEN_DURATION;
@@ -228,7 +227,7 @@ export function useWarehouse2D() {
               asset: "WORKER",
               workerId:
                 workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
-              itemId: circle.id,
+              waybillId: circle.id,
               cooldown: Math.round(workerCooldownWithScale),
               brokenUntil: newBrokenUntil[workerIdx],
             });
@@ -246,7 +245,7 @@ export function useWarehouse2D() {
               asset: "WORKER",
               workerId:
                 workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
-              itemId: circle.id,
+              waybillId: circle.id,
               count: newCatchTimes[workerIdx].length + 1,
             });
           }
@@ -259,7 +258,7 @@ export function useWarehouse2D() {
     ) {
       if (removeIdxs.length > 0) {
         const removeSet = new Set(removeIdxs);
-        setCircles((prev) => prev.filter((_, i) => !removeSet.has(i)));
+        setLoadedParcels((prev) => prev.filter((_, i) => !removeSet.has(i)));
         setWorkerCatchTimes(newCatchTimes);
       }
       if (newBrokenUntil.some((v, i) => v !== workerBrokenUntil[i])) {
@@ -268,7 +267,7 @@ export function useWarehouse2D() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    circles,
+    loadedParcels,
     workerCatchTimes,
     workerCooldown,
     workerCount,
@@ -279,8 +278,8 @@ export function useWarehouse2D() {
   // 벨트 끝까지 도달한 동그라미를 실패로 처리 (running일 때만 동작)
   useEffect(() => {
     if (!running) return;
-    // 마지막 포인트에 도달한 동그라미 인덱스
-    const failedIdxs = circles
+    // 마지막 포인트에 도달한 물건 인덱스
+    const failedIdxs = loadedParcels
       .map((circle, i) => {
         // 거리 기반으로 끝에 도달했는지 확인
         const targetDistance = circle.progress * (BELT_END_THRESHOLD + 10); // TOTAL_DISTANCE 대신 BELT_END_THRESHOLD + 10 사용
@@ -289,12 +288,14 @@ export function useWarehouse2D() {
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
       setFailCount(failCount + failedIdxs.length);
-      setCircles((prev) => prev.filter((_, i) => !failedIdxs.includes(i)));
+      setLoadedParcels((prev) =>
+        prev.filter((_, i) => !failedIdxs.includes(i))
+      );
     }
-  }, [circles, running, failCount, setFailCount]);
+  }, [loadedParcels, running, failCount, setFailCount]);
 
   return {
-    circles,
+    loadedParcels,
     workerCatchTimes,
     workerBrokenUntil,
     speed,
