@@ -236,7 +236,7 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
           <h2 className="text-xl font-semibold">운송장 목록</h2>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              총 {table.getFilteredRowModel().rows.length}개
+              총 {parcels.length}개
             </span>
             <Button
               onClick={onRefresh}
@@ -342,8 +342,8 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
         {/* 페이징 */}
         <div className="flex items-center justify-between px-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length}개 중{" "}
-            {table.getFilteredRowModel().rows.length}개 표시
+            {parcels.length}개 중 {table.getFilteredRowModel().rows.length}개
+            표시
           </div>
           <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex items-center space-x-2">
