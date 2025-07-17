@@ -121,19 +121,25 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
     const newLastPageIndex = Math.max(0, currentPageCount - 1);
     if (newLastPageIndex !== lastPageIndex) {
       setLastPageIndex(newLastPageIndex);
+      // lastPageIndex가 줄어들었을 때 pageIndex도 즉시 보정
+      if (pageIndex > newLastPageIndex) {
+        setPageIndex(newLastPageIndex);
+      }
     }
-  }, [currentPageCount, lastPageIndex, setLastPageIndex]); //React Hook useMemo has a missing dependency: 'table'. Either include it or remove the dependency array.eslintreact-hooks/exhaustive-deps
+  }, [
+    currentPageCount,
+    lastPageIndex,
+    setLastPageIndex,
+    pageIndex,
+    setPageIndex,
+  ]);
 
-  const currentRowCount = useMemo(
-    () => table.getRowModel().rows.length,
-    [table]
-  );
-  // 더미 row 개수를 메모이제이션
-  const dummyRowCount = useMemo(() => {
-    return Math.max(0, pageSize - currentRowCount);
-  }, [currentRowCount, pageSize]); //React Hook useMemo has a missing dependency: 'table'. Either include it or remove the dependency array.eslintreact-hooks/exhaustive-deps
-
-  // 더미 row 배열을 메모이제이션
+  // 현재 페이지의 row 개수와 row 배열을 getPaginationRowModel로 계산
+  const currentPageRows = table.getPaginationRowModel().rows;
+  const currentRowCount = currentPageRows.length;
+  // 더미 row 개수
+  const dummyRowCount = Math.max(0, pageSize - currentRowCount);
+  // 더미 row 배열
   const dummyRows = useMemo(() => {
     return Array.from({ length: dummyRowCount }, (_, index) => (
       <DummyRow key={`dummy-${index}`} />
@@ -195,9 +201,9 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
           <Table>
             <UnloadingTableHeader />
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {currentPageRows.length ? (
                 <>
-                  {table.getRowModel().rows.map((row) => {
+                  {currentPageRows.map((row) => {
                     const parcel = row.original;
                     return (
                       <OptimizedTableRow

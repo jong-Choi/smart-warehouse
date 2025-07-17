@@ -62,3 +62,4 @@ export {
   TypographyTitle,
 } from "./factory";
 export { Slider } from "./slider";
+export { DonutChart } from "./donut-chart";

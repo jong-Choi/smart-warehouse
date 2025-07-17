@@ -52,12 +52,9 @@ export const useUnloadingTableStore = create<UnloadingTableState>()(
         })),
       setPageSize: (pageSize) => set({ pageSize, pageIndex: 0 }), // 페이지 크기 변경 시 첫 페이지로
       setLastPageIndex: (lastPageIndex) =>
-        set((state) => {
-          return {
-            lastPageIndex,
-            pageIndex: Math.min(state.pageIndex, lastPageIndex),
-          };
-        }),
+        set(() => ({
+          lastPageIndex,
+        })),
       setGlobalFilter: (globalFilter) => set({ globalFilter }), // 필터 변경 시 페이지 유지
       setStatusFilter: (statusFilter) => set({ statusFilter }), // 필터 변경 시 페이지 유지
       setSorting: (sorting) =>

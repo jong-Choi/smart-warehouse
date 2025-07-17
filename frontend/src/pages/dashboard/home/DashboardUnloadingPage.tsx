@@ -1,30 +1,54 @@
-import React, { useMemo } from "react";
-import { useUnloadingParcels } from "../../../hooks/useWaybills";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   UnloadingTable,
   UnloadingInfo,
-  useUnloadingBroadcast,
-  type UnloadingParcel,
 } from "../../../components/dashboard/unloading";
+import { useUnloadingParcelsStore } from "../../../stores/unloadingParcelsStore";
+import type { UnloadingParcel } from "../../../components/dashboard/unloading/types";
+
+// 로딩 스켈레톤 컴포넌트
+const LoadingSkeleton = () => (
+  <div className="bg-card rounded-lg border p-6">
+    <div className="animate-pulse">
+      <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+      <div className="space-y-3">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="h-12 bg-gray-200 rounded"></div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export default function DashboardUnloadingPage() {
-  const { data: parcelsData, isLoading, refetch } = useUnloadingParcels();
+  const { parcels } = useUnloadingParcelsStore();
 
-  // Parcel을 UnloadingParcel로 변환
-  const initialParcels: UnloadingParcel[] = useMemo(() => {
-    if (!parcelsData?.parcels) return [];
+  // 스냅샷 상태 관리
+  const [tableData, setTableData] = useState<UnloadingParcel[] | null>(null);
 
-    return parcelsData.parcels.map((parcel) => ({
-      ...parcel,
-      createdAt: parcel.processedAt, // processedAt을 createdAt으로 사용
-      updatedAt: parcel.processedAt, // processedAt을 updatedAt으로 사용
-    }));
-  }, [parcelsData]);
+  // 스냅샷 생성 함수
+  const createSnapshot = useCallback(() => {
+    if (!parcels || parcels.length === 0) {
+      setTableData(null);
+      return;
+    }
+    setTableData([...parcels]); // 깊은 복사로 스냅샷 생성
+  }, [parcels]);
 
-  // 브로드캐스트를 통한 실시간 상태 업데이트
-  const parcels = useUnloadingBroadcast(initialParcels);
+  // 최초 데이터 준비 시 스냅샷 생성
+  useEffect(() => {
+    if (parcels && tableData === null) {
+      createSnapshot();
+    }
+  }, [parcels, tableData, createSnapshot]);
 
-  if (isLoading) {
+  // 새로고침 핸들러: zustand의 최신 데이터로 스냅샷 갱신
+  const handleRefresh = useCallback(() => {
+    createSnapshot(); // 현재 zustand 데이터로 스냅샷만 갱신
+  }, [createSnapshot]);
+
+  // 데이터가 없으면 로딩 화면 표시
+  if (!tableData) {
     return (
       <div className="p-6">
         <div className="mb-6">
@@ -33,9 +57,8 @@ export default function DashboardUnloadingPage() {
             하차 대기 중인 운송장 목록을 실시간으로 확인할 수 있습니다.
           </p>
         </div>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">로딩 중...</div>
-        </div>
+        <LoadingSkeleton />
+        <UnloadingInfo />
       </div>
     );
   }
@@ -49,7 +72,7 @@ export default function DashboardUnloadingPage() {
         </p>
       </div>
 
-      <UnloadingTable parcels={parcels} onRefresh={refetch} />
+      <UnloadingTable parcels={tableData} onRefresh={handleRefresh} />
       <UnloadingInfo />
     </div>
   );
