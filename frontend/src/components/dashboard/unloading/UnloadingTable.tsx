@@ -294,16 +294,40 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => {
-                  const parcel = row.original;
-                  return (
-                    <OptimizedTableRow
-                      key={`${parcel.id}-${parcel.status}-${parcel.updatedAt}`}
-                      parcel={parcel}
-                      isSelected={row.getIsSelected()}
-                    />
-                  );
-                })
+                <>
+                  {table.getRowModel().rows.map((row) => {
+                    const parcel = row.original;
+                    return (
+                      <OptimizedTableRow
+                        key={`${parcel.id}-${parcel.status}-${parcel.updatedAt}`}
+                        parcel={parcel}
+                        isSelected={row.getIsSelected()}
+                      />
+                    );
+                  })}
+                  {/* 레이아웃 시프트 방지를 위한 더미 row */}
+                  {Array.from({
+                    length: Math.max(
+                      0,
+                      pageSize - table.getRowModel().rows.length
+                    ),
+                  }).map((_, index) => (
+                    <TableRow key={`dummy-${index}`} className="opacity-0">
+                      <TableCell>
+                        <div className="invisible">-</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="invisible">-</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="invisible">-</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="invisible">-</div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center">
