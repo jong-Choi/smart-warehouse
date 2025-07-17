@@ -28,8 +28,8 @@ export function useUnloadingWaybills() {
   return useQuery<WaybillListResponse>({
     queryKey: waybillKeys.unloading(),
     queryFn: fetchUnloadingWaybills,
-    staleTime: 5 * 60 * 1000, // 5분간 fresh
-    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    staleTime: 60 * 60 * 1000, // 60분간 fresh
+    gcTime: 120 * 60 * 1000, // 120분간 캐시 유지
   });
 }
 
@@ -38,8 +38,8 @@ export function useUnloadingParcels() {
   return useQuery<ParcelListResponse>({
     queryKey: waybillKeys.parcels.unloading(),
     queryFn: fetchUnloadingParcels,
-    staleTime: 5 * 60 * 1000, // 5분간 fresh
-    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    staleTime: 60 * 60 * 1000, // 60분간 fresh
+    gcTime: 120 * 60 * 1000, // 120분간 캐시 유지
   });
 }
 

@@ -40,6 +40,10 @@ const navigationData: NavigationItem[] = [
         title: "개요",
         url: "/dashboard/overview",
       },
+      {
+        title: "하차 예정",
+        url: "/dashboard/unloading",
+      },
     ],
   },
   {
