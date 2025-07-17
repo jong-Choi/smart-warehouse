@@ -1,0 +1,103 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchUnloadingWaybills,
+  fetchUnloadingParcels,
+  fetchWaybillById,
+  updateParcelStatus,
+} from "@/api/waybillApi";
+import type {
+  WaybillListResponse,
+  ParcelListResponse,
+  Waybill,
+  ParcelStatus,
+} from "@/types";
+
+// Query Keys
+export const waybillKeys = {
+  all: ["waybills"] as const,
+  unloading: () => [...waybillKeys.all, "unloading"] as const,
+  detail: (id: number) => [...waybillKeys.all, "detail", id] as const,
+  parcels: {
+    all: ["parcels"] as const,
+    unloading: () => [...waybillKeys.parcels.all, "unloading"] as const,
+  },
+};
+
+// 하차 예정 운송장 목록 조회
+export function useUnloadingWaybills() {
+  return useQuery<WaybillListResponse>({
+    queryKey: waybillKeys.unloading(),
+    queryFn: fetchUnloadingWaybills,
+    staleTime: 5 * 60 * 1000, // 5분간 fresh
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+  });
+}
+
+// 하차 예정 소포 목록 조회 (2000개) - 가장 중요한 hook
+export function useUnloadingParcels() {
+  return useQuery<ParcelListResponse>({
+    queryKey: waybillKeys.parcels.unloading(),
+    queryFn: fetchUnloadingParcels,
+    staleTime: 5 * 60 * 1000, // 5분간 fresh
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+  });
+}
+
+// 특정 운송장 상세 조회
+export function useWaybillDetail(id: number) {
+  return useQuery<Waybill>({
+    queryKey: waybillKeys.detail(id),
+    queryFn: () => fetchWaybillById(id),
+    enabled: !!id, // id가 있을 때만 실행
+    staleTime: 2 * 60 * 1000, // 2분간 fresh
+  });
+}
+
+// 소포 상태 업데이트 mutation
+export function useUpdateParcelStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      parcelId,
+      status,
+      operatorId,
+    }: {
+      parcelId: number;
+      status: ParcelStatus;
+      operatorId?: number;
+    }) => updateParcelStatus(parcelId, status, operatorId),
+
+    onSuccess: (updatedParcel) => {
+      // 관련 쿼리들 무효화하여 데이터 새로고침
+      queryClient.invalidateQueries({
+        queryKey: waybillKeys.parcels.unloading(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: waybillKeys.unloading(),
+      });
+
+      // 특정 운송장 캐시도 업데이트
+      if (updatedParcel.waybillId) {
+        queryClient.invalidateQueries({
+          queryKey: waybillKeys.detail(updatedParcel.waybillId),
+        });
+      }
+    },
+
+    onError: (error) => {
+      console.error("Failed to update parcel status:", error);
+    },
+  });
+}
+
+// Suspense를 사용하는 하차 예정 소포 hook
+export function useUnloadingParcelsSuspense() {
+  return useQuery<ParcelListResponse>({
+    queryKey: waybillKeys.parcels.unloading(),
+    queryFn: fetchUnloadingParcels,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    throwOnError: true, // Suspense와 ErrorBoundary를 위해
+  });
+}

@@ -2,7 +2,15 @@ import React from "react";
 import { Button } from "./button";
 import { Slider } from "./slider";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./hover-card";
-import { Play, Pause, RotateCcw, Settings, HelpCircle } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Settings,
+  HelpCircle,
+  Loader2,
+} from "lucide-react";
+import { useUnloadingParcels } from "@hooks/useWaybills";
 
 // 슬라이더 컴포넌트
 interface SliderProps {
@@ -102,6 +110,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   onStopUnload,
   onReset,
 }) => {
+  const { isLoading } = useUnloadingParcels();
   return (
     <div className="flex items-center justify-between w-full">
       {isPaused ? (
@@ -109,9 +118,14 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
           size="default"
           variant="default"
           onClick={onStartUnload}
+          disabled={isLoading}
           className="flex items-center space-x-1 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
-          <Play className="w-4 h-4" />
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Play className="w-4 h-4" />
+          )}
           <span>하차 시작</span>
         </Button>
       ) : (

@@ -1,15 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
 import { createChannelInterface } from "@/utils";
 import { type BroadcastMessage } from "@/types/broadcast";
+import { useUnloadingParcels } from "@/hooks/useWaybills";
 
 export interface FactoryStats {
   unloadExpected: number;
   unloadCompleted: number;
   processedCount: number;
   accidentRate: string;
+  isLoading?: boolean;
+  error?: string;
 }
 
 export function useFactoryStats(): FactoryStats {
+  // TanStack Query로 하차 예정 목록 가져오기 [[memory:2711770]]
+  const { data: unloadingData, isLoading, error } = useUnloadingParcels();
+
   // 실시간 통계 상태
   const [stats, setStats] = useState({
     unloadCompleted: 0, // 하차 완료 수량
@@ -62,7 +68,8 @@ export function useFactoryStats(): FactoryStats {
 
   // 실시간 통계 계산
   return useMemo(() => {
-    const unloadExpected = 2000; // 하차 예정수량 (고정값)
+    // TanStack Query에서 가져온 하차 예정 수량 (기본값 2000)
+    const unloadExpected = unloadingData?.total || 2000;
 
     // 사고율 계산 (사고 수 / 총 처리 수량 * 100)
     const accidentRate =
@@ -71,10 +78,12 @@ export function useFactoryStats(): FactoryStats {
         : "0.00";
 
     return {
-      unloadExpected, // 하차 예정수량
+      unloadExpected, // 서버에서 가져온 하차 예정수량
       unloadCompleted: stats.unloadCompleted, // 하차 완료 수량
       processedCount: stats.workerProcessed, // 작업자가 처리한 갯수
       accidentRate: `${accidentRate}%`, // 사고율
+      isLoading, // 로딩 상태
+      error: error?.message, // 에러 메시지
     };
-  }, [stats]);
+  }, [stats, unloadingData, isLoading, error]);
 }
