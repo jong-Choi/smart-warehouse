@@ -109,6 +109,27 @@ const CooldownTimer = React.memo<{
       index,
     ]);
 
+    const previousBroken = useRef(isBroken);
+    // 고장 상태 변화 감지를 위한 useEffect 추가
+    useEffect(() => {
+      // 고장에서 복구된 순간
+      if (previousBroken.current && !isBroken) {
+        channelRef.current?.send({
+          ts: now,
+          msg: "작업 종료",
+          category: "STATUS",
+          severity: "INFO",
+          asset: "WORKER",
+          workerId: index < 10 ? `A${index + 1}` : `B${index - 9}`,
+          operatorId: index + 1,
+          operatorName:
+            index < 10 ? `작업자A${index + 1}` : `작업자B${index - 9}`,
+        });
+      }
+
+      previousBroken.current = isBroken;
+    }, [isBroken, now, index]);
+
     // 상태 업데이트
     useEffect(() => {
       setIsWorking(isWorking);

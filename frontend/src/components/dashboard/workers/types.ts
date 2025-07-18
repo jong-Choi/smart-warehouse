@@ -4,7 +4,9 @@ export interface Worker {
   status: WorkerStatus; // 현재 상태
   processedCount: number; // 처리한 물건 수
   lastProcessedAt?: string; // 마지막 처리 시간
-  brokenUntil?: string; // 고장 복구 시간
+  brokenUntil?: string; // 고장 복구 시간 (내부 로직용, UI 미표시)
+  workStartedAt?: string; // 최초 작업 시작 시간
+  totalWorkTime: number; // 누적 작업시간 (밀리초)
 }
 
 export type WorkerStatus =

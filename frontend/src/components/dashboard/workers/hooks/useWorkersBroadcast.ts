@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { createChannelInterface } from "@/utils";
 import type { BroadcastMessage } from "@/types/broadcast";
 import { useWorkersStore } from "@/stores/workersStore";
+import type { WorkerStatus } from "@components/dashboard/workers/types";
 
 export const useWorkersBroadcast = () => {
   const { updateWorker } = useWorkersStore();
@@ -14,56 +15,49 @@ export const useWorkersBroadcast = () => {
     const unsubscribe = channel.subscribe((message: BroadcastMessage) => {
       const now = new Date().toISOString();
 
-      if (message.msg === "작업자 처리") {
+      if (message.msg === "작업자 처리" || message.msg === "작업자 고장") {
+        const msgMap: Record<string, WorkerStatus> = {
+          "작업자 처리": "WORKING",
+          "작업자 고장": "BROKEN",
+        };
         // 작업자가 물건을 처리했을 때
         const workerId = message.workerId as string;
+        const { workers } = useWorkersStore.getState();
+        const currentWorker = workers.find((w) => w.id === workerId);
+
+        // 최초 작업 시작 시간 설정 (처음 처리할 때만)
+        const workStartedAt = currentWorker?.workStartedAt || now;
 
         updateWorker(workerId, {
-          status: "WORKING",
-          processedCount: (message.count as number) || 0,
+          status: msgMap[message.msg],
+          processedCount: ((message.count as number) || 1) - 1, // count는 1부터 시작하므로 1을 빼줌
           lastProcessedAt: now,
+          workStartedAt,
         });
       } else if (message.msg === "작업 종료") {
         // 작업자의 쿨다운이 끝났을 때
         const workerId = message.workerId as string;
+        const { workers } = useWorkersStore.getState();
+        const currentWorker = workers.find((w) => w.id === workerId);
+
+        // 작업시간 계산 및 누적
+        let additionalWorkTime = 0;
+        if (currentWorker?.lastProcessedAt) {
+          const lastProcessedTime = new Date(
+            currentWorker.lastProcessedAt
+          ).getTime();
+          const nowTime = new Date(now).getTime();
+          additionalWorkTime = nowTime - lastProcessedTime;
+        }
 
         updateWorker(workerId, {
           status: "IDLE",
-        });
-      } else if (message.msg === "작업자 고장") {
-        // 작업자가 고장났을 때
-        const workerId = message.workerId as string;
-        const brokenUntil = message.brokenUntil as number;
-
-        updateWorker(workerId, {
-          status: "BROKEN",
-          brokenUntil: new Date(brokenUntil).toISOString(),
+          totalWorkTime:
+            (currentWorker?.totalWorkTime || 0) + additionalWorkTime,
         });
       }
     });
 
     return unsubscribe;
   }, [channel, updateWorker]);
-
-  // 고장 복구 체크 (고장 복구 시간이 지났는지 확인)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const { workers, updateWorker } = useWorkersStore.getState();
-
-      workers.forEach((worker) => {
-        if (worker.status === "BROKEN" && worker.brokenUntil) {
-          const brokenUntil = new Date(worker.brokenUntil);
-          if (now >= brokenUntil) {
-            updateWorker(worker.id, {
-              status: "IDLE",
-              brokenUntil: undefined,
-            });
-          }
-        }
-      });
-    }, 1000); // 1초마다 체크
-
-    return () => clearInterval(interval);
-  }, []);
 };

@@ -33,6 +33,22 @@ const formatTime = (timeString?: string) => {
   return new Date(timeString).toLocaleTimeString();
 };
 
+const formatWorkTime = (milliseconds: number) => {
+  if (milliseconds === 0) return "-";
+
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    return `${hours}시간 ${minutes % 60}분`;
+  } else if (minutes > 0) {
+    return `${minutes}분 ${seconds % 60}초`;
+  } else {
+    return `${seconds}초`;
+  }
+};
+
 export const WorkersTable: React.FC = () => {
   const { workers, stats } = useWorkersStore();
 
@@ -85,8 +101,9 @@ export const WorkersTable: React.FC = () => {
                 <TableHead>이름</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>처리 건수</TableHead>
+                <TableHead>작업 시작</TableHead>
+                <TableHead>작업시간</TableHead>
                 <TableHead>마지막 처리</TableHead>
-                <TableHead>고장 복구</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -96,12 +113,9 @@ export const WorkersTable: React.FC = () => {
                   <TableCell>{worker.name}</TableCell>
                   <TableCell>{getStatusBadge(worker.status)}</TableCell>
                   <TableCell>{worker.processedCount}</TableCell>
+                  <TableCell>{formatTime(worker.workStartedAt)}</TableCell>
+                  <TableCell>{formatWorkTime(worker.totalWorkTime)}</TableCell>
                   <TableCell>{formatTime(worker.lastProcessedAt)}</TableCell>
-                  <TableCell>
-                    {worker.status === "BROKEN" && worker.brokenUntil
-                      ? formatTime(worker.brokenUntil)
-                      : "-"}
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

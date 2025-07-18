@@ -12,6 +12,7 @@ const createInitialWorkers = (): Worker[] => {
       name: `작업자A${i}`,
       status: "IDLE",
       processedCount: 0,
+      totalWorkTime: 0,
     });
   }
 
@@ -22,6 +23,7 @@ const createInitialWorkers = (): Worker[] => {
       name: `작업자B${i}`,
       status: "IDLE",
       processedCount: 0,
+      totalWorkTime: 0,
     });
   }
 
