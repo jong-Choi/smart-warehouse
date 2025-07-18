@@ -202,7 +202,7 @@ export class ParcelService {
         status: stat.status,
         count: stat._count.id,
       })),
-      accidents: accidentCount,
+      accidentCount: accidentCount,
     };
   }
 }

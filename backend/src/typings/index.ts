@@ -109,7 +109,7 @@ export interface ParcelStats {
     status: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
     count: number;
   }>;
-  accidents: number;
+  accidentCount: number;
 }
 
 export interface LocationStats {

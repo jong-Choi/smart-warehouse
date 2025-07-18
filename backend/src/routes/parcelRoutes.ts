@@ -102,7 +102,7 @@ router.get("/", parcelController.getAllParcels);
  *                           count:
  *                             type: integer
  *                             example: 2
- *                     accidents:
+ *                     accidentCount:
  *                       type: integer
  *                       example: 2
  */
