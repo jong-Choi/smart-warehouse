@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Badge } from "@/ui/badge";
 import {
   Table,
@@ -9,11 +9,15 @@ import {
   TableRow,
 } from "@/ui/table";
 import { useWorkersStore } from "@/stores/workersStore";
-import type { WorkerStatus } from "./types";
+import type { WorkerStatus, Worker, WorkerStats } from "./types";
 
-const getStatusBadge = (status: WorkerStatus, workStartedAt?: string) => {
+// 상태 배지 컴포넌트를 메모이제이션
+const StatusBadge = React.memo<{
+  status: WorkerStatus;
+  workStartedAt?: string;
+}>(({ status, workStartedAt }) => {
   // 작업 시작 시간이 없으면 "-" 반환
-  if (!workStartedAt) return "-";
+  if (!workStartedAt) return <span>-</span>;
 
   switch (status) {
     case "WORKING":
@@ -25,12 +29,15 @@ const getStatusBadge = (status: WorkerStatus, workStartedAt?: string) => {
     case "IDLE":
       return <Badge variant="secondary">대기중</Badge>;
     case "BROKEN":
-      return <Badge variant="destructive">고장</Badge>;
+      return <Badge variant="destructive">사고</Badge>;
     default:
       return <Badge variant="outline">알 수 없음</Badge>;
   }
-};
+});
 
+StatusBadge.displayName = "StatusBadge";
+
+// 시간 포맷팅 함수들을 메모이제이션
 const formatTime = (timeString?: string) => {
   if (!timeString) return "-";
   return new Date(timeString).toLocaleTimeString();
@@ -79,44 +86,95 @@ const calculateAccidentRate = (
   return `${accidentRate.toFixed(1)}%`;
 };
 
+// 개별 테이블 행 컴포넌트를 메모이제이션
+const WorkerTableRow = React.memo<{ worker: Worker }>(({ worker }) => {
+  const formattedWorkStartedAt = useMemo(
+    () => formatTime(worker.workStartedAt),
+    [worker.workStartedAt]
+  );
+
+  const formattedWorkTime = useMemo(
+    () => formatWorkTime(worker.totalWorkTime),
+    [worker.totalWorkTime]
+  );
+
+  const utilization = useMemo(
+    () => calculateUtilization(worker.totalWorkTime, worker.workStartedAt),
+    [worker.totalWorkTime, worker.workStartedAt]
+  );
+
+  const accidentRate = useMemo(
+    () => calculateAccidentRate(worker.processedCount, worker.accidentCount),
+    [worker.processedCount, worker.accidentCount]
+  );
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{worker.id}</TableCell>
+      <TableCell>{worker.name}</TableCell>
+      <TableCell>
+        <StatusBadge
+          status={worker.status}
+          workStartedAt={worker.workStartedAt}
+        />
+      </TableCell>
+      <TableCell>{worker.processedCount}</TableCell>
+      <TableCell>{worker.accidentCount}</TableCell>
+      <TableCell>{accidentRate}</TableCell>
+      <TableCell>{formattedWorkStartedAt}</TableCell>
+      <TableCell>{formattedWorkTime}</TableCell>
+      <TableCell>{utilization}</TableCell>
+    </TableRow>
+  );
+});
+
+WorkerTableRow.displayName = "WorkerTableRow";
+
+// 통계 카드 컴포넌트를 메모이제이션
+const StatsCard = React.memo<{
+  title: string;
+  value: number;
+  color?: string;
+}>(({ title, value, color = "" }) => (
+  <div className="bg-white rounded-lg border p-4">
+    <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="text-sm font-medium">{title}</div>
+    </div>
+    <div className={`text-2xl font-bold ${color}`}>{value}</div>
+  </div>
+));
+
+StatsCard.displayName = "StatsCard";
+
+// 통계 섹션 컴포넌트를 메모이제이션
+const StatsSection = React.memo<{ stats: WorkerStats }>(({ stats }) => (
+  <div className="grid grid-cols-4 gap-4">
+    <StatsCard title="전체 작업자" value={stats.totalWorkers} />
+    <StatsCard
+      title="작업중"
+      value={stats.workingWorkers}
+      color="text-green-600"
+    />
+    <StatsCard title="대기중" value={stats.idleWorkers} color="text-gray-600" />
+    <StatsCard title="고장" value={stats.brokenWorkers} color="text-red-600" />
+  </div>
+));
+
+StatsSection.displayName = "StatsSection";
+
 export const WorkersTable: React.FC = () => {
   const { workers, stats } = useWorkersStore();
+
+  // 통계 데이터를 메모이제이션
+  const memoizedStats = useMemo(() => stats, [stats]);
+
+  // 작업자 목록을 메모이제이션
+  const memoizedWorkers = useMemo(() => workers, [workers]);
 
   return (
     <div className="space-y-6">
       {/* 통계 카드 */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">전체 작업자</div>
-          </div>
-          <div className="text-2xl font-bold">{stats.totalWorkers}</div>
-        </div>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">작업중</div>
-          </div>
-          <div className="text-2xl font-bold text-green-600">
-            {stats.workingWorkers}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">대기중</div>
-          </div>
-          <div className="text-2xl font-bold text-gray-600">
-            {stats.idleWorkers}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">고장</div>
-          </div>
-          <div className="text-2xl font-bold text-red-600">
-            {stats.brokenWorkers}
-          </div>
-        </div>
-      </div>
+      <StatsSection stats={memoizedStats} />
 
       {/* 작업자 테이블 */}
       <div className="bg-white rounded-lg border">
@@ -134,35 +192,13 @@ export const WorkersTable: React.FC = () => {
                 <TableHead>파손 건수</TableHead>
                 <TableHead>사고율</TableHead>
                 <TableHead>작업 시작</TableHead>
-                <TableHead>작업시간</TableHead>
+                <TableHead>처리시간</TableHead>
                 <TableHead>가동률</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {workers.map((worker) => (
-                <TableRow key={worker.id}>
-                  <TableCell className="font-medium">{worker.id}</TableCell>
-                  <TableCell>{worker.name}</TableCell>
-                  <TableCell>
-                    {getStatusBadge(worker.status, worker.workStartedAt)}
-                  </TableCell>
-                  <TableCell>{worker.processedCount}</TableCell>
-                  <TableCell>{worker.accidentCount}</TableCell>
-                  <TableCell>
-                    {calculateAccidentRate(
-                      worker.processedCount,
-                      worker.accidentCount
-                    )}
-                  </TableCell>
-                  <TableCell>{formatTime(worker.workStartedAt)}</TableCell>
-                  <TableCell>{formatWorkTime(worker.totalWorkTime)}</TableCell>
-                  <TableCell>
-                    {calculateUtilization(
-                      worker.totalWorkTime,
-                      worker.workStartedAt
-                    )}
-                  </TableCell>
-                </TableRow>
+              {memoizedWorkers.map((worker) => (
+                <WorkerTableRow key={worker.id} worker={worker} />
               ))}
             </TableBody>
           </Table>
