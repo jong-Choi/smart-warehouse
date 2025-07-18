@@ -68,6 +68,17 @@ const calculateUtilization = (
   return `${utilization.toFixed(1)}%`;
 };
 
+const calculateAccidentRate = (
+  processedCount: number,
+  accidentCount: number
+) => {
+  const totalCount = processedCount + accidentCount;
+  if (totalCount === 0) return "-";
+
+  const accidentRate = (accidentCount / totalCount) * 100;
+  return `${accidentRate.toFixed(1)}%`;
+};
+
 export const WorkersTable: React.FC = () => {
   const { workers, stats } = useWorkersStore();
 
@@ -121,6 +132,7 @@ export const WorkersTable: React.FC = () => {
                 <TableHead>상태</TableHead>
                 <TableHead>정상 건수</TableHead>
                 <TableHead>파손 건수</TableHead>
+                <TableHead>사고율</TableHead>
                 <TableHead>작업 시작</TableHead>
                 <TableHead>작업시간</TableHead>
                 <TableHead>가동률</TableHead>
@@ -136,6 +148,12 @@ export const WorkersTable: React.FC = () => {
                   </TableCell>
                   <TableCell>{worker.processedCount}</TableCell>
                   <TableCell>{worker.accidentCount}</TableCell>
+                  <TableCell>
+                    {calculateAccidentRate(
+                      worker.processedCount,
+                      worker.accidentCount
+                    )}
+                  </TableCell>
                   <TableCell>{formatTime(worker.workStartedAt)}</TableCell>
                   <TableCell>{formatWorkTime(worker.totalWorkTime)}</TableCell>
                   <TableCell>
