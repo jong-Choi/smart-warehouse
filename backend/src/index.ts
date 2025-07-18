@@ -15,7 +15,11 @@ const PORT = process.env.PORT || 4000;
 // 미들웨어
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: [
+      process.env.CORS_ORIGIN || "http://localhost:3000",
+      "http://localhost:5173", // Vite 개발 서버
+      "http://localhost:4173", // Vite 프리뷰 서버
+    ],
     credentials: true,
   })
 );
