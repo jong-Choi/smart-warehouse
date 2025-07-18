@@ -63,3 +63,4 @@ export {
 } from "./factory";
 export { Slider } from "./slider";
 export { DonutChart } from "./donut-chart";
+export { SortableHeader } from "./sortable-header";

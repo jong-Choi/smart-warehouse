@@ -37,7 +37,10 @@ const INITIAL_STATE = {
   lastPageIndex: 0,
   globalFilter: "",
   statusFilter: "all",
-  sorting: [] as Array<{ id: string; desc: boolean }>,
+  sorting: [{ id: "waybillId", desc: false }] as Array<{
+    id: string;
+    desc: boolean;
+  }>,
 };
 
 export const useUnloadingTableStore = create<UnloadingTableState>()((set) => ({
