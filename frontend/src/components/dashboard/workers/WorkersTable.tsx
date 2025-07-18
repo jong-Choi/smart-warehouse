@@ -11,7 +11,10 @@ import {
 import { useWorkersStore } from "@/stores/workersStore";
 import type { WorkerStatus } from "./types";
 
-const getStatusBadge = (status: WorkerStatus) => {
+const getStatusBadge = (status: WorkerStatus, workStartedAt?: string) => {
+  // 작업 시작 시간이 없으면 "-" 반환
+  if (!workStartedAt) return "-";
+
   switch (status) {
     case "WORKING":
       return (
@@ -47,6 +50,22 @@ const formatWorkTime = (milliseconds: number) => {
   } else {
     return `${seconds}초`;
   }
+};
+
+const calculateUtilization = (
+  totalWorkTime: number,
+  workStartedAt?: string
+) => {
+  if (!workStartedAt || totalWorkTime === 0) return "-";
+
+  const now = new Date().getTime();
+  const startTime = new Date(workStartedAt).getTime();
+  const totalTime = now - startTime;
+
+  if (totalTime <= 0) return "-";
+
+  const utilization = (totalWorkTime / totalTime) * 100;
+  return `${utilization.toFixed(1)}%`;
 };
 
 export const WorkersTable: React.FC = () => {
@@ -104,7 +123,7 @@ export const WorkersTable: React.FC = () => {
                 <TableHead>파손 건수</TableHead>
                 <TableHead>작업 시작</TableHead>
                 <TableHead>작업시간</TableHead>
-                <TableHead>마지막 처리</TableHead>
+                <TableHead>가동률</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -112,12 +131,19 @@ export const WorkersTable: React.FC = () => {
                 <TableRow key={worker.id}>
                   <TableCell className="font-medium">{worker.id}</TableCell>
                   <TableCell>{worker.name}</TableCell>
-                  <TableCell>{getStatusBadge(worker.status)}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(worker.status, worker.workStartedAt)}
+                  </TableCell>
                   <TableCell>{worker.processedCount}</TableCell>
                   <TableCell>{worker.accidentCount}</TableCell>
                   <TableCell>{formatTime(worker.workStartedAt)}</TableCell>
                   <TableCell>{formatWorkTime(worker.totalWorkTime)}</TableCell>
-                  <TableCell>{formatTime(worker.lastProcessedAt)}</TableCell>
+                  <TableCell>
+                    {calculateUtilization(
+                      worker.totalWorkTime,
+                      worker.workStartedAt
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
