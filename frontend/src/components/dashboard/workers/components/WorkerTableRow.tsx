@@ -8,6 +8,7 @@ import {
   calculateAccidentRate,
 } from "@/components/dashboard/workers/utils/calculations";
 import type { Worker } from "@/components/dashboard/workers/types";
+import { Link } from "react-router-dom";
 
 interface WorkerTableRowProps {
   worker: Worker;
@@ -39,7 +40,14 @@ export const WorkerTableRow = React.memo<WorkerTableRowProps>(({ worker }) => {
 
   return (
     <TableRow>
-      <TableCell className="font-medium">{worker.id}</TableCell>
+      <TableCell className="font-medium">
+        <Link
+          to={`/dashboard/workers/${worker.id}`}
+          className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+        >
+          {worker.id}
+        </Link>
+      </TableCell>
       <TableCell>{worker.name}</TableCell>
       <TableCell>
         <StatusBadge

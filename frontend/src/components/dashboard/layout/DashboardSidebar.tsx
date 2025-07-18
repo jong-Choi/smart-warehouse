@@ -49,6 +49,20 @@ const navigationData: NavigationItem[] = [
     ],
   },
   {
+    title: "작업자 관리",
+    icon: Users,
+    children: [
+      {
+        title: "작업자 목록",
+        url: "/dashboard/realtime/workers",
+      },
+      {
+        title: "작업자 상세 (예시)",
+        url: "/dashboard/workers/1",
+      },
+    ],
+  },
+  {
     title: "소포 관리",
     icon: Package,
     children: [

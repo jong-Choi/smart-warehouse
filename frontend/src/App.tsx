@@ -18,6 +18,7 @@ import DashboardLocationPage from "@pages/dashboard/location/DashboardLocationPa
 import DashboardLocationListPage from "@pages/dashboard/location/DashboardLocationListPage";
 import DashboardUnloadingPage from "@pages/dashboard/home/DashboardUnloadingPage";
 import { DashboardWorkersPage } from "@pages/dashboard/workers/DashboardWorkersPage";
+import { DashboardWorkerDetailPage } from "@pages/dashboard/workers/detail/DashboardWorkerDetailPage";
 
 function App() {
   return (
@@ -50,6 +51,10 @@ function App() {
             <Route
               path="/dashboard/realtime/workers"
               element={<DashboardWorkersPage />}
+            />
+            <Route
+              path="/dashboard/workers/:id"
+              element={<DashboardWorkerDetailPage />}
             />
             <Route
               path="/dashboard/parcels"
