@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  Home,
+  Activity,
   Package,
   MapPin,
   Settings,
@@ -29,24 +29,21 @@ interface NavigationItem {
 
 const navigationData: NavigationItem[] = [
   {
-    title: "대시보드",
-    icon: Home,
+    title: "실시간 현황",
+    icon: Activity,
     children: [
       {
-        title: "홈",
-        url: "/dashboard/home",
-      },
-      {
         title: "개요",
-        url: "/dashboard/overview",
+        url: "/dashboard/realtime/overview",
+      },
+
+      {
+        title: "운송장 현황",
+        url: "/dashboard/realtime/waybill",
       },
       {
-        title: "하차 예정",
-        url: "/dashboard/unloading",
-      },
-      {
-        title: "작업자 관리",
-        url: "/dashboard/workers",
+        title: "작업자 현황",
+        url: "/dashboard/realtime/workers",
         icon: Users,
       },
     ],
@@ -169,7 +166,7 @@ export function DashboardSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" tooltip="물류 관리 시스템" asChild>
-              <NavLink to="/dashboard/home">
+              <NavLink to="/dashboard/realtime/overview">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center rounded-lg shadow-sm">
                   <Package className="size-5" />
                 </div>

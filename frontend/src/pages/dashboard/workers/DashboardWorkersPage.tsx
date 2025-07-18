@@ -6,9 +6,11 @@ export const DashboardWorkersPage: React.FC = () => {
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">작업자 관리</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            실시간 작업자 현황
+          </h1>
           <p className="text-muted-foreground">
-            실시간으로 작업자들의 상태를 모니터링합니다.
+            작업자들의 실시간 상태와 성과를 모니터링합니다.
           </p>
         </div>
       </div>

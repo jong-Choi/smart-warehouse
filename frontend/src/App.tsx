@@ -9,7 +9,7 @@ import FactoryLayout from "@components/factory/layout/FactoryLayout";
 import DashboardLayout from "@components/dashboard/layout/DashboardLayout";
 import FactoryPage from "@pages/factory/FactoryPage";
 import DashboardHomePage from "@pages/dashboard/home/DashboardHomePage";
-import DashboardOverviewPage from "@pages/dashboard/home/DashboardOverviewPage";
+
 import DashboardParcelsPage from "@pages/dashboard/parcels/DashboardParcelsPage";
 import DashboardParcelsListPage from "@pages/dashboard/parcels/DashboardParcelsListPage";
 import DashboardParcelsInboundPage from "@pages/dashboard/parcels/DashboardParcelsInboundPage";
@@ -36,20 +36,19 @@ function App() {
           {/* Dashboard routes */}
           <Route
             path="/dashboard"
-            element={<Navigate to="/dashboard/home" replace />}
+            element={<Navigate to="/dashboard/realtime/overview" replace />}
           />
           <Route element={<DashboardLayout />}>
-            <Route path="/dashboard/home" element={<DashboardHomePage />} />
             <Route
-              path="/dashboard/overview"
-              element={<DashboardOverviewPage />}
+              path="/dashboard/realtime/overview"
+              element={<DashboardHomePage />}
             />
             <Route
-              path="/dashboard/unloading"
+              path="/dashboard/realtime/waybill"
               element={<DashboardUnloadingPage />}
             />
             <Route
-              path="/dashboard/workers"
+              path="/dashboard/realtime/workers"
               element={<DashboardWorkersPage />}
             />
             <Route

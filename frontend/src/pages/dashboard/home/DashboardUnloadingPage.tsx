@@ -72,9 +72,9 @@ const LoadingSkeleton = () => (
 // 페이지 헤더 컴포넌트
 const PageHeader = () => (
   <div className="mb-6">
-    <h1 className="text-3xl font-bold">하차 예정 운송장</h1>
+    <h1 className="text-3xl font-bold">실시간 운송장 현황</h1>
     <p className="text-muted-foreground">
-      하차 대기 중인 운송장 목록을 실시간으로 확인할 수 있습니다.
+      운송장의 실시간 처리 현황과 상태를 상세히 확인할 수 있습니다.
     </p>
   </div>
 );

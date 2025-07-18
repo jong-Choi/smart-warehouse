@@ -26,9 +26,6 @@ export const WorkersTable: React.FC = () => {
 
       {/* 작업자 테이블 */}
       <div className="bg-white rounded-lg border">
-        <div className="p-6 border-b">
-          <div className="text-lg font-semibold">작업자 관리</div>
-        </div>
         <div className="p-6">
           <Table>
             <TableHeader>
