@@ -1,10 +1,9 @@
-import React from "react";
-import { ControllerLayout } from "../../ui";
+import { ControllerLayout } from "@/components/ui";
 import {
   SystemControlPanel,
   ControlMetrics,
   ControlSliders,
-} from "./components";
+} from "@/components/factory/controllers/components";
 
 const LeftController: React.FC = () => {
   return (

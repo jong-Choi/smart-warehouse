@@ -1,7 +1,7 @@
-import { Button } from "../../../ui/button";
-import { LocationTable } from "./components/location-table";
-import { columns } from "./components/location-columns";
-import { locations } from "../../../data/location";
+import { Button } from "@ui/button";
+import { LocationTable } from "@/pages/dashboard/location/components/location-table";
+import { columns } from "@/pages/dashboard/location/components/location-columns";
+import { locations } from "@/data/location";
 import {
   Plus,
   MapPin,

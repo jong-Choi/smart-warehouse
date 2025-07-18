@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/ui/badge";
-import type { WorkerStatus } from "../types";
+import type { WorkerStatus } from "@/components/dashboard/workers/types";
 
 interface StatusBadgeProps {
   status: WorkerStatus;

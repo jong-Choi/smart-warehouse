@@ -1,4 +1,3 @@
-import React from "react";
 import { WorkersTable } from "@/components/dashboard/workers/WorkersTable";
 
 export const DashboardWorkersPage: React.FC = () => {

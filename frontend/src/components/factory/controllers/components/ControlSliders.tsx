@@ -1,5 +1,4 @@
-import React from "react";
-import { ControlPanel, FactorySlider } from "../../../ui";
+import { ControlPanel, FactorySlider } from "@/components/ui";
 import { Users, Zap, Clock, Activity } from "lucide-react";
 import { useFactoryControls } from "@/hooks/useFactoryControls";
 

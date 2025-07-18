@@ -1,4 +1,3 @@
-import * as React from "react";
 import { NavLink } from "react-router-dom";
 import {
   Home,
@@ -19,7 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "../../ui/sidebar";
+} from "@/components/ui/sidebar";
 
 interface NavigationItem {
   title: string;

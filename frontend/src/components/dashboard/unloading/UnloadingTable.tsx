@@ -8,16 +8,16 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { RefreshCw } from "lucide-react";
-import { Table, TableBody, TableCell, TableRow } from "../../../ui/table";
-import { Button } from "../../../ui/button";
-import { useUnloadingTableStore } from "../../../stores/unloadingTableStore";
-import type { UnloadingParcel } from "./types";
+import { Table, TableBody, TableCell, TableRow } from "@ui/table";
+import { Button } from "@ui/button";
+import { useUnloadingTableStore } from "@/stores/unloadingTableStore";
+import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 import {
   OptimizedTableRow,
   UnloadingTableHeader,
   TableFilters,
   TablePagination,
-} from "./components";
+} from "@/components/dashboard/unloading/components";
 
 // 금액 포맷팅 유틸리티 함수
 const formatCurrency = (amount: number): string => {

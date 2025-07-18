@@ -1,6 +1,9 @@
-import React from "react";
-import { ControllerLayout } from "../../ui";
-import { WorkerSpeedPanel, RealTimeStats, SystemInfoPanel } from "./components";
+import { ControllerLayout } from "@/components/ui";
+import {
+  WorkerSpeedPanel,
+  RealTimeStats,
+  SystemInfoPanel,
+} from "@/components/factory/controllers/components";
 
 const RightController: React.FC = () => {
   return (

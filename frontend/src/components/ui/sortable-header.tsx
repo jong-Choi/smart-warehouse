@@ -1,6 +1,5 @@
-import React from "react";
-import { TableHead } from "../../ui/table";
-import { Button } from "./button";
+import { TableHead } from "@ui/table";
+import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 
 interface SortableHeaderProps {

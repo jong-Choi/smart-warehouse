@@ -1,5 +1,4 @@
-import React from "react";
-import { MetricCard, WorkerGrid } from "../../../ui";
+import { MetricCard, WorkerGrid } from "@/components/ui";
 import { Users, Zap, Clock, AlertTriangle } from "lucide-react";
 import { useFactoryControls } from "@/hooks/useFactoryControls";
 

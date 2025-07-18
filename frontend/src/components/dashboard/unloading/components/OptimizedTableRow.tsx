@@ -1,8 +1,8 @@
 import React from "react";
-import { TableCell, TableRow } from "../../../../ui/table";
-import { OptimizedStatusCell } from "./OptimizedStatusCell";
-import { OptimizedDateCell } from "./OptimizedDateCell";
-import type { UnloadingParcel } from "../types";
+import { TableCell, TableRow } from "@ui/table";
+import { OptimizedStatusCell } from "@/components/dashboard/unloading/components/OptimizedStatusCell";
+import { OptimizedDateCell } from "@/components/dashboard/unloading/components/OptimizedDateCell";
+import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
 // 금액 포맷팅 유틸리티 함수
 const formatCurrency = (amount: number): string => {

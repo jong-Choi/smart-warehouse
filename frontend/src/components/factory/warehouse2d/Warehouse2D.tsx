@@ -8,7 +8,11 @@ import {
   RECEIVE_WORKERS,
 } from "@/utils/warehouse/calculations";
 import { useWarehouse2D } from "@/hooks/warehouse/useWarehouse2D";
-import { MovingBox, Worker, BeltLines } from "./components";
+import {
+  MovingBox,
+  Worker,
+  BeltLines,
+} from "@/components/factory/warehouse2d/components";
 
 export default function Warehouse2D() {
   // factoryStore에서 상태 가져오기

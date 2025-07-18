@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "../../../../ui/badge";
-import { Button } from "../../../../ui/button";
-import type { Location } from "../../../../types/location";
+import { Badge } from "@ui/badge";
+import { Button } from "@ui/button";
+import type { Location } from "@/types/location";
 import {
   MapPin,
   Package,

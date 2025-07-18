@@ -1,7 +1,6 @@
-import React from "react";
-import { DonutChart } from "../../../ui";
+import { DonutChart } from "@/components/ui/donut-chart";
 import { Package, Truck, CheckCircle, AlertTriangle } from "lucide-react";
-import { useUnloadingParcelsStore } from "../../../../stores/unloadingParcelsStore";
+import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
 
 function WaybillStats() {
   const { parcels } = useUnloadingParcelsStore();

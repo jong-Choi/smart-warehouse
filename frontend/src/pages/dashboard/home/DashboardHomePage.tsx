@@ -1,5 +1,4 @@
-import React from "react";
-import { WaybillStats } from "../../../components/dashboard/home/stats";
+import { WaybillStats } from "@/components/dashboard/home/stats";
 
 function DashboardHomePage() {
   return (

@@ -1,5 +1,4 @@
-import React from "react";
-import { ControlPanel, StatusIndicator } from "../../../ui";
+import { ControlPanel, StatusIndicator } from "@/components/ui";
 import { useFactoryControls } from "@/hooks/useFactoryControls";
 
 export const SystemControlPanel: React.FC = () => {

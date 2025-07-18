@@ -1,5 +1,4 @@
-import React from "react";
-import { ControlPanel, MetricCard } from "../../../ui";
+import { ControlPanel, MetricCard } from "@/components/ui";
 import { BarChart3, Clock, Package, Target } from "lucide-react";
 import { useFactoryStats } from "@/hooks/useFactoryStats";
 

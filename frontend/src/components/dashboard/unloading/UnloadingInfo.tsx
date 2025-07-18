@@ -1,5 +1,3 @@
-import React from "react";
-
 export const UnloadingInfo: React.FC = () => {
   return (
     <div className="mt-6 bg-card rounded-lg border p-6">

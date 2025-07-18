@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   UnloadingTable,
   UnloadingInfo,
-} from "../../../components/dashboard/unloading";
-import { useUnloadingParcelsStore } from "../../../stores/unloadingParcelsStore";
-import type { UnloadingParcel } from "../../../components/dashboard/unloading/types";
+} from "@/components/dashboard/unloading";
+import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
+import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
 // 로딩 스켈레톤 컴포넌트
 const LoadingSkeleton = () => (

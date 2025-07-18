@@ -20,8 +20,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../../ui/table";
-import type { Location } from "../../../../types/location";
+} from "@ui/table";
+import type { Location } from "@/types/location";
 
 interface LocationTableProps {
   columns: ColumnDef<Location>[];

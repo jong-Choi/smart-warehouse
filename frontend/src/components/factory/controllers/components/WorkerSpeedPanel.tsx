@@ -1,6 +1,5 @@
-import React from "react";
 import { useFactoryStore } from "@/stores/factoryStore";
-import { ControlPanel, WorkerCard, WorkerGrid } from "../../../ui";
+import { ControlPanel, WorkerCard, WorkerGrid } from "@/components/ui";
 
 export const WorkerSpeedPanel: React.FC = () => {
   const { workerCount, workerSpeeds } = useFactoryStore();

@@ -1,7 +1,10 @@
 import React, { useMemo } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { useWorkersStore } from "@/stores/workersStore";
-import { StatsSection, WorkerTableRow } from "./components";
+import {
+  StatsSection,
+  WorkerTableRow,
+} from "@/components/dashboard/workers/components";
 
 /**
  * 작업자 관리 테이블 컴포넌트

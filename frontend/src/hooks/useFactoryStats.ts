@@ -21,7 +21,7 @@ export function useFactoryStats(): FactoryStats {
     unloadCompleted: 0, // 하차 완료 수량
     workerProcessed: 0, // 작업자 처리 수량
     totalProcessed: 0, // 총 처리 수량 (하차 + 작업자)
-    accidents: 0, // 사고 수량
+    accidentCount: 0, // 사고 수량
     processingTimes: [] as number[], // 처리 시간 배열
   });
 
@@ -57,7 +57,7 @@ export function useFactoryStats(): FactoryStats {
         case "작업자 고장":
           setStats((prev) => ({
             ...prev,
-            accidents: prev.accidents + 1,
+            accidentCount: prev.accidentCount + 1,
           }));
           break;
       }
@@ -74,7 +74,7 @@ export function useFactoryStats(): FactoryStats {
     // 사고율 계산 (사고 수 / 총 처리 수량 * 100)
     const accidentRate =
       stats.totalProcessed > 0
-        ? ((stats.accidents / stats.totalProcessed) * 100).toFixed(2)
+        ? ((stats.accidentCount / stats.totalProcessed) * 100).toFixed(2)
         : "0.00";
 
     return {

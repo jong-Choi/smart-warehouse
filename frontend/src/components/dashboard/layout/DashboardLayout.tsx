@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
-import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardSidebar } from "@/components/dashboard/layout/DashboardSidebar";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "../../ui/sidebar";
-import { Separator } from "../../ui/separator";
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 function DashboardLayout() {
   return (

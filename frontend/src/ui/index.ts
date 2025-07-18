@@ -9,5 +9,5 @@ export {
   TableCell,
   TableCaption,
 } from "./table";
-export { Badge, badgeVariants } from "./badge";
-export { Button, buttonVariants } from "./button";
+export { Badge } from "./badge";
+export { Button } from "./button";

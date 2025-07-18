@@ -1,13 +1,13 @@
 import React, { useMemo } from "react";
 import { TableCell, TableRow } from "@/ui/table";
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadge } from "@/components/dashboard/workers/components/StatusBadge";
 import {
   formatTime,
   formatWorkTime,
   calculateUtilization,
   calculateAccidentRate,
-} from "../utils/calculations";
-import type { Worker } from "../types";
+} from "@/components/dashboard/workers/utils/calculations";
+import type { Worker } from "@/components/dashboard/workers/types";
 
 interface WorkerTableRowProps {
   worker: Worker;
