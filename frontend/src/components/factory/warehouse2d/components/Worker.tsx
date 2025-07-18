@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import robotSvg from "@assets/svg/robot.svg";
 import brokenRobotSvg from "@assets/svg/broken-robot.svg";
 import openedBoxSvg from "@assets/svg/opened-box.svg";
@@ -9,6 +9,7 @@ import {
   WORKER_COOLDOWN_SCALES,
 } from "@/utils/warehouse/constants";
 import { toIsometric } from "@/utils/warehouse/calculations";
+import { createChannelInterface } from "@/utils";
 
 interface WorkerProps {
   index: number;
@@ -38,6 +39,9 @@ const CooldownTimer = React.memo<{
     setIsBroken,
   }) => {
     const [currentTime, setCurrentTime] = useState(Date.now());
+    const [hasSentCooldownEndMessage, setHasSentCooldownEndMessage] =
+      useState(false);
+    const channelRef = useRef(createChannelInterface("factory-events"));
 
     useEffect(() => {
       let animationId: number;
@@ -72,6 +76,38 @@ const CooldownTimer = React.memo<{
 
     const isBroken = brokenUntil > now;
     const isWorking = cooldownLeft > 0 && !isBroken;
+
+    // 쿨다운이 끝나는 순간 메시지 전송
+    useEffect(() => {
+      if (
+        cooldownLeft === 0 &&
+        !hasSentCooldownEndMessage &&
+        catchTimes.length > 0
+      ) {
+        // 쿨다운이 끝났으므로 작업 종료 메시지 전송
+        channelRef.current?.send({
+          ts: now,
+          msg: "작업 종료",
+          category: "STATUS",
+          severity: "INFO",
+          asset: "WORKER",
+          workerId: index < 10 ? `A${index + 1}` : `B${index - 9}`,
+          operatorId: index + 1,
+          operatorName:
+            index < 10 ? `작업자A${index + 1}` : `작업자B${index - 9}`,
+        });
+        setHasSentCooldownEndMessage(true);
+      } else if (cooldownLeft > 0) {
+        // 쿨다운이 다시 시작되면 플래그 리셋
+        setHasSentCooldownEndMessage(false);
+      }
+    }, [
+      cooldownLeft,
+      hasSentCooldownEndMessage,
+      catchTimes.length,
+      now,
+      index,
+    ]);
 
     // 상태 업데이트
     useEffect(() => {

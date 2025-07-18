@@ -49,6 +49,15 @@ export const SystemInfoPanel: React.FC = () => {
         const workerCount = (message.workerCount as number) || 0;
         displayMessage = `${workerCount}명 작업중`;
         color = "blue";
+      } else if (message.msg === "작업 종료") {
+        const workerId = (message.workerId as string) || "";
+        displayMessage = (
+          <>
+            <span className="text-gray-600">작업 완료</span>
+            <span className="text-gray-600"> ({workerId})</span>
+          </>
+        );
+        color = "blue";
       }
 
       const newMessage: MessageItem = {
