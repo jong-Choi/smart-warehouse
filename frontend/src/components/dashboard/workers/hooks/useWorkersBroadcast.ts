@@ -28,9 +28,21 @@ export const useWorkersBroadcast = () => {
         // 최초 작업 시작 시간 설정 (처음 처리할 때만)
         const workStartedAt = currentWorker?.workStartedAt || now;
 
+        console.log(message);
+
+        // 카운트 업데이트 로직
+        const isAccident = message.msg === "작업자 고장";
+        const currentProcessedCount = currentWorker?.processedCount || 0;
+        const currentAccidentCount = currentWorker?.accidentCount || 0;
+
         updateWorker(workerId, {
           status: msgMap[message.msg],
-          processedCount: ((message.count as number) || 1) - 1, // count는 1부터 시작하므로 1을 빼줌
+          processedCount: isAccident
+            ? currentProcessedCount
+            : currentProcessedCount + 1, // 사고가 아닐때만
+          accidentCount: isAccident
+            ? currentAccidentCount + 1
+            : currentAccidentCount, // 사고일 때만 +1
           lastProcessedAt: now,
           workStartedAt,
         });

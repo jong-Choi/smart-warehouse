@@ -100,7 +100,8 @@ export const WorkersTable: React.FC = () => {
                 <TableHead>작업자 ID</TableHead>
                 <TableHead>이름</TableHead>
                 <TableHead>상태</TableHead>
-                <TableHead>처리 건수</TableHead>
+                <TableHead>정상 건수</TableHead>
+                <TableHead>파손 건수</TableHead>
                 <TableHead>작업 시작</TableHead>
                 <TableHead>작업시간</TableHead>
                 <TableHead>마지막 처리</TableHead>
@@ -113,6 +114,7 @@ export const WorkersTable: React.FC = () => {
                   <TableCell>{worker.name}</TableCell>
                   <TableCell>{getStatusBadge(worker.status)}</TableCell>
                   <TableCell>{worker.processedCount}</TableCell>
+                  <TableCell>{worker.accidentCount}</TableCell>
                   <TableCell>{formatTime(worker.workStartedAt)}</TableCell>
                   <TableCell>{formatWorkTime(worker.totalWorkTime)}</TableCell>
                   <TableCell>{formatTime(worker.lastProcessedAt)}</TableCell>
