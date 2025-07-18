@@ -13,12 +13,18 @@ interface DonutChartProps {
   height?: number;
 }
 
+interface TooltipPayload {
+  name: string;
+  value: number;
+  color: string;
+}
+
 const CustomTooltip = ({
   active,
   payload,
 }: {
   active?: boolean;
-  payload?: any[];
+  payload?: TooltipPayload[];
 }) => {
   if (active && payload && payload.length) {
     return (
@@ -43,10 +49,11 @@ export const DonutChart: React.FC<DonutChartProps> = ({
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={80}
-          paddingAngle={5}
+          innerRadius={0}
+          outerRadius={85}
+          paddingAngle={0}
           dataKey="value"
+          isAnimationActive={false}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
@@ -56,6 +63,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
           content={<CustomTooltip />}
           animationDuration={0}
           animationEasing="linear"
+          isAnimationActive={false}
         />
       </PieChart>
     </ResponsiveContainer>
