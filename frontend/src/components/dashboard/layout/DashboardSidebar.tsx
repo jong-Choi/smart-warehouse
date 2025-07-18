@@ -7,6 +7,7 @@ import {
   Settings,
   BarChart3,
   Truck,
+  Users,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,11 @@ const navigationData: NavigationItem[] = [
       {
         title: "하차 예정",
         url: "/dashboard/unloading",
+      },
+      {
+        title: "작업자 관리",
+        url: "/dashboard/workers",
+        icon: Users,
       },
     ],
   },

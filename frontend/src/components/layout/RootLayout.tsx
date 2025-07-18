@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { TabSwitcher } from "@components/ui/TabSwitcher";
 import FactoryBackground from "../factory/FactoryBackground";
 import { useUnloadingBroadcast } from "../dashboard/unloading/hooks/useUnloadingBroadcast";
+import { useWorkersBroadcast } from "../dashboard/workers/hooks/useWorkersBroadcast";
 import { useUnloadingParcels } from "../../hooks/useWaybills";
 import { useMemo } from "react";
 import type { UnloadingParcel } from "../dashboard/unloading/types";
@@ -27,6 +28,9 @@ function RootLayout() {
 
   // 브로드캐스트를 통한 실시간 상태 업데이트 (전역에서 실행)
   useUnloadingBroadcast(initialParcels);
+
+  // 작업자 브로드캐스트 수신 (전역에서 실행)
+  useWorkersBroadcast();
 
   return (
     <div>
