@@ -42,10 +42,10 @@ export const WorkerTableRow = React.memo<WorkerTableRowProps>(({ worker }) => {
     <TableRow>
       <TableCell className="font-medium">
         <Link
-          to={`/dashboard/workers/${worker.id}`}
+          to={`/dashboard/workers/${worker.code}`}
           className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
         >
-          {worker.id}
+          {worker.code}
         </Link>
       </TableCell>
       <TableCell>{worker.name}</TableCell>

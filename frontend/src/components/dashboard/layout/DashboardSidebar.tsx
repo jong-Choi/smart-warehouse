@@ -54,11 +54,11 @@ const navigationData: NavigationItem[] = [
     children: [
       {
         title: "작업자 목록",
-        url: "/dashboard/realtime/workers",
+        url: "/dashboard/workers/home",
       },
       {
-        title: "작업자 상세 (예시)",
-        url: "/dashboard/workers/1",
+        title: "작업자 상세",
+        url: "/dashboard/workers/a1",
       },
     ],
   },

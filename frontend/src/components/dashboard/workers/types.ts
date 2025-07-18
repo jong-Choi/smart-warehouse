@@ -1,5 +1,6 @@
 export interface Worker {
   id: string; // A1, A2, ..., B10
+  code: string; // A1, A2, ..., B10 (코드)
   name: string; // 작업자A1, 작업자A2, ...
   status: WorkerStatus; // 현재 상태
   processedCount: number; // 처리한 물건 수

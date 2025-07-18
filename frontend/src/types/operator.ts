@@ -4,6 +4,11 @@ export interface Operator {
   code: string;
   type: "HUMAN" | "MACHINE";
   createdAt: string;
+  _count?: {
+    shifts: number;
+    works: number;
+    parcels: number;
+  };
 }
 
 export interface OperatorDetail {
@@ -15,6 +20,12 @@ export interface OperatorDetail {
   shifts: OperatorShift[];
   works: OperatorWork[];
   parcels: OperatorParcel[];
+  parcelsPagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface OperatorShift {
