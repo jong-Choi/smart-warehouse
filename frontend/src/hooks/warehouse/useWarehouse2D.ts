@@ -112,6 +112,56 @@ export function useWarehouse2D() {
     prevPausedRef.current = paused;
   }, [running, paused]);
 
+  // 공장 가동중일 때 작업중인 작업자 목록을 주기적으로 메시지로 전송
+  useEffect(() => {
+    if (!running || paused) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const active: number[] = [];
+
+      for (let workerIdx = 0; workerIdx < workerCount; workerIdx++) {
+        const last =
+          workerCatchTimes[workerIdx].length > 0
+            ? workerCatchTimes[workerIdx][
+                workerCatchTimes[workerIdx].length - 1
+              ]
+            : 0;
+
+        const workerCooldownWithScale =
+          workerCooldown * WORKER_COOLDOWN_SCALES[workerIdx];
+
+        // 고장 상태가 아니고, 쿨다운이 지나지 않았으면 작업중
+        if (
+          workerBrokenUntil[workerIdx] <= now &&
+          now - last < workerCooldownWithScale
+        ) {
+          active.push(workerIdx + 1); // 작업자 번호는 1부터 시작
+        }
+      }
+
+      // 작업중인 작업자 목록을 메시지로 전송
+      channelRef.current?.send({
+        ts: now,
+        msg: "작업중인 작업자",
+        category: "STATUS",
+        severity: "INFO",
+        asset: "WORKER",
+        activeWorkers: active,
+        workerCount: active.length,
+      });
+    }, 1000); // 1초마다 업데이트
+
+    return () => clearInterval(interval);
+  }, [
+    running,
+    paused,
+    workerCount,
+    workerCooldown,
+    workerCatchTimes,
+    workerBrokenUntil,
+  ]);
+
   // 작업자별 작업속도를 store에 업데이트
   useEffect(() => {
     const workerSpeeds = WORKER_COOLDOWN_SCALES.map((scale) =>

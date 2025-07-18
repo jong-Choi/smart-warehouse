@@ -45,6 +45,10 @@ export const SystemInfoPanel: React.FC = () => {
         );
       } else if (message.msg === "하차된 물건") {
         displayMessage = `하차 (${String(message.waybillId).slice(-4)})`;
+      } else if (message.msg === "작업중인 작업자") {
+        const workerCount = (message.workerCount as number) || 0;
+        displayMessage = `${workerCount}명 작업중`;
+        color = "blue";
       }
 
       const newMessage: MessageItem = {
