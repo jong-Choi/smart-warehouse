@@ -14,13 +14,24 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
   // 메시지 수신 처리 함수 (useCallback으로 메모이제이션)
   const handleMessage = useCallback(
     (data: BroadcastMessage) => {
-      const { msg, waybillId, category, severity } = data;
+      const { msg, category, severity } = data;
+      const waybillId = data.waybillId as number;
+      const operatorId = data.operatorId as number;
+      const operatorName = data.operatorName as string;
+      const now = new Date().toISOString();
 
       if (category === "PROCESS" && msg === "하차된 물건") {
         // 하차 완료된 운송장 상태 업데이트
-        updateParcel(waybillId as number, {
+        updateParcel(waybillId, {
           status: "UNLOADED" as ParcelStatus,
-          updatedAt: new Date().toISOString(),
+          unloadedAt: now, // 하차일시 업데이트
+        });
+      } else if (category === "PROCESS" && msg === "작업자 처리") {
+        // 작업자 처리 완료된 운송장 상태 업데이트
+        updateParcel(waybillId, {
+          status: "NORMAL" as ParcelStatus,
+          workerProcessedAt: now, // 처리일시 업데이트
+          processedBy: operatorName || `작업자${operatorId}`, // 처리 작업자 업데이트
         });
       } else if (category === "ALARM" && severity === "ERROR") {
         // 작업자 고장으로 인한 파손 처리
@@ -32,7 +43,8 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
           if (oldestParcel) {
             updateParcel(oldestParcel.waybillId, {
               status: "ACCIDENT" as ParcelStatus,
-              updatedAt: new Date().toISOString(),
+              workerProcessedAt: now, // 사고 처리일시
+              processedBy: "시스템", // 사고 처리자
             });
           }
         }
@@ -44,7 +56,6 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
   // 메시지 수신 처리
   useEffect(() => {
     const unsubscribe = channel.subscribe(handleMessage);
-
     return unsubscribe;
   }, [channel, handleMessage]);
 

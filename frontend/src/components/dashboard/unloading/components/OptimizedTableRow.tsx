@@ -4,6 +4,16 @@ import { OptimizedStatusCell } from "./OptimizedStatusCell";
 import { OptimizedDateCell } from "./OptimizedDateCell";
 import type { UnloadingParcel } from "../types";
 
+// 금액 포맷팅 유틸리티 함수
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 interface OptimizedTableRowProps {
   parcel: UnloadingParcel;
   isSelected?: boolean;
@@ -24,7 +34,20 @@ export const OptimizedTableRow = React.memo<OptimizedTableRowProps>(
           <OptimizedDateCell date={parcel.createdAt} />
         </TableCell>
         <TableCell>
-          <OptimizedDateCell date={parcel.updatedAt} />
+          <OptimizedDateCell date={parcel.unloadedAt || ""} />
+        </TableCell>
+        <TableCell>
+          <OptimizedDateCell date={parcel.workerProcessedAt || ""} />
+        </TableCell>
+        <TableCell>
+          <div className="text-sm text-muted-foreground">
+            {parcel.processedBy || "-"}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="font-medium text-right">
+            {formatCurrency(parcel.declaredValue)}
+          </div>
         </TableCell>
       </TableRow>
     );

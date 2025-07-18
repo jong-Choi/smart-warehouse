@@ -1,4 +1,5 @@
 import type { Waybill, Parcel, WaybillLocation, Operator } from "@/types";
+import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
 // 가짜 위치 데이터
 const MOCK_LOCATIONS: WaybillLocation[] = [
@@ -134,6 +135,23 @@ export function getMockUnloadingParcels(): Parcel[] {
   const waybills = generateMockWaybills();
   return waybills.flatMap((wb) =>
     wb.parcels.filter((parcel) => parcel.status === "PENDING_UNLOAD")
+  );
+}
+
+// UnloadingParcel 타입에 맞는 하차 예정 소포 생성
+export function getMockUnloadingParcelsWithTimestamps(): UnloadingParcel[] {
+  const waybills = generateMockWaybills();
+
+  return waybills.flatMap((wb) =>
+    wb.parcels
+      .filter((parcel) => parcel.status === "PENDING_UNLOAD")
+      .map((parcel) => ({
+        ...parcel,
+        createdAt: wb.shippedAt, // 운송장 발송 시점을 생성일시로
+        unloadedAt: undefined, // 하차 전이므로 undefined
+        workerProcessedAt: undefined, // 처리 전이므로 undefined
+        processedBy: undefined, // 처리 전이므로 undefined
+      }))
   );
 }
 

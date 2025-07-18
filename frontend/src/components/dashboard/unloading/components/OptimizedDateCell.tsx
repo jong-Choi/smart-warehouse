@@ -8,6 +8,7 @@ interface OptimizedDateCellProps {
 export const OptimizedDateCell = React.memo<OptimizedDateCellProps>(
   ({ date }) => {
     const formattedDate = useMemo(() => {
+      if (!date) return "-";
       return new Date(date).toLocaleString("ko-KR");
     }, [date]);
 

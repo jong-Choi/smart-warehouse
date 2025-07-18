@@ -19,6 +19,16 @@ import {
   TablePagination,
 } from "./components";
 
+// 금액 포맷팅 유틸리티 함수
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 interface UnloadingTableProps {
   parcels: UnloadingParcel[];
   onRefresh: () => void;
@@ -27,6 +37,15 @@ interface UnloadingTableProps {
 // 더미 row 컴포넌트를 별도로 분리하여 메모이제이션
 const DummyRow = React.memo(() => (
   <TableRow className="opacity-0">
+    <TableCell>
+      <div className="invisible">-</div>
+    </TableCell>
+    <TableCell>
+      <div className="invisible">-</div>
+    </TableCell>
+    <TableCell>
+      <div className="invisible">-</div>
+    </TableCell>
     <TableCell>
       <div className="invisible">-</div>
     </TableCell>
@@ -79,11 +98,39 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
       },
       {
         accessorKey: "createdAt",
-        header: "생성일시",
+        header: "등록일시",
       },
       {
-        accessorKey: "updatedAt",
-        header: "업데이트일시",
+        accessorKey: "unloadedAt",
+        header: "하차일시",
+        cell: ({ getValue }) => {
+          const value = getValue() as string | undefined;
+          return value ? new Date(value).toLocaleString("ko-KR") : "-";
+        },
+      },
+      {
+        accessorKey: "workerProcessedAt",
+        header: "처리일시",
+        cell: ({ getValue }) => {
+          const value = getValue() as string | undefined;
+          return value ? new Date(value).toLocaleString("ko-KR") : "-";
+        },
+      },
+      {
+        accessorKey: "processedBy",
+        header: "처리 작업자",
+        cell: ({ getValue }) => {
+          const value = getValue() as string | undefined;
+          return value || "-";
+        },
+      },
+      {
+        accessorKey: "declaredValue",
+        header: "운송가액",
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return formatCurrency(value);
+        },
       },
     ],
     state: {
@@ -207,7 +254,11 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
                     const parcel = row.original;
                     return (
                       <OptimizedTableRow
-                        key={`${parcel.id}-${parcel.status}-${parcel.updatedAt}`}
+                        key={`${parcel.id}-${parcel.status}-${
+                          parcel.unloadedAt ||
+                          parcel.workerProcessedAt ||
+                          parcel.createdAt
+                        }`}
                         parcel={parcel}
                         isSelected={row.getIsSelected()}
                       />
@@ -219,7 +270,7 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
               ) : (
                 <>
                   <TableRow>
-                    <TableCell colSpan={4} className="h-12 text-center">
+                    <TableCell colSpan={7} className="h-12 text-center">
                       {(() => {
                         console.log("Current statusFilter:", statusFilter); // 디버깅용
                         switch (statusFilter) {

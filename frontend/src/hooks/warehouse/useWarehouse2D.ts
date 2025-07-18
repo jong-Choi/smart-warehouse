@@ -247,6 +247,11 @@ export function useWarehouse2D() {
                 workerIdx < 10 ? `A${workerIdx + 1}` : `B${workerIdx - 9}`,
               waybillId: circle.id,
               count: newCatchTimes[workerIdx].length + 1,
+              operatorId: workerIdx + 1, // 작업자 ID 추가
+              operatorName:
+                workerIdx < 10
+                  ? `작업자A${workerIdx + 1}`
+                  : `작업자B${workerIdx - 9}`, // 작업자 이름 추가
             });
           }
         }

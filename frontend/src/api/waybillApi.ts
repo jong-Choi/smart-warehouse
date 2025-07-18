@@ -1,13 +1,14 @@
 import type {
   WaybillListResponse,
-  ParcelListResponse,
   Waybill,
   Parcel,
   ParcelStatus,
 } from "@/types";
+import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 import {
   generateMockWaybills,
   getMockUnloadingParcels,
+  getMockUnloadingParcelsWithTimestamps,
   delay,
 } from "@/data/mockWaybills";
 
@@ -28,14 +29,19 @@ export async function fetchUnloadingWaybills(): Promise<WaybillListResponse> {
   };
 }
 
-// 하차 예정 소포 목록 조회 (2000개)
-export async function fetchUnloadingParcels(): Promise<ParcelListResponse> {
+// 하차 예정 소포 목록 조회 (2000개) - 새로운 타입 사용
+export async function fetchUnloadingParcels(): Promise<{
+  parcels: UnloadingParcel[];
+  total: number;
+  page: number;
+  pageSize: number;
+}> {
   console.info("Fetching unloading parcels (2000 items)");
 
   // API 호출 시뮬레이션 (1.5초 지연)
   await delay(1500);
 
-  const parcels = getMockUnloadingParcels();
+  const parcels = getMockUnloadingParcelsWithTimestamps();
 
   return {
     parcels,
