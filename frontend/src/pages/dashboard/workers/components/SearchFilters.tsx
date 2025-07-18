@@ -1,4 +1,4 @@
-import React from "react";
+import { useCallback, memo } from "react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import {
@@ -18,7 +18,7 @@ interface SearchFiltersProps {
   onSearch: () => void;
 }
 
-export const SearchFilters = React.memo<SearchFiltersProps>(
+export const SearchFilters = memo<SearchFiltersProps>(
   ({
     searchTerm,
     typeFilter,
@@ -26,7 +26,7 @@ export const SearchFilters = React.memo<SearchFiltersProps>(
     onTypeFilterChange,
     onSearch,
   }) => {
-    const handleSubmit = React.useCallback(
+    const handleSubmit = useCallback(
       (e: React.FormEvent) => {
         e.preventDefault();
         onSearch();
@@ -34,7 +34,7 @@ export const SearchFilters = React.memo<SearchFiltersProps>(
       [onSearch]
     );
 
-    const handleKeyDown = React.useCallback(
+    const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -44,14 +44,14 @@ export const SearchFilters = React.memo<SearchFiltersProps>(
       [onSearch]
     );
 
-    const handleInputChange = React.useCallback(
+    const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         onSearchTermChange(e.target.value);
       },
       [onSearchTermChange]
     );
 
-    const handleSelectChange = React.useCallback(
+    const handleSelectChange = useCallback(
       (value: string) => {
         onTypeFilterChange(value);
       },

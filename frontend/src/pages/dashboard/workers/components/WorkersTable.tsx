@@ -1,4 +1,4 @@
-import React from "react";
+import { memo } from "react";
 import {
   Table,
   TableBody,
@@ -34,7 +34,7 @@ const getTypeLabel = (type: string) => {
   }
 };
 
-export const WorkersTable = React.memo<WorkersTableProps>(
+export const WorkersTable = memo<WorkersTableProps>(
   ({ operators, onPageChange, currentPage, totalPages, total, limit }) => {
     const navigate = useNavigate();
     return (
