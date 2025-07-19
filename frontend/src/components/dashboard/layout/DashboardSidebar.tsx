@@ -7,6 +7,7 @@ import {
   BarChart3,
   Truck,
   Users,
+  DollarSign,
 } from "lucide-react";
 
 import {
@@ -109,6 +110,20 @@ const navigationData: NavigationItem[] = [
       {
         title: "운송장 목록",
         url: "/dashboard/waybills",
+      },
+    ],
+  },
+  {
+    title: "매출 관리",
+    icon: DollarSign,
+    children: [
+      {
+        title: "월별 매출",
+        url: "/dashboard/sales/monthly",
+      },
+      {
+        title: "일별 매출",
+        url: "/dashboard/sales/daily",
       },
     ],
   },

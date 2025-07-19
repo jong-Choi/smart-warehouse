@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,6 +31,7 @@ export default function DashboardWaybillsListPage({
   onWaybillSelect,
 }: WaybillsListPageProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [waybills, setWaybills] = useState<Waybill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,18 @@ export default function DashboardWaybillsListPage({
   const [statusFilter, setStatusFilter] = useState<WaybillStatus | "all">(
     "all"
   );
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    // URL 파라미터에서 날짜 범위 읽기
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    if (startDate && endDate) {
+      return {
+        from: new Date(startDate),
+        to: new Date(endDate),
+      };
+    }
+    return undefined;
+  });
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
     undefined
   );

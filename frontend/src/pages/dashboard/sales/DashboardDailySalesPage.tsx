@@ -1,0 +1,283 @@
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { fetchDailySales } from "@/api/salesApi";
+import type { SalesData } from "@/types/sales";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Table } from "@/ui/table";
+import { ChevronLeft, ChevronRight, Package } from "lucide-react";
+
+export function DashboardDailySalesPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [salesData, setSalesData] = useState<SalesData[]>([]);
+  const [currentYear, setCurrentYear] = useState(() => {
+    const yearParam = searchParams.get("year");
+    return yearParam ? parseInt(yearParam) : new Date().getFullYear();
+  });
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const monthParam = searchParams.get("month");
+    return monthParam ? parseInt(monthParam) : new Date().getMonth() + 1;
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDailySales = async (year: number, month: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetchDailySales(year, month);
+      setSalesData(response.data);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "데이터 로딩 중 오류가 발생했습니다."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDailySales(currentYear, currentMonth);
+  }, [currentYear, currentMonth]);
+
+  const handlePreviousMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentYear((prev) => prev - 1);
+      setCurrentMonth(12);
+    } else {
+      setCurrentMonth((prev) => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentYear((prev) => prev + 1);
+      setCurrentMonth(1);
+    } else {
+      setCurrentMonth((prev) => prev + 1);
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("ko-KR", {
+      style: "currency",
+      currency: "KRW",
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat("ko-KR").format(value);
+  };
+
+  const handleUnloadCountClick = (period: string, unloadCount: number) => {
+    if (unloadCount === 0) return;
+
+    // "1일" 형식에서 일 추출
+    const day = parseInt(period.replace("일", ""));
+    const startDate = new Date(currentYear, currentMonth - 1, day);
+    const endDate = new Date(currentYear, currentMonth - 1, day + 1);
+
+    navigate(
+      `/dashboard/waybills?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+    );
+  };
+
+  const monthNames = [
+    "1월",
+    "2월",
+    "3월",
+    "4월",
+    "5월",
+    "6월",
+    "7월",
+    "8월",
+    "9월",
+    "10월",
+    "11월",
+    "12월",
+  ];
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-red-600">
+              <p className="text-lg font-semibold">오류가 발생했습니다</p>
+              <p className="mt-2">{error}</p>
+              <Button
+                onClick={() => loadDailySales(currentYear, currentMonth)}
+                className="mt-4"
+              >
+                다시 시도
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">일별 매출 현황</h1>
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-lg font-semibold">
+            {currentYear}년 {monthNames[currentMonth - 1]}
+          </span>
+          <Button variant="outline" size="sm" onClick={handleNextMonth}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>일별 매출 통계</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      일
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      하차물량
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      총 운송가액
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      평균 운송가액
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      정상처리건수
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      처리가액
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      사고건수
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      사고가액
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {salesData.map((data, index) => (
+                    <tr
+                      key={data.period}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {data.period}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <button
+                          onClick={() =>
+                            handleUnloadCountClick(
+                              data.period,
+                              data.unloadCount
+                            )
+                          }
+                          className={`flex items-center justify-end space-x-1 hover:text-blue-600 hover:underline transition-colors ${
+                            data.unloadCount > 0
+                              ? "cursor-pointer"
+                              : "cursor-default"
+                          }`}
+                          disabled={data.unloadCount === 0}
+                        >
+                          <span>{formatNumber(data.unloadCount)}건</span>
+                          {data.unloadCount > 0 && (
+                            <Package className="h-3 w-3 opacity-60" />
+                          )}
+                        </button>
+                      </td>
+                      <td
+                        className={`px-4 py-4 whitespace-nowrap text-sm text-right ${
+                          data.totalShippingValue > 0
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {formatCurrency(data.totalShippingValue)}
+                      </td>
+                      <td
+                        className={`px-4 py-4 whitespace-nowrap text-sm text-right ${
+                          data.avgShippingValue > 0
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {formatCurrency(data.avgShippingValue)}
+                      </td>
+                      <td
+                        className={`px-4 py-4 whitespace-nowrap text-sm text-right ${
+                          data.normalProcessCount > 0
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {formatNumber(data.normalProcessCount)}건
+                      </td>
+                      <td
+                        className={`px-4 py-4 whitespace-nowrap text-sm text-right ${
+                          data.processValue > 0
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {formatCurrency(data.processValue)}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <span
+                          className={
+                            data.accidentCount > 0 ? "text-red-600" : ""
+                          }
+                        >
+                          {formatNumber(data.accidentCount)}건
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        <span
+                          className={
+                            data.accidentValue > 0 ? "text-red-600" : ""
+                          }
+                        >
+                          {formatCurrency(data.accidentValue)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+
+              {salesData.length === 0 && !isLoading && (
+                <div className="text-center py-8 text-gray-500">
+                  {currentYear}년 {monthNames[currentMonth - 1]} 매출 데이터가
+                  없습니다.
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

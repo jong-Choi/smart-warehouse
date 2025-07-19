@@ -24,6 +24,8 @@ import { DashboardWorkersListPage } from "@pages/dashboard/workers/DashboardWork
 import { DashboardWorkerDetailPage } from "@pages/dashboard/workers/detail/DashboardWorkerDetailPage";
 import DashboardWaybillsPage from "@pages/dashboard/waybills/DashboardWaybillsPage";
 import DashboardWaybillDetailPage from "@pages/dashboard/waybills/DashboardWaybillDetailPage";
+import { DashboardMonthlySalesPage } from "@pages/dashboard/sales/DashboardMonthlySalesPage";
+import { DashboardDailySalesPage } from "@pages/dashboard/sales/DashboardDailySalesPage";
 
 function App() {
   return (
@@ -104,6 +106,14 @@ function App() {
             <Route
               path="/dashboard/waybills/:id"
               element={<DashboardWaybillDetailPage />}
+            />
+            <Route
+              path="/dashboard/sales/monthly"
+              element={<DashboardMonthlySalesPage />}
+            />
+            <Route
+              path="/dashboard/sales/daily"
+              element={<DashboardDailySalesPage />}
             />
           </Route>
         </Route>
