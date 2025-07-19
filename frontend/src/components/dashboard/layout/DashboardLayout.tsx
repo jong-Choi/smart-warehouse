@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/layout/DashboardSidebar";
+import { ChatbotPanel } from "@/components/dashboard/chatbot/ChatbotPanel";
 import {
   SidebarInset,
   SidebarProvider,
@@ -33,8 +34,13 @@ function DashboardLayout() {
             </div>
           </header>
           <div className="flex-1 overflow-auto">
-            <div className="flex flex-col gap-4 p-4">
-              <Outlet />
+            <div className="flex h-full">
+              <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex flex-col gap-4 p-4">
+                  <Outlet />
+                </div>
+              </div>
+              <ChatbotPanel />
             </div>
           </div>
         </SidebarInset>
