@@ -266,43 +266,68 @@ export function DashboardSalesOverviewPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {locationData.slice(0, 5).map((location, index) => (
-                    <div
-                      key={location.locationName}
-                      className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
-                      onClick={() => handleLocationClick(location.locationName)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-blue-600">
-                            {index + 1}
-                          </span>
+                {locationData.length > 0 ? (
+                  <>
+                    <div className="space-y-4">
+                      {locationData.slice(0, 5).map((location, index) => (
+                        <div
+                          key={location.locationName}
+                          className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
+                          onClick={() =>
+                            handleLocationClick(location.locationName)
+                          }
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-600">
+                                {index + 1}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {location.locationName}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatNumber(location.processedCount)}건 처리
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">
+                              {formatCurrency(location.revenue)}
+                            </span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{location.locationName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatNumber(location.processedCount)}건 처리
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">
-                          {formatCurrency(location.revenue)}
-                        </span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {locationData.length > 5 && (
-                  <div className="mt-4 text-center">
+                    {locationData.length > 5 && (
+                      <div className="mt-4 text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate("/dashboard/location")}
+                        >
+                          전체 지역 보기
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                      지역별 매출 데이터가 없습니다
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {currentYear}년에 조회된 지역별 매출 정보가 없습니다.
+                    </p>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate("/dashboard/location")}
+                      onClick={() => handleYearChange(currentYear - 1)}
                     >
-                      전체 지역 보기
+                      다른 연도 확인하기
                     </Button>
                   </div>
                 )}

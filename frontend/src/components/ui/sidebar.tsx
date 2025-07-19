@@ -125,6 +125,25 @@ function SidebarProvider({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [toggleSidebar]);
 
+  // Listen for custom sidebar toggle events
+  React.useEffect(() => {
+    const handleSidebarToggle = (event: CustomEvent) => {
+      if (event.detail?.expand) {
+        setOpen(true);
+      }
+    };
+
+    window.addEventListener(
+      "sidebar-toggle",
+      handleSidebarToggle as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        "sidebar-toggle",
+        handleSidebarToggle as EventListener
+      );
+  }, [setOpen]);
+
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed";
@@ -400,7 +419,7 @@ function SidebarGroupAction({
     <Comp
       data-slot="sidebar-group-action"
       className={cn(
-        "text-sidebar-foreground/70 hover:text-sidebar-foreground h-auto p-0 px-2 py-1.5 text-xs font-semibold",
+        "text-sidebar-foreground/70 h-auto p-0 px-2 py-1.5 text-xs font-semibold",
         className
       )}
       {...props}
@@ -442,12 +461,14 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "group/sidebar-menu-button relative flex w-full items-center justify-start gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
+  "group/sidebar-menu-button relative flex w-full items-center justify-start gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
   {
     variants: {
       variant: {
         default: "text-sidebar-foreground",
-        ghost: "text-sidebar-foreground/70 hover:text-sidebar-foreground",
+        ghost: "text-sidebar-foreground/70",
+        submenu:
+          "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       },
       size: {
         default: "h-9",
@@ -524,7 +545,7 @@ function SidebarMenuAction({
     <Comp
       data-slot="sidebar-menu-action"
       className={cn(
-        "text-sidebar-foreground/70 hover:text-sidebar-foreground h-auto p-0 opacity-0 transition-opacity group-hover/sidebar-menu-button:opacity-100",
+        "text-sidebar-foreground/70 h-auto p-0 opacity-0 transition-opacity group-hover/sidebar-menu-button:opacity-100",
         state === "collapsed" && "opacity-100",
         showOnHover && "opacity-0 group-hover/sidebar-menu-button:opacity-100",
         className
@@ -611,7 +632,7 @@ function SidebarMenuSubButton({
       data-slot="sidebar-menu-sub-button"
       data-state={isActive ? "active" : "inactive"}
       className={cn(
-        "group/sidebar-menu-sub-button relative flex w-full items-center justify-start gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
+        "group/sidebar-menu-sub-button relative flex w-full items-center justify-start gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
         size === "sm" && "text-xs",
         isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
         state === "collapsed" && "px-2",

@@ -19,7 +19,7 @@ function DashboardLayout() {
         }
       >
         <DashboardSidebar />
-        <SidebarInset>
+        <SidebarInset className="flex flex-col h-full">
           <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -32,8 +32,10 @@ function DashboardLayout() {
               </h1>
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <Outlet />
+          <div className="flex-1 overflow-auto">
+            <div className="flex flex-col gap-4 p-4">
+              <Outlet />
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>

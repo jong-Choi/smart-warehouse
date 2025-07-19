@@ -1,14 +1,5 @@
 import { NavLink } from "react-router-dom";
-import {
-  Activity,
-  Package,
-  MapPin,
-  Settings,
-  BarChart3,
-  Truck,
-  Users,
-  DollarSign,
-} from "lucide-react";
+import { Activity, Package, Truck, Users, DollarSign } from "lucide-react";
 
 import {
   Sidebar,
@@ -30,7 +21,7 @@ interface NavigationItem {
 
 const navigationData: NavigationItem[] = [
   {
-    title: "실시간 현황",
+    title: "금일 현황",
     icon: Activity,
     children: [
       {
@@ -46,70 +37,6 @@ const navigationData: NavigationItem[] = [
         title: "작업자 현황",
         url: "/dashboard/realtime/workers",
         icon: Users,
-      },
-    ],
-  },
-  {
-    title: "작업자 관리",
-    icon: Users,
-    children: [
-      {
-        title: "작업자 목록",
-        url: "/dashboard/workers/home",
-      },
-      {
-        title: "작업자 상세",
-        url: "/dashboard/workers/a1",
-      },
-    ],
-  },
-  {
-    title: "소포 관리",
-    icon: Package,
-    children: [
-      {
-        title: "전체보기",
-        url: "/dashboard/parcels",
-      },
-      {
-        title: "소포목록",
-        url: "/dashboard/parcels/list",
-      },
-      {
-        title: "입고 관리",
-        url: "/dashboard/parcels/inbound",
-      },
-      {
-        title: "출고 관리",
-        url: "/dashboard/parcels/outbound",
-      },
-    ],
-  },
-  {
-    title: "위치 관리",
-    icon: MapPin,
-    children: [
-      {
-        title: "전체보기",
-        url: "/dashboard/location",
-      },
-      {
-        title: "위치목록",
-        url: "/dashboard/location/list",
-      },
-      {
-        title: "지역별 운송장",
-        url: "/dashboard/location/waybills",
-      },
-    ],
-  },
-  {
-    title: "운송장 관리",
-    icon: Truck,
-    children: [
-      {
-        title: "운송장 목록",
-        url: "/dashboard/waybills",
       },
     ],
   },
@@ -132,14 +59,28 @@ const navigationData: NavigationItem[] = [
     ],
   },
   {
-    title: "통계",
-    url: "/dashboard/analytics",
-    icon: BarChart3,
+    title: "운송장 관리",
+    icon: Truck,
+    children: [
+      {
+        title: "운송장 목록",
+        url: "/dashboard/waybills",
+      },
+      {
+        title: "지역별 운송장",
+        url: "/dashboard/location/waybills",
+      },
+    ],
   },
   {
-    title: "설정",
-    url: "/dashboard/settings",
-    icon: Settings,
+    title: "작업자 관리",
+    icon: Users,
+    children: [
+      {
+        title: "작업자 목록",
+        url: "/dashboard/workers/home",
+      },
+    ],
   },
 ];
 
@@ -150,9 +91,33 @@ export function DashboardSidebar({
     if (item.children) {
       return (
         <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton tooltip={item.title} className="group">
+          <SidebarMenuButton
+            tooltip={item.title}
+            className="group cursor-default hover:bg-transparent !hover:bg-transparent"
+            onClick={() => {
+              // 아이콘 클릭 시 사이드바 expanded 상태로 변경
+              const sidebarWrapper = document.querySelector(
+                '[data-slot="sidebar-wrapper"]'
+              );
+              if (sidebarWrapper) {
+                const sidebar = sidebarWrapper.querySelector(
+                  '[data-slot="sidebar"]'
+                );
+                if (
+                  sidebar &&
+                  sidebar.getAttribute("data-collapsible") === "icon"
+                ) {
+                  // 사이드바가 collapsed 상태일 때만 expanded로 변경
+                  const event = new CustomEvent("sidebar-toggle", {
+                    detail: { expand: true },
+                  });
+                  window.dispatchEvent(event);
+                }
+              }
+            }}
+          >
             {item.icon && (
-              <item.icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+              <item.icon className="h-5 w-5 transition-transform duration-200" />
             )}
             <span className="font-medium">{item.title}</span>
           </SidebarMenuButton>
@@ -170,7 +135,8 @@ export function DashboardSidebar({
                     <SidebarMenuButton
                       tooltip={child.title}
                       isActive={isActive}
-                      className="group w-full"
+                      variant="submenu"
+                      className="group w-full cursor-pointer"
                     >
                       <span className="font-medium text-sm">{child.title}</span>
                     </SidebarMenuButton>
@@ -191,7 +157,7 @@ export function DashboardSidebar({
             className={({ isActive }) =>
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                : "hover:bg-sidebar-accent/50"
+                : ""
             }
           >
             {item.icon && (

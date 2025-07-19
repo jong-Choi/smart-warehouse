@@ -10,12 +10,6 @@ import DashboardLayout from "@components/dashboard/layout/DashboardLayout";
 import FactoryPage from "@pages/factory/FactoryPage";
 import DashboardHomePage from "@pages/dashboard/home/DashboardHomePage";
 
-import DashboardParcelsPage from "@pages/dashboard/parcels/DashboardParcelsPage";
-import DashboardParcelsListPage from "@pages/dashboard/parcels/DashboardParcelsListPage";
-import DashboardParcelsInboundPage from "@pages/dashboard/parcels/DashboardParcelsInboundPage";
-import DashboardParcelsOutboundPage from "@pages/dashboard/parcels/DashboardParcelsOutboundPage";
-import DashboardLocationPage from "@pages/dashboard/location/DashboardLocationPage";
-import DashboardLocationListPage from "@pages/dashboard/location/DashboardLocationListPage";
 import DashboardLocationWaybillsPage from "@pages/dashboard/location/DashboardLocationWaybillsPage";
 import DashboardLocationWaybillDetailPage from "@pages/dashboard/location/DashboardLocationWaybillDetailPage";
 import DashboardUnloadingPage from "@pages/dashboard/home/DashboardUnloadingPage";
@@ -68,30 +62,7 @@ function App() {
               path="/dashboard/workers/:code"
               element={<DashboardWorkerDetailPage />}
             />
-            <Route
-              path="/dashboard/parcels"
-              element={<DashboardParcelsPage />}
-            />
-            <Route
-              path="/dashboard/parcels/list"
-              element={<DashboardParcelsListPage />}
-            />
-            <Route
-              path="/dashboard/parcels/inbound"
-              element={<DashboardParcelsInboundPage />}
-            />
-            <Route
-              path="/dashboard/parcels/outbound"
-              element={<DashboardParcelsOutboundPage />}
-            />
-            <Route
-              path="/dashboard/location"
-              element={<DashboardLocationPage />}
-            />
-            <Route
-              path="/dashboard/location/list"
-              element={<DashboardLocationListPage />}
-            />
+
             <Route
               path="/dashboard/location/waybills"
               element={<DashboardLocationWaybillsPage />}
