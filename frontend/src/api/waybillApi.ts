@@ -281,3 +281,124 @@ export async function updateParcelStatus(
     processedAt: new Date().toISOString(),
   };
 }
+
+export const fetchWaybillsByLocationStats = async (params?: {
+  status?: WaybillStatus;
+  startDate?: Date;
+  endDate?: Date;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    if (params?.status) {
+      queryParams.append("status", params.status);
+    }
+    if (params?.startDate) {
+      queryParams.append("startDate", params.startDate.toISOString());
+    }
+    if (params?.endDate) {
+      queryParams.append("endDate", params.endDate.toISOString());
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/waybills/by-location/stats?${queryParams}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error("Error fetching waybills by location stats:", error);
+    throw error;
+  }
+};
+
+export const fetchWaybillsByLocation = async (
+  locationId: number,
+  params?: {
+    status?: WaybillStatus;
+    search?: string;
+    startDate?: Date;
+    endDate?: Date;
+    page?: number;
+    limit?: number;
+    getAll?: boolean;
+  }
+) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    if (params?.status) {
+      queryParams.append("status", params.status);
+    }
+    if (params?.search) {
+      queryParams.append("search", params.search);
+    }
+    if (params?.startDate) {
+      queryParams.append("startDate", params.startDate.toISOString());
+    }
+    if (params?.endDate) {
+      queryParams.append("endDate", params.endDate.toISOString());
+    }
+    if (params?.page) {
+      queryParams.append("page", params.page.toString());
+    }
+    if (params?.limit) {
+      queryParams.append("limit", params.limit.toString());
+    }
+    if (params?.getAll) {
+      queryParams.append("getAll", "true");
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/waybills/by-location/${locationId}?${queryParams}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching waybills by location:", error);
+    throw error;
+  }
+};
+
+export const fetchWaybillsByLocationCalendarData = async (params?: {
+  status?: WaybillStatus;
+  startDate?: Date;
+  endDate?: Date;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    if (params?.status) {
+      queryParams.append("status", params.status);
+    }
+    if (params?.startDate) {
+      queryParams.append("startDate", params.startDate.toISOString());
+    }
+    if (params?.endDate) {
+      queryParams.append("endDate", params.endDate.toISOString());
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/waybills/by-location/calendar?${queryParams}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error("Error fetching waybills by location calendar data:", error);
+    throw error;
+  }
+};

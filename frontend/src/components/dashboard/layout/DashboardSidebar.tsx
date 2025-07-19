@@ -96,6 +96,10 @@ const navigationData: NavigationItem[] = [
         title: "위치목록",
         url: "/dashboard/location/list",
       },
+      {
+        title: "지역별 운송장",
+        url: "/dashboard/location/waybills",
+      },
     ],
   },
   {

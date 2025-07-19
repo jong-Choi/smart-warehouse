@@ -16,6 +16,8 @@ import DashboardParcelsInboundPage from "@pages/dashboard/parcels/DashboardParce
 import DashboardParcelsOutboundPage from "@pages/dashboard/parcels/DashboardParcelsOutboundPage";
 import DashboardLocationPage from "@pages/dashboard/location/DashboardLocationPage";
 import DashboardLocationListPage from "@pages/dashboard/location/DashboardLocationListPage";
+import DashboardLocationWaybillsPage from "@pages/dashboard/location/DashboardLocationWaybillsPage";
+import DashboardLocationWaybillDetailPage from "@pages/dashboard/location/DashboardLocationWaybillDetailPage";
 import DashboardUnloadingPage from "@pages/dashboard/home/DashboardUnloadingPage";
 import { DashboardWorkersPage } from "@pages/dashboard/workers/DashboardWorkersPage";
 import { DashboardWorkersListPage } from "@pages/dashboard/workers/DashboardWorkersListPage";
@@ -86,6 +88,14 @@ function App() {
             <Route
               path="/dashboard/location/list"
               element={<DashboardLocationListPage />}
+            />
+            <Route
+              path="/dashboard/location/waybills"
+              element={<DashboardLocationWaybillsPage />}
+            />
+            <Route
+              path="/dashboard/location/waybills/:locationId"
+              element={<DashboardLocationWaybillDetailPage />}
             />
             <Route
               path="/dashboard/waybills"
