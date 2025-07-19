@@ -78,6 +78,63 @@ router.get("/stats", waybillController.getWaybillStats);
 
 /**
  * @swagger
+ * /api/waybills/calendar:
+ *   get:
+ *     summary: 운송장 달력 데이터 조회
+ *     description: 특정 기간의 운송장 날짜별 통계를 조회합니다.
+ *     tags: [운송장 (Waybills)]
+ *     parameters:
+ *       - name: startDate
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: 시작 날짜 (YYYY-MM-DD)
+ *       - name: endDate
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: 종료 날짜 (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: 성공적으로 달력 데이터를 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                         example: "2025-01-15"
+ *                       count:
+ *                         type: integer
+ *                         example: 3
+ *                       statuses:
+ *                         type: object
+ *                         properties:
+ *                           DELIVERED:
+ *                             type: integer
+ *                             example: 1
+ *                           IN_TRANSIT:
+ *                             type: integer
+ *                             example: 2
+ */
+router.get("/calendar", waybillController.getWaybillCalendarData);
+
+/**
+ * @swagger
  * /api/waybills/number/{number}:
  *   get:
  *     summary: 운송장 번호로 조회

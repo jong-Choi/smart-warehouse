@@ -103,9 +103,9 @@ const options = {
               format: "date-time",
               nullable: true,
             },
-            parcels: {
-              type: "array",
-              items: { $ref: "#/components/schemas/Parcel" },
+            parcel: {
+              $ref: "#/components/schemas/Parcel",
+              nullable: true,
             },
           },
         },

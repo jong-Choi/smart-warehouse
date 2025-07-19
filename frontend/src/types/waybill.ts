@@ -29,7 +29,7 @@ export interface Waybill {
   status: WaybillStatus;
   shippedAt: string;
   deliveredAt?: string;
-  parcels: Parcel[];
+  parcel?: Parcel;
 }
 
 export interface Parcel {

@@ -2,14 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import {
-  ArrowLeft,
-  Package,
-  Truck,
-  User,
-  MapPin,
-  Calendar,
-} from "lucide-react";
+import { ArrowLeft, Package, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -214,113 +207,69 @@ export default function DashboardWaybillDetailPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              소포 통계
+              소포 정보
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">총 소포 수</span>
-              <span className="font-medium text-lg">
-                {waybill.parcels.length}개
-              </span>
-            </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">총 운송가액</span>
-              <span className="font-medium text-lg">
-                {formatCurrency(
-                  waybill.parcels.reduce(
-                    (sum, parcel) => sum + parcel.declaredValue,
-                    0
-                  )
-                )}
-              </span>
-            </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">
-                평균 운송가액
-              </span>
-              <span className="font-medium">
-                {waybill.parcels.length > 0
-                  ? formatCurrency(
-                      waybill.parcels.reduce(
-                        (sum, parcel) => sum + parcel.declaredValue,
-                        0
-                      ) / waybill.parcels.length
-                    )
-                  : "0원"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 소포 목록 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            소포 목록 ({waybill.parcels.length}개)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium">소포 ID</th>
-                  <th className="text-left p-3 font-medium">상태</th>
-                  <th className="text-left p-3 font-medium">위치</th>
-                  <th className="text-left p-3 font-medium">운송가액</th>
-                  <th className="text-left p-3 font-medium">처리일시</th>
-                  <th className="text-left p-3 font-medium">작업자</th>
-                  <th className="text-left p-3 font-medium">사고 여부</th>
-                </tr>
-              </thead>
-              <tbody>
-                {waybill.parcels.map((parcel) => (
-                  <tr key={parcel.id} className="border-b hover:bg-muted/50">
-                    <td className="p-3 font-medium">#{parcel.id}</td>
-                    <td className="p-3">
+            {waybill.parcel ? (
+              (() => {
+                const parcel = waybill.parcel;
+                return (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        소포 상태
+                      </span>
                       <Badge className={getStatusBadgeClass(parcel.status)}>
                         {getStatusText(parcel.status)}
                       </Badge>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        운송가액
+                      </span>
+                      <span className="font-medium text-lg">
+                        {formatCurrency(parcel.declaredValue)}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        배송지
+                      </span>
+                      <span className="font-medium">
                         {parcel.location?.name || "위치 정보 없음"}
-                      </div>
-                    </td>
-                    <td className="p-3 font-medium">
-                      {formatCurrency(parcel.declaredValue)}
-                    </td>
-                    <td className="p-3">
-                      {parcel.processedAt ? (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {format(
-                            new Date(parcel.processedAt),
-                            "yyyy-MM-dd HH:mm",
-                            { locale: ko }
-                          )}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {parcel.operator ? (
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          {parcel.operator.name}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="p-3">
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        처리 작업자
+                      </span>
+                      <span className="font-medium">
+                        {parcel.operator ? (
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto font-medium"
+                            onClick={() =>
+                              navigate(
+                                `/dashboard/workers/${parcel.operator!.code}`
+                              )
+                            }
+                          >
+                            {parcel.operator.name}
+                          </Button>
+                        ) : (
+                          "미지정"
+                        )}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        사고 여부
+                      </span>
                       <Badge
                         variant={
                           parcel.isAccident ? "destructive" : "secondary"
@@ -328,14 +277,60 @@ export default function DashboardWaybillDetailPage({
                       >
                         {parcel.isAccident ? "사고" : "정상"}
                       </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                    </div>
+                  </>
+                );
+              })()
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                연결된 소포가 없습니다.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 소포 상세 정보 */}
+      {waybill.parcel &&
+        (() => {
+          const parcel = waybill.parcel;
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  소포 상세 정보
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        소포 ID
+                      </span>
+                      <span className="font-medium">#{parcel.id}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        처리일시
+                      </span>
+                      <span className="font-medium">
+                        {parcel.processedAt
+                          ? format(
+                              new Date(parcel.processedAt),
+                              "yyyy-MM-dd HH:mm",
+                              { locale: ko }
+                            )
+                          : "-"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
     </div>
   );
 }

@@ -147,6 +147,10 @@ export interface OperatorWhereInput {
 
 export interface WaybillWhereInput {
   status?: "IN_TRANSIT" | "DELIVERED" | "RETURNED" | "ERROR";
+  search?: string;
+  OR?: Array<{
+    number?: { contains: string };
+  }>;
   shippedAt?: {
     gte?: Date;
     lte?: Date;

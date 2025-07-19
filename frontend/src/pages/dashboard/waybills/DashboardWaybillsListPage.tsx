@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -29,6 +30,7 @@ interface WaybillsListPageProps {
 export default function DashboardWaybillsListPage({
   onWaybillSelect,
 }: WaybillsListPageProps) {
+  const navigate = useNavigate();
   const [waybills, setWaybills] = useState<Waybill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -171,6 +173,9 @@ export default function DashboardWaybillsListPage({
   const handleWaybillSelect = (waybill: Waybill) => {
     if (onWaybillSelect) {
       onWaybillSelect(waybill);
+    } else {
+      // 라우팅을 통한 상세보기로 이동
+      navigate(`/dashboard/waybills/${waybill.id}`);
     }
   };
 
@@ -477,6 +482,7 @@ export default function DashboardWaybillsListPage({
                     <th className="text-left p-4 font-medium">상태</th>
                     <th className="text-left p-4 font-medium">출발일</th>
                     <th className="text-left p-4 font-medium">도착일</th>
+                    <th className="text-left p-4 font-medium">배송지</th>
                     <th className="text-left p-4 font-medium">소포 수</th>
                     <th className="text-left p-4 font-medium">작업</th>
                   </tr>
@@ -513,7 +519,10 @@ export default function DashboardWaybillsListPage({
                             )
                           : "-"}
                       </td>
-                      <td className="p-4">{waybill.parcels.length}개</td>
+                      <td className="p-4">
+                        {waybill.parcel?.location?.name || "-"}
+                      </td>
+                      <td className="p-4">{waybill.parcel ? "1개" : "0개"}</td>
                       <td className="p-4">
                         <Button
                           variant="outline"

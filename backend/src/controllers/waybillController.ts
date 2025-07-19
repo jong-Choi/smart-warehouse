@@ -17,11 +17,27 @@ export class WaybillController {
       if (req.query.status) {
         filters.status = req.query.status as WaybillStatus;
       }
+      if (req.query.search) {
+        filters.search = req.query.search as string;
+      }
       if (req.query.startDate) {
         filters.startDate = new Date(req.query.startDate as string);
       }
       if (req.query.endDate) {
         filters.endDate = new Date(req.query.endDate as string);
+      }
+      if (req.query.date) {
+        const date = new Date(req.query.date as string);
+        filters.startDate = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate()
+        );
+        filters.endDate = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate() + 1
+        );
       }
 
       // 페이지네이션 파라미터 파싱
@@ -131,6 +147,43 @@ export class WaybillController {
       res.status(500).json({
         success: false,
         message: "운송장 통계 조회 중 오류가 발생했습니다.",
+      });
+    }
+  }
+
+  /**
+   * 운송장 달력 데이터를 조회합니다.
+   */
+  async getWaybillCalendarData(req: Request, res: Response) {
+    try {
+      const { startDate, endDate } = req.query;
+
+      let start: Date | undefined;
+      let end: Date | undefined;
+
+      if (startDate) {
+        start = new Date(startDate as string);
+      }
+      if (endDate) {
+        end = new Date(endDate as string);
+        // 종료 날짜를 포함하기 위해 하루를 더합니다
+        end.setDate(end.getDate() + 1);
+      }
+
+      const calendarData = await waybillService.getWaybillCalendarData(
+        start,
+        end
+      );
+
+      res.json({
+        success: true,
+        data: calendarData,
+      });
+    } catch (error) {
+      console.error("Error fetching waybill calendar data:", error);
+      res.status(500).json({
+        success: false,
+        message: "운송장 달력 데이터 조회 중 오류가 발생했습니다.",
       });
     }
   }

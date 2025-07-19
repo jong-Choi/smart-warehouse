@@ -114,7 +114,7 @@ function generateWaybill(id: number): Waybill {
     shippedAt: new Date(
       Date.now() - Math.random() * 24 * 60 * 60 * 1000
     ).toISOString(), // 최근 24시간 내
-    parcels: [parcel], // 소포 1개만
+    parcel, // 소포 1개 (1:1 관계)
   };
 }
 
@@ -133,26 +133,24 @@ export function generateMockWaybills(): Waybill[] {
 // 하차 예정 소포만 필터링해서 반환 (정확히 2000개)
 export function getMockUnloadingParcels(): Parcel[] {
   const waybills = generateMockWaybills();
-  return waybills.flatMap((wb) =>
-    wb.parcels.filter((parcel) => parcel.status === "PENDING_UNLOAD")
-  );
+  return waybills
+    .filter((wb) => wb.parcel && wb.parcel.status === "PENDING_UNLOAD")
+    .map((wb) => wb.parcel!);
 }
 
 // UnloadingParcel 타입에 맞는 하차 예정 소포 생성
 export function getMockUnloadingParcelsWithTimestamps(): UnloadingParcel[] {
   const waybills = generateMockWaybills();
 
-  return waybills.flatMap((wb) =>
-    wb.parcels
-      .filter((parcel) => parcel.status === "PENDING_UNLOAD")
-      .map((parcel) => ({
-        ...parcel,
-        createdAt: wb.shippedAt, // 운송장 발송 시점을 생성일시로
-        unloadedAt: undefined, // 하차 전이므로 undefined
-        workerProcessedAt: undefined, // 처리 전이므로 undefined
-        processedBy: undefined, // 처리 전이므로 undefined
-      }))
-  );
+  return waybills
+    .filter((wb) => wb.parcel && wb.parcel.status === "PENDING_UNLOAD")
+    .map((wb) => ({
+      ...wb.parcel!,
+      createdAt: wb.shippedAt, // 운송장 발송 시점을 생성일시로
+      unloadedAt: undefined, // 하차 전이므로 undefined
+      workerProcessedAt: undefined, // 처리 전이므로 undefined
+      processedBy: undefined, // 처리 전이므로 undefined
+    }));
 }
 
 // API 시뮬레이션을 위한 지연 함수

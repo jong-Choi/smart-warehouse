@@ -22,6 +22,16 @@ export class WaybillService {
       where.status = filters.status;
     }
 
+    if (filters.search) {
+      where.OR = [
+        {
+          number: {
+            contains: filters.search,
+          },
+        },
+      ];
+    }
+
     if (filters.startDate || filters.endDate) {
       where.shippedAt = {};
       if (filters.startDate) {
@@ -37,7 +47,7 @@ export class WaybillService {
       const data = await prisma.waybill.findMany({
         where,
         include: {
-          parcels: {
+          parcel: {
             include: {
               operator: {
                 select: {
@@ -83,7 +93,7 @@ export class WaybillService {
       prisma.waybill.findMany({
         where,
         include: {
-          parcels: {
+          parcel: {
             include: {
               operator: {
                 select: {
@@ -130,7 +140,7 @@ export class WaybillService {
     return await prisma.waybill.findUnique({
       where: { id },
       include: {
-        parcels: {
+        parcel: {
           include: {
             operator: {
               select: {
@@ -160,7 +170,7 @@ export class WaybillService {
     return await prisma.waybill.findUnique({
       where: { number },
       include: {
-        parcels: {
+        parcel: {
           include: {
             operator: {
               select: {
@@ -203,5 +213,62 @@ export class WaybillService {
         count: stat._count.id,
       })),
     };
+  }
+
+  /**
+   * 운송장 달력 데이터를 조회합니다.
+   */
+  async getWaybillCalendarData(startDate?: Date, endDate?: Date) {
+    const where: any = {};
+
+    if (startDate || endDate) {
+      where.shippedAt = {};
+      if (startDate) {
+        where.shippedAt.gte = startDate;
+      }
+      if (endDate) {
+        where.shippedAt.lt = endDate;
+      }
+    }
+
+    // 날짜별 운송장 개수와 상태별 통계 조회
+    const waybills = await prisma.waybill.findMany({
+      where,
+      select: {
+        shippedAt: true,
+        status: true,
+      },
+      orderBy: {
+        shippedAt: "asc",
+      },
+    });
+
+    // 날짜별로 그룹화
+    const dateMap = new Map<
+      string,
+      { count: number; statuses: Record<string, number> }
+    >();
+
+    waybills.forEach((waybill) => {
+      const dateStr = waybill.shippedAt.toISOString().split("T")[0];
+
+      if (!dateMap.has(dateStr)) {
+        dateMap.set(dateStr, { count: 0, statuses: {} });
+      }
+
+      const dateData = dateMap.get(dateStr)!;
+      dateData.count++;
+      dateData.statuses[waybill.status] =
+        (dateData.statuses[waybill.status] || 0) + 1;
+    });
+
+    // 결과를 배열로 변환
+    const result = Array.from(dateMap.entries()).map(([date, data]) => ({
+      date,
+      count: data.count,
+      statuses: data.statuses,
+    }));
+
+    return result;
   }
 }

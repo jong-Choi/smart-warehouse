@@ -105,7 +105,7 @@ model OperatorWork {
   @@map("operator_works")
 }
 
-/// Waybill은 운송장. 여러 소포(Parcel)가 같은 운송장 아래 있을 수 있음.
+/// Waybill은 운송장. 소포(Parcel)와 1:1 관계
 /// 배송 단위로 조회하거나 상태를 파악할 때 사용
 model Waybill {
   id          Int           @id @default(autoincrement())
@@ -113,7 +113,7 @@ model Waybill {
   status      WaybillStatus                 // 전체 배송 상태
   shippedAt   DateTime                      // 발송 시각
   deliveredAt DateTime?                     // 도착 시각
-  parcels     Parcel[]                      // 소속된 개별 소포들
+  parcel      Parcel?                       // 연결된 소포 (1:1)
 
   @@map("waybills")
 }
@@ -122,13 +122,13 @@ model Waybill {
 /// 작업자(Operator), 배송지(Location), 운송장(Waybill)에 연결되어 있음
 model Parcel {
   id            Int          @id @default(autoincrement())
-  waybillId     Int
-  operatorId    Int?                              // 처리한 작업자/기계
-  locationId    Int                               // 배송지
+  waybillId     Int          @unique        // 운송장과 1:1 관계
+  operatorId    Int?                         // 처리한 작업자/기계
+  locationId    Int                          // 배송지
   status        ParcelStatus
-  declaredValue Int                               // 소포 가격
-  processedAt   DateTime     @default(now())      // 처리 일시
-  isAccident    Boolean      @default(false)      // 사고 여부
+  declaredValue Int                          // 소포 가격
+  processedAt   DateTime     @default(now()) // 처리 일시
+  isAccident    Boolean      @default(false) // 사고 여부
 
   waybill       Waybill      @relation(fields: [waybillId], references: [id])
   operator      Operator?    @relation(fields: [operatorId], references: [id])

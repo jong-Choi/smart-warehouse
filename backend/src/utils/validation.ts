@@ -104,6 +104,7 @@ export const OperatorFiltersSchema = DateRangeFilterSchema.extend({
 
 export const WaybillFiltersSchema = DateRangeFilterSchema.extend({
   status: WaybillStatusSchema.optional(),
+  search: z.string().optional(),
 });
 
 export const ParcelFiltersSchema = DateRangeFilterSchema.extend({

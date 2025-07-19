@@ -1,4 +1,6 @@
+import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableRow } from "@/ui/table";
+import { Button } from "@/ui/button";
 import type { OperatorParcel } from "@/types/operator";
 
 // 금액 포맷팅 유틸리티 함수
@@ -47,6 +49,8 @@ interface ParcelTableProps {
 }
 
 export function ParcelTable({ parcels, total }: ParcelTableProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-card rounded-lg border">
       <div className="p-6">
@@ -72,7 +76,15 @@ export function ParcelTable({ parcels, total }: ParcelTableProps) {
               {parcels.map((parcel) => (
                 <TableRow key={parcel.id}>
                   <TableCell className="font-medium">
-                    {parcel.waybill.number}
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-medium"
+                      onClick={() =>
+                        navigate(`/dashboard/waybills/${parcel.waybill.id}`)
+                      }
+                    >
+                      {parcel.waybill.number}
+                    </Button>
                   </TableCell>
                   <TableCell>
                     <span
