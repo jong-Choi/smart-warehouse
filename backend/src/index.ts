@@ -7,6 +7,7 @@ import parcelRoutes from "@src/routes/parcelRoutes";
 import waybillRoutes from "@src/routes/waybillRoutes";
 import operatorRoutes from "@src/routes/operatorRoutes";
 import locationRoutes from "@src/routes/locationRoutes";
+import salesRoutes from "@src/routes/salesRoutes";
 import { specs } from "@src/config/swagger";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/parcels", parcelRoutes);
 app.use("/api/waybills", waybillRoutes);
 app.use("/api/operators", operatorRoutes);
 app.use("/api/locations", locationRoutes);
+app.use("/api/sales", salesRoutes);
 
 // 헬스 체크
 app.get("/health", (req, res) => {
