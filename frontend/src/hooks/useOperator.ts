@@ -23,6 +23,8 @@ export function useOperators(
     limit?: number;
     search?: string;
     type?: string;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
   } = {}
 ) {
   return useQuery({

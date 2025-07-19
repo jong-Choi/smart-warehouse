@@ -1,3 +1,8 @@
+export interface ParcelStatusInfo {
+  status: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
+  isAccident: boolean;
+}
+
 export interface Operator {
   id: number;
   name: string;
@@ -9,6 +14,11 @@ export interface Operator {
     works: number;
     parcels: number;
   };
+  parcels?: ParcelStatusInfo[];
+}
+
+export interface OperatorWithParcels extends Operator {
+  parcels: ParcelStatusInfo[];
 }
 
 export interface OperatorDetail {

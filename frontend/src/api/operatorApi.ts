@@ -9,6 +9,8 @@ export async function fetchOperators(
     limit?: number;
     search?: string;
     type?: string;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
   } = {}
 ): Promise<{
   data: Operator[];
@@ -25,6 +27,9 @@ export async function fetchOperators(
   if (params.limit) searchParams.append("limit", params.limit.toString());
   if (params.search) searchParams.append("search", params.search);
   if (params.type) searchParams.append("type", params.type);
+  if (params.sortField) searchParams.append("sortField", params.sortField);
+  if (params.sortDirection)
+    searchParams.append("sortDirection", params.sortDirection);
 
   const response = await fetch(
     `${API_BASE_URL}/operators?${searchParams.toString()}`

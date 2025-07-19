@@ -1,15 +1,13 @@
 import { memo } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@ui/table";
+import { Table, TableBody, TableCell, TableHead, TableRow } from "@ui/table";
 import { Calendar, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@components/ui/button";
+import { SortableHeader } from "@components/ui/sortable-header";
+import {
+  getNormalParcelCount,
+  getAccidentParcelCount,
+} from "@/utils/operatorUtils";
 import type { Operator } from "@/types/operator";
 
 interface WorkersTableProps {
@@ -19,6 +17,8 @@ interface WorkersTableProps {
   totalPages: number;
   total: number;
   limit: number;
+  sorting: Array<{ id: string; desc: boolean }>;
+  onSort: (columnId: string) => void;
 }
 
 const getTypeLabel = (type: string) => {
@@ -35,7 +35,16 @@ const getTypeLabel = (type: string) => {
 };
 
 export const WorkersTable = memo<WorkersTableProps>(
-  ({ operators, onPageChange, currentPage, totalPages, total, limit }) => {
+  ({
+    operators,
+    onPageChange,
+    currentPage,
+    totalPages,
+    total,
+    limit,
+    sorting,
+    onSort,
+  }) => {
     const navigate = useNavigate();
     return (
       <div className="bg-white rounded-lg border">
@@ -44,17 +53,48 @@ export const WorkersTable = memo<WorkersTableProps>(
         </div>
         <div className="p-6">
           <Table>
-            <TableHeader>
+            <thead>
               <TableRow>
-                <TableHead>코드</TableHead>
-                <TableHead>이름</TableHead>
+                <SortableHeader
+                  columnId="code"
+                  sorting={sorting}
+                  onSort={onSort}
+                >
+                  코드
+                </SortableHeader>
+                <SortableHeader
+                  columnId="name"
+                  sorting={sorting}
+                  onSort={onSort}
+                >
+                  이름
+                </SortableHeader>
                 <TableHead>타입</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>근무일수</TableHead>
-                <TableHead>처리 소포</TableHead>
-                <TableHead>등록일</TableHead>
+                <SortableHeader
+                  columnId="normalParcels"
+                  sorting={sorting}
+                  onSort={onSort}
+                >
+                  정상 처리
+                </SortableHeader>
+                <SortableHeader
+                  columnId="accidentParcels"
+                  sorting={sorting}
+                  onSort={onSort}
+                >
+                  사고 처리
+                </SortableHeader>
+                <SortableHeader
+                  columnId="createdAt"
+                  sorting={sorting}
+                  onSort={onSort}
+                >
+                  등록일
+                </SortableHeader>
               </TableRow>
-            </TableHeader>
+            </thead>
             <TableBody>
               {operators.map((operator) => (
                 <TableRow
@@ -84,8 +124,14 @@ export const WorkersTable = memo<WorkersTableProps>(
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <Package className="w-4 h-4 text-gray-500" />
-                      <span>{operator._count?.parcels || 0}개</span>
+                      <Package className="w-4 h-4 text-green-500" />
+                      <span>{getNormalParcelCount(operator)}개</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Package className="w-4 h-4 text-red-500" />
+                      <span>{getAccidentParcelCount(operator)}개</span>
                     </div>
                   </TableCell>
                   <TableCell>
