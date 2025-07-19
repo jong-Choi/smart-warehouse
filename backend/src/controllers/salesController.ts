@@ -68,3 +68,51 @@ export const getDailySales = async (req: Request, res: Response) => {
     });
   }
 };
+
+export class SalesController {
+  /**
+   * 매출 개요 데이터를 조회합니다.
+   */
+  async getSalesOverview(req: Request, res: Response) {
+    try {
+      const year =
+        parseInt(req.query.year as string) || new Date().getFullYear();
+      const salesService = new SalesService();
+      const overviewData = await salesService.getSalesOverview(year);
+
+      res.json({
+        success: true,
+        data: overviewData,
+      });
+    } catch (error) {
+      console.error("Error fetching sales overview:", error);
+      res.status(500).json({
+        success: false,
+        message: "매출 개요 데이터를 불러오는데 실패했습니다.",
+      });
+    }
+  }
+
+  /**
+   * 지역별 매출 데이터를 조회합니다.
+   */
+  async getLocationSales(req: Request, res: Response) {
+    try {
+      const year =
+        parseInt(req.query.year as string) || new Date().getFullYear();
+      const salesService = new SalesService();
+      const locationData = await salesService.getLocationSales(year);
+
+      res.json({
+        success: true,
+        data: locationData,
+      });
+    } catch (error) {
+      console.error("Error fetching location sales:", error);
+      res.status(500).json({
+        success: false,
+        message: "지역별 매출 데이터를 불러오는데 실패했습니다.",
+      });
+    }
+  }
+}

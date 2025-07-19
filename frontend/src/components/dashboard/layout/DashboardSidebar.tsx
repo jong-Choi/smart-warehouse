@@ -118,6 +118,10 @@ const navigationData: NavigationItem[] = [
     icon: DollarSign,
     children: [
       {
+        title: "매출 개요",
+        url: "/dashboard/sales/overview",
+      },
+      {
         title: "월별 매출",
         url: "/dashboard/sales/monthly",
       },
@@ -158,7 +162,9 @@ export function DashboardSidebar({
                 <NavLink
                   to={child.url || "#"}
                   className="w-full"
-                  end={child.title === "전체보기"}
+                  end={
+                    child.title === "전체보기" || child.title === "매출 개요"
+                  }
                 >
                   {({ isActive }: { isActive: boolean }) => (
                     <SidebarMenuButton

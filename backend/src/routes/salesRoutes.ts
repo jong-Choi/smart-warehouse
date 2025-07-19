@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { getMonthlySales, getDailySales } from "../controllers/salesController";
+import { SalesController } from "../controllers/salesController";
 
 const router = Router();
+const salesController = new SalesController();
 
 /**
  * @swagger
@@ -133,5 +135,11 @@ router.get("/monthly", getMonthlySales);
  *                       type: number
  */
 router.get("/daily", getDailySales);
+
+// 매출 개요 조회
+router.get("/overview", salesController.getSalesOverview);
+
+// 지역별 매출 조회
+router.get("/location", salesController.getLocationSales);
 
 export default router;

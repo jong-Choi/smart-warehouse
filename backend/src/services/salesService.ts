@@ -13,6 +13,17 @@ export interface SalesData {
   accidentValue: number; // 사고가액
 }
 
+export interface SalesOverviewData {
+  totalRevenue: number; // 총 매출
+  avgShippingValue: number; // 평균 운송가액
+  accidentLossRate: number; // 사고 손실률
+  monthlyGrowthRate: number; // 월별 성장률
+  totalProcessedCount: number; // 총 처리 건수
+  totalAccidentCount: number; // 총 사고 건수
+  currentMonthRevenue: number; // 이번 달 매출
+  previousMonthRevenue: number; // 지난 달 매출
+}
+
 export class SalesService {
   /**
    * 월별 매출 통계를 조회합니다.
@@ -165,5 +176,141 @@ export class SalesService {
       accidentCount,
       accidentValue,
     };
+  }
+
+  /**
+   * 매출 개요 데이터를 조회합니다.
+   * @param year 조회할 연도
+   * @returns 매출 개요 데이터
+   */
+  async getSalesOverview(year: number): Promise<SalesOverviewData> {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
+    // 요청된 연도의 12월 데이터 (이번 달 대신)
+    const requestedYearMonthStart = new Date(year, 11, 1); // 12월 1일
+    const requestedYearMonthEnd = new Date(year + 1, 0, 1); // 다음 년도 1월 1일
+    const currentMonthData = await this.calculateSalesForPeriod(
+      requestedYearMonthStart,
+      requestedYearMonthEnd
+    );
+
+    // 요청된 연도의 11월 데이터 (지난 달 대신)
+    const previousMonthStart = new Date(year, 10, 1); // 11월 1일
+    const previousMonthEnd = new Date(year, 11, 1); // 12월 1일
+    const previousMonthData = await this.calculateSalesForPeriod(
+      previousMonthStart,
+      previousMonthEnd
+    );
+
+    // 요청된 연도 전체 데이터
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year + 1, 0, 1);
+    const yearData = await this.calculateSalesForPeriod(yearStart, yearEnd);
+
+    // 요청된 연도의 이전 년도 전체 데이터 (성장률 계산용)
+    const lastYearStart = new Date(year - 1, 0, 1);
+    const lastYearEnd = new Date(year, 0, 1);
+    const lastYearData = await this.calculateSalesForPeriod(
+      lastYearStart,
+      lastYearEnd
+    );
+
+    // 월별 성장률 계산
+    const monthlyGrowthRate =
+      previousMonthData.processValue > 0
+        ? ((currentMonthData.processValue - previousMonthData.processValue) /
+            previousMonthData.processValue) *
+          100
+        : 0;
+
+    // 사고 손실률 계산
+    const accidentLossRate =
+      yearData.processValue > 0
+        ? (yearData.accidentValue / yearData.processValue) * 100
+        : 0;
+
+    return {
+      totalRevenue: yearData.processValue,
+      avgShippingValue: Math.round(yearData.avgShippingValue),
+      accidentLossRate: Math.round(accidentLossRate * 100) / 100, // 소수점 2자리
+      monthlyGrowthRate: Math.round(monthlyGrowthRate * 100) / 100, // 소수점 2자리
+      totalProcessedCount: yearData.normalProcessCount,
+      totalAccidentCount: yearData.accidentCount,
+      currentMonthRevenue: currentMonthData.processValue,
+      previousMonthRevenue: previousMonthData.processValue,
+    };
+  }
+
+  /**
+   * 지역별 매출 데이터를 조회합니다.
+   * @param year 조회할 연도
+   * @returns 지역별 매출 데이터
+   */
+  async getLocationSales(year: number): Promise<
+    Array<{
+      locationName: string;
+      revenue: number;
+      processedCount: number;
+      accidentCount: number;
+    }>
+  > {
+    const yearStart = new Date(year, 0, 1);
+    const yearEnd = new Date(year + 1, 0, 1);
+
+    const locationData = await prisma.parcel.groupBy({
+      by: ["locationId"],
+      where: {
+        processedAt: {
+          gte: yearStart,
+          lt: yearEnd,
+        },
+        status: "NORMAL",
+      },
+      _sum: {
+        declaredValue: true,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const accidentData = await prisma.parcel.groupBy({
+      by: ["locationId"],
+      where: {
+        processedAt: {
+          gte: yearStart,
+          lt: yearEnd,
+        },
+        isAccident: true,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // locationId로 그룹화된 사고 데이터를 Map으로 변환
+    const accidentMap = new Map(
+      accidentData.map((item) => [item.locationId, item._count.id])
+    );
+
+    // Location 정보와 함께 결과 반환
+    const result = await Promise.all(
+      locationData.map(async (item) => {
+        const location = await prisma.location.findUnique({
+          where: { id: item.locationId },
+        });
+
+        return {
+          locationName: location?.name || "알 수 없는 위치",
+          revenue: item._sum.declaredValue || 0,
+          processedCount: item._count.id,
+          accidentCount: accidentMap.get(item.locationId) || 0,
+        };
+      })
+    );
+
+    return result.sort((a, b) => b.revenue - a.revenue); // 매출 순으로 정렬
   }
 }

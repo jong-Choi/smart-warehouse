@@ -26,6 +26,7 @@ import DashboardWaybillsPage from "@pages/dashboard/waybills/DashboardWaybillsPa
 import DashboardWaybillDetailPage from "@pages/dashboard/waybills/DashboardWaybillDetailPage";
 import { DashboardMonthlySalesPage } from "@pages/dashboard/sales/DashboardMonthlySalesPage";
 import { DashboardDailySalesPage } from "@pages/dashboard/sales/DashboardDailySalesPage";
+import { DashboardSalesOverviewPage } from "@pages/dashboard/sales/DashboardSalesOverviewPage";
 
 function App() {
   return (
@@ -106,6 +107,14 @@ function App() {
             <Route
               path="/dashboard/waybills/:id"
               element={<DashboardWaybillDetailPage />}
+            />
+            <Route
+              path="/dashboard/sales"
+              element={<Navigate to="/dashboard/sales/overview" replace />}
+            />
+            <Route
+              path="/dashboard/sales/overview"
+              element={<DashboardSalesOverviewPage />}
             />
             <Route
               path="/dashboard/sales/monthly"

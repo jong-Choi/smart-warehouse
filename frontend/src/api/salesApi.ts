@@ -39,3 +39,61 @@ export const fetchDailySales = async (
 
   return response.json();
 };
+
+export interface SalesOverviewData {
+  totalRevenue: number;
+  avgShippingValue: number;
+  accidentLossRate: number;
+  monthlyGrowthRate: number;
+  totalProcessedCount: number;
+  totalAccidentCount: number;
+  currentMonthRevenue: number;
+  previousMonthRevenue: number;
+}
+
+export interface LocationSalesData {
+  locationName: string;
+  revenue: number;
+  processedCount: number;
+  accidentCount: number;
+}
+
+/**
+ * 매출 개요 데이터를 조회합니다.
+ */
+export async function fetchSalesOverview(year?: number): Promise<{
+  success: boolean;
+  data: SalesOverviewData;
+}> {
+  const params = new URLSearchParams();
+  if (year) {
+    params.append("year", year.toString());
+  }
+
+  const response = await fetch(`${API_BASE_URL}/sales/overview?${params}`);
+  if (!response.ok) {
+    throw new Error("매출 개요 데이터를 불러오는데 실패했습니다.");
+  }
+
+  return response.json();
+}
+
+/**
+ * 지역별 매출 데이터를 조회합니다.
+ */
+export async function fetchLocationSales(year?: number): Promise<{
+  success: boolean;
+  data: LocationSalesData[];
+}> {
+  const params = new URLSearchParams();
+  if (year) {
+    params.append("year", year.toString());
+  }
+
+  const response = await fetch(`${API_BASE_URL}/sales/location?${params}`);
+  if (!response.ok) {
+    throw new Error("지역별 매출 데이터를 불러오는데 실패했습니다.");
+  }
+
+  return response.json();
+}
