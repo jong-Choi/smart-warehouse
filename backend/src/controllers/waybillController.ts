@@ -187,4 +187,127 @@ export class WaybillController {
       });
     }
   }
+
+  /**
+   * 지역별 운송장 통계를 조회합니다.
+   */
+  async getWaybillsByLocationStats(req: Request, res: Response) {
+    try {
+      const filters: WaybillFilters = {};
+
+      // 쿼리 파라미터 파싱
+      if (req.query.status) {
+        filters.status = req.query.status as WaybillStatus;
+      }
+      if (req.query.startDate) {
+        filters.startDate = new Date(req.query.startDate as string);
+      }
+      if (req.query.endDate) {
+        filters.endDate = new Date(req.query.endDate as string);
+      }
+
+      const stats = await waybillService.getWaybillsByLocationStats(filters);
+
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error) {
+      console.error("Error fetching waybills by location stats:", error);
+      res.status(500).json({
+        success: false,
+        message: "지역별 운송장 통계 조회 중 오류가 발생했습니다.",
+      });
+    }
+  }
+
+  /**
+   * 특정 지역의 운송장 목록을 조회합니다.
+   */
+  async getWaybillsByLocation(req: Request, res: Response) {
+    try {
+      const locationId = parseInt(req.params.locationId);
+
+      if (isNaN(locationId)) {
+        return res.status(400).json({
+          success: false,
+          message: "유효하지 않은 지역 ID입니다.",
+        });
+      }
+
+      const filters: WaybillFilters = {};
+
+      // 쿼리 파라미터 파싱
+      if (req.query.status) {
+        filters.status = req.query.status as WaybillStatus;
+      }
+      if (req.query.search) {
+        filters.search = req.query.search as string;
+      }
+      if (req.query.startDate) {
+        filters.startDate = new Date(req.query.startDate as string);
+      }
+      if (req.query.endDate) {
+        filters.endDate = new Date(req.query.endDate as string);
+      }
+
+      // 페이지네이션 파라미터 파싱
+      const pagination = parsePaginationQuery(req.query);
+
+      const result = await waybillService.getWaybillsByLocation(
+        locationId,
+        filters,
+        pagination
+      );
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      console.error("Error fetching waybills by location:", error);
+      res.status(500).json({
+        success: false,
+        message: "지역별 운송장 목록 조회 중 오류가 발생했습니다.",
+      });
+    }
+  }
+
+  /**
+   * 지역별 운송장 달력 데이터를 조회합니다.
+   */
+  async getWaybillsByLocationCalendarData(req: Request, res: Response) {
+    try {
+      const filters: WaybillFilters = {};
+
+      // 쿼리 파라미터 파싱
+      if (req.query.status) {
+        filters.status = req.query.status as WaybillStatus;
+      }
+      if (req.query.startDate) {
+        filters.startDate = new Date(req.query.startDate as string);
+      }
+      if (req.query.endDate) {
+        filters.endDate = new Date(req.query.endDate as string);
+      }
+
+      const calendarData =
+        await waybillService.getWaybillsByLocationCalendarData(filters);
+
+      res.json({
+        success: true,
+        data: calendarData,
+      });
+    } catch (error) {
+      console.error(
+        "Error fetching waybills by location calendar data:",
+        error
+      );
+      res.status(500).json({
+        success: false,
+        message: "지역별 운송장 달력 데이터 조회 중 오류가 발생했습니다.",
+      });
+    }
+  }
 }

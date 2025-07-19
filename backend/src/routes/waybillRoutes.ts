@@ -190,6 +190,125 @@ router.get("/number/:number", waybillController.getWaybillByNumber);
  *       404:
  *         description: 운송장을 찾을 수 없음
  */
+/**
+ * @swagger
+ * /api/waybills/by-location/stats:
+ *   get:
+ *     summary: 지역별 운송장 통계 조회
+ *     description: 지역별로 운송장 개수와 상태별 통계를 조회합니다.
+ *     tags: [운송장 (Waybills)]
+ *     parameters:
+ *       - $ref: '#/components/parameters/WaybillStatus'
+ *       - $ref: '#/components/parameters/StartDate'
+ *       - $ref: '#/components/parameters/EndDate'
+ *     responses:
+ *       200:
+ *         description: 성공적으로 지역별 운송장 통계를 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       locationId:
+ *                         type: number
+ *                       locationName:
+ *                         type: string
+ *                       address:
+ *                         type: string
+ *                       count:
+ *                         type: number
+ *                       statuses:
+ *                         type: object
+ */
+router.get("/by-location/stats", waybillController.getWaybillsByLocationStats);
+
+/**
+ * @swagger
+ * /api/waybills/by-location/calendar:
+ *   get:
+ *     summary: 지역별 운송장 달력 데이터 조회
+ *     description: 지역별 운송장의 날짜별 통계 데이터를 조회합니다.
+ *     tags: [운송장 (Waybills)]
+ *     parameters:
+ *       - $ref: '#/components/parameters/WaybillStatus'
+ *       - $ref: '#/components/parameters/StartDate'
+ *       - $ref: '#/components/parameters/EndDate'
+ *     responses:
+ *       200:
+ *         description: 성공적으로 지역별 운송장 달력 데이터를 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                       count:
+ *                         type: number
+ *                       statuses:
+ *                         type: object
+ *                       locations:
+ *                         type: array
+ */
+router.get(
+  "/by-location/calendar",
+  waybillController.getWaybillsByLocationCalendarData
+);
+
+/**
+ * @swagger
+ * /api/waybills/by-location/{locationId}:
+ *   get:
+ *     summary: 특정 지역의 운송장 목록 조회
+ *     description: 특정 지역에 배송되는 운송장 목록을 조회합니다.
+ *     tags: [운송장 (Waybills)]
+ *     parameters:
+ *       - in: path
+ *         name: locationId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 지역 ID
+ *       - $ref: '#/components/parameters/WaybillStatus'
+ *       - $ref: '#/components/parameters/StartDate'
+ *       - $ref: '#/components/parameters/EndDate'
+ *       - $ref: '#/components/parameters/Page'
+ *       - $ref: '#/components/parameters/Limit'
+ *       - $ref: '#/components/parameters/GetAll'
+ *     responses:
+ *       200:
+ *         description: 성공적으로 지역별 운송장 목록을 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Waybill'
+ */
+router.get("/by-location/:locationId", waybillController.getWaybillsByLocation);
+
 router.get("/:id", waybillController.getWaybillById);
 
 export default router;

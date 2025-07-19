@@ -271,4 +271,268 @@ export class WaybillService {
 
     return result;
   }
+
+  /**
+   * 지역별 운송장 통계를 조회합니다.
+   */
+  async getWaybillsByLocationStats(filters: WaybillFilters = {}) {
+    const where: WaybillWhereInput = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.shippedAt = {};
+      if (filters.startDate) {
+        where.shippedAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        where.shippedAt.lte = filters.endDate;
+      }
+    }
+
+    const waybills = await prisma.waybill.findMany({
+      where,
+      include: {
+        parcel: {
+          include: {
+            location: true,
+          },
+        },
+      },
+    });
+
+    // 지역별로 그룹화
+    const locationMap = new Map<
+      string,
+      {
+        locationId: number;
+        locationName: string;
+        address: string;
+        count: number;
+        statuses: { [key: string]: number };
+      }
+    >();
+
+    waybills.forEach((waybill) => {
+      const location = waybill.parcel?.location;
+      if (!location) return;
+
+      const locationKey = `${location.id}`;
+
+      if (!locationMap.has(locationKey)) {
+        locationMap.set(locationKey, {
+          locationId: location.id,
+          locationName: location.name,
+          address: location.address || "",
+          count: 0,
+          statuses: {},
+        });
+      }
+
+      const locationData = locationMap.get(locationKey)!;
+      locationData.count++;
+      locationData.statuses[waybill.status] =
+        (locationData.statuses[waybill.status] || 0) + 1;
+    });
+
+    // 결과를 배열로 변환하고 운송장 개수 기준으로 정렬
+    const result = Array.from(locationMap.values()).sort(
+      (a, b) => b.count - a.count
+    );
+
+    return result;
+  }
+
+  /**
+   * 특정 지역의 운송장 목록을 조회합니다.
+   */
+  async getWaybillsByLocation(
+    locationId: number,
+    filters: WaybillFilters = {},
+    pagination?: { page?: number; limit?: number; getAll?: boolean }
+  ) {
+    const where: any = {
+      parcel: {
+        locationId: locationId,
+      },
+    };
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.search) {
+      where.OR = [
+        {
+          number: {
+            contains: filters.search,
+          },
+        },
+      ];
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.shippedAt = {};
+      if (filters.startDate) {
+        where.shippedAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        where.shippedAt.lte = filters.endDate;
+      }
+    }
+
+    // getAll이 true이면 전체 조회
+    if (pagination?.getAll) {
+      const data = await prisma.waybill.findMany({
+        where,
+        include: {
+          parcel: {
+            include: {
+              location: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          shippedAt: "desc",
+        },
+      });
+
+      return {
+        data,
+        pagination: {
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    // 페이지네이션 처리
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.waybill.findMany({
+        where,
+        include: {
+          parcel: {
+            include: {
+              location: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          shippedAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.waybill.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
+  /**
+   * 지역별 운송장 달력 데이터를 조회합니다.
+   */
+  async getWaybillsByLocationCalendarData(filters: WaybillFilters = {}) {
+    const where: WaybillWhereInput = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.shippedAt = {};
+      if (filters.startDate) {
+        where.shippedAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        where.shippedAt.lte = filters.endDate;
+      }
+    }
+
+    const waybills = await prisma.waybill.findMany({
+      where,
+      include: {
+        parcel: {
+          include: {
+            location: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 날짜별로 그룹화
+    const dateMap = new Map<
+      string,
+      {
+        count: number;
+        statuses: { [key: string]: number };
+        locations: { [key: string]: { name: string; count: number } };
+      }
+    >();
+
+    waybills.forEach((waybill) => {
+      const dateStr = waybill.shippedAt.toISOString().split("T")[0];
+
+      if (!dateMap.has(dateStr)) {
+        dateMap.set(dateStr, { count: 0, statuses: {}, locations: {} });
+      }
+
+      const dateData = dateMap.get(dateStr)!;
+      dateData.count++;
+      dateData.statuses[waybill.status] =
+        (dateData.statuses[waybill.status] || 0) + 1;
+
+      // 지역별 카운트
+      const locationName = waybill.parcel?.location?.name || "미지정";
+      if (!dateData.locations[locationName]) {
+        dateData.locations[locationName] = { name: locationName, count: 0 };
+      }
+      dateData.locations[locationName].count++;
+    });
+
+    // 결과를 배열로 변환
+    const result = Array.from(dateMap.entries()).map(([date, data]) => ({
+      date,
+      count: data.count,
+      statuses: data.statuses,
+      locations: Object.values(data.locations),
+    }));
+
+    return result;
+  }
 }
