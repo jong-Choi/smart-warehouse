@@ -20,6 +20,7 @@ import DashboardUnloadingPage from "@pages/dashboard/home/DashboardUnloadingPage
 import { DashboardWorkersPage } from "@pages/dashboard/workers/DashboardWorkersPage";
 import { DashboardWorkersListPage } from "@pages/dashboard/workers/DashboardWorkersListPage";
 import { DashboardWorkerDetailPage } from "@pages/dashboard/workers/detail/DashboardWorkerDetailPage";
+import DashboardWaybillsPage from "@pages/dashboard/waybills/DashboardWaybillsPage";
 
 function App() {
   return (
@@ -84,6 +85,10 @@ function App() {
             <Route
               path="/dashboard/location/list"
               element={<DashboardLocationListPage />}
+            />
+            <Route
+              path="/dashboard/waybills"
+              element={<DashboardWaybillsPage />}
             />
           </Route>
         </Route>

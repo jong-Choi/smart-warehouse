@@ -64,3 +64,15 @@ export {
 export { Slider } from "./slider";
 export { DonutChart } from "./donut-chart";
 export { SortableHeader } from "./sortable-header";
+export { Calendar } from "./calendar";
+export { Badge } from "./badge";
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "./card";
+export { Popover, PopoverContent, PopoverTrigger } from "./popover";
+export { buttonVariants } from "./button-variants";

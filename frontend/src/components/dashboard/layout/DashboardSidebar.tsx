@@ -99,9 +99,14 @@ const navigationData: NavigationItem[] = [
     ],
   },
   {
-    title: "운송 관리",
-    url: "/dashboard/transport",
+    title: "운송장 관리",
     icon: Truck,
+    children: [
+      {
+        title: "운송장 목록",
+        url: "/dashboard/waybills",
+      },
+    ],
   },
   {
     title: "통계",
