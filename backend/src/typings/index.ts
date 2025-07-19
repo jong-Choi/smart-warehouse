@@ -134,6 +134,11 @@ export interface LocationStats {
 // ============================================================================
 export interface OperatorWhereInput {
   type?: "HUMAN" | "MACHINE";
+  search?: string;
+  OR?: Array<{
+    code?: { contains: string };
+    name?: { contains: string };
+  }>;
   createdAt?: {
     gte?: Date;
     lte?: Date;

@@ -24,6 +24,11 @@ export class OperatorController {
         filters.type = type;
       }
 
+      const search = req.query.search as string;
+      if (search) {
+        filters.search = search;
+      }
+
       const startDate = parseDateQuery(req.query, "startDate");
       if (startDate) {
         filters.startDate = startDate;
@@ -37,7 +42,20 @@ export class OperatorController {
       // 페이지네이션 파라미터 파싱
       const pagination = parsePaginationQuery(req.query);
 
-      const result = await operatorService.getAllOperators(filters, pagination);
+      // 정렬 파라미터 파싱
+      const sortField = req.query.sortField as string;
+      const sortDirection = req.query.sortDirection as "asc" | "desc";
+
+      const sorting =
+        sortField && sortDirection
+          ? { field: sortField, direction: sortDirection }
+          : undefined;
+
+      const result = await operatorService.getAllOperators(
+        filters,
+        pagination,
+        sorting
+      );
 
       res.json({
         success: true,
@@ -103,7 +121,33 @@ export class OperatorController {
         });
       }
 
-      const operator = await operatorService.getOperatorByCode(code);
+      // 페이지네이션 파라미터 파싱
+      const pagination = parsePaginationQuery(req.query);
+
+      // 필터 파라미터 파싱
+      const filters: {
+        status?: string;
+        startDate?: Date;
+        endDate?: Date;
+      } = {};
+
+      if (req.query.status) {
+        filters.status = req.query.status as string;
+      }
+
+      if (req.query.startDate) {
+        filters.startDate = new Date(req.query.startDate as string);
+      }
+
+      if (req.query.endDate) {
+        filters.endDate = new Date(req.query.endDate as string);
+      }
+
+      const operator = await operatorService.getOperatorByCode(
+        code,
+        pagination,
+        filters
+      );
 
       if (!operator) {
         return res.status(404).json({

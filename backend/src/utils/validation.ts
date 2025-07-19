@@ -99,6 +99,7 @@ export const CreateOperatorWorkSchema = z.object({
 // ============================================================================
 export const OperatorFiltersSchema = DateRangeFilterSchema.extend({
   type: OperatorTypeSchema.optional(),
+  search: z.string().optional(),
 });
 
 export const WaybillFiltersSchema = DateRangeFilterSchema.extend({

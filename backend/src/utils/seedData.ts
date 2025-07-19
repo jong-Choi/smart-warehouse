@@ -83,6 +83,33 @@ async function seedData() {
       }),
     ]);
 
+    // A1~B10 코드의 기계들 생성 (이름은 A01, B02 형식)
+    const machineCodes = [];
+    for (let i = 1; i <= 10; i++) {
+      machineCodes.push(`A${i}`);
+    }
+    for (let i = 1; i <= 10; i++) {
+      machineCodes.push(`B${i}`);
+    }
+
+    const machines = await Promise.all(
+      machineCodes.map((code) =>
+        prisma.operator.create({
+          data: {
+            name: `자동분류기-${code.replace(
+              /([A-Z])(\d+)/,
+              (match, letter, num) => `${letter}${num.padStart(2, "0")}`
+            )}`,
+            code: code,
+            type: OperatorType.MACHINE,
+          },
+        })
+      )
+    );
+
+    // 모든 작업자 배열에 기계들 추가
+    const allOperators = [...operators, ...machines];
+
     console.log("✅ 작업자 생성 완료");
 
     // 운송장 생성
@@ -127,7 +154,7 @@ async function seedData() {
       prisma.parcel.create({
         data: {
           waybillId: waybills[0].id,
-          operatorId: operators[0].id,
+          operatorId: allOperators[0].id,
           locationId: locations[0].id,
           status: ParcelStatus.NORMAL,
           declaredValue: 50000,
@@ -138,7 +165,7 @@ async function seedData() {
       prisma.parcel.create({
         data: {
           waybillId: waybills[0].id,
-          operatorId: operators[1].id,
+          operatorId: allOperators[1].id,
           locationId: locations[1].id,
           status: ParcelStatus.NORMAL,
           declaredValue: 30000,
@@ -150,7 +177,7 @@ async function seedData() {
       prisma.parcel.create({
         data: {
           waybillId: waybills[1].id,
-          operatorId: operators[2].id,
+          operatorId: allOperators[2].id,
           locationId: locations[2].id,
           status: ParcelStatus.UNLOADED,
           declaredValue: 75000,
@@ -161,7 +188,7 @@ async function seedData() {
       prisma.parcel.create({
         data: {
           waybillId: waybills[1].id,
-          operatorId: operators[3].id,
+          operatorId: allOperators[3].id,
           locationId: locations[3].id,
           status: ParcelStatus.PENDING_UNLOAD,
           declaredValue: 25000,
@@ -173,7 +200,7 @@ async function seedData() {
       prisma.parcel.create({
         data: {
           waybillId: waybills[2].id,
-          operatorId: operators[0].id,
+          operatorId: allOperators[0].id,
           locationId: locations[0].id,
           status: ParcelStatus.ACCIDENT,
           declaredValue: 100000,
@@ -185,7 +212,7 @@ async function seedData() {
       prisma.parcel.create({
         data: {
           waybillId: waybills[3].id,
-          operatorId: operators[1].id,
+          operatorId: allOperators[1].id,
           locationId: locations[1].id,
           status: ParcelStatus.ACCIDENT,
           declaredValue: 45000,
@@ -201,7 +228,7 @@ async function seedData() {
     const shifts = await Promise.all([
       prisma.operatorShift.create({
         data: {
-          operatorId: operators[0].id,
+          operatorId: allOperators[0].id,
           date: new Date("2024-12-02"),
           startTime: new Date("2024-12-02T08:00:00Z"),
           endTime: new Date("2024-12-02T18:00:00Z"),
@@ -209,7 +236,7 @@ async function seedData() {
       }),
       prisma.operatorShift.create({
         data: {
-          operatorId: operators[1].id,
+          operatorId: allOperators[1].id,
           date: new Date("2024-12-02"),
           startTime: new Date("2024-12-02T09:00:00Z"),
           endTime: new Date("2024-12-02T19:00:00Z"),
@@ -217,7 +244,7 @@ async function seedData() {
       }),
       prisma.operatorShift.create({
         data: {
-          operatorId: operators[2].id,
+          operatorId: allOperators[2].id,
           date: new Date("2024-12-02"),
           startTime: new Date("2024-12-02T00:00:00Z"),
           endTime: new Date("2024-12-02T23:59:59Z"),
@@ -231,7 +258,7 @@ async function seedData() {
     const works = await Promise.all([
       prisma.operatorWork.create({
         data: {
-          operatorId: operators[0].id,
+          operatorId: allOperators[0].id,
           date: new Date("2024-12-02"),
           locationId: locations[0].id,
           processedCount: 2,
@@ -242,7 +269,7 @@ async function seedData() {
       }),
       prisma.operatorWork.create({
         data: {
-          operatorId: operators[1].id,
+          operatorId: allOperators[1].id,
           date: new Date("2024-12-02"),
           locationId: locations[1].id,
           processedCount: 2,
@@ -253,7 +280,7 @@ async function seedData() {
       }),
       prisma.operatorWork.create({
         data: {
-          operatorId: operators[2].id,
+          operatorId: allOperators[2].id,
           date: new Date("2024-12-02"),
           locationId: locations[2].id,
           processedCount: 1,
@@ -269,7 +296,9 @@ async function seedData() {
     console.log("🎉 샘플 데이터 생성 완료!");
     console.log(`📊 생성된 데이터:`);
     console.log(`   - 배송지: ${locations.length}개`);
-    console.log(`   - 작업자: ${operators.length}개`);
+    console.log(
+      `   - 작업자: ${allOperators.length}개 (기본 4개 + A1~B10 기계 20개)`
+    );
     console.log(`   - 운송장: ${waybills.length}개`);
     console.log(`   - 소포: ${parcels.length}개`);
     console.log(`   - 근무기록: ${shifts.length}개`);

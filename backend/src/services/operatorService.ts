@@ -14,7 +14,8 @@ export class OperatorService {
    */
   async getAllOperators(
     filters: OperatorFilters = {},
-    pagination?: { page?: number; limit?: number; getAll?: boolean }
+    pagination?: { page?: number; limit?: number; getAll?: boolean },
+    sorting?: { field: string; direction: "asc" | "desc" }
   ) {
     const where: OperatorWhereInput = {};
 
@@ -32,6 +33,28 @@ export class OperatorService {
       }
     }
 
+    // 정렬 설정
+    let orderBy: any;
+
+    if (sorting) {
+      // 특별한 정렬 필드들 처리
+      if (
+        sorting.field === "normalParcels" ||
+        sorting.field === "accidentParcels"
+      ) {
+        // 집계된 데이터로 정렬하기 위해 서브쿼리 사용
+        orderBy = {
+          parcels: {
+            _count: sorting.direction,
+          },
+        };
+      } else {
+        orderBy = { [sorting.field]: sorting.direction };
+      }
+    } else {
+      orderBy = { name: "asc" as const }; // 기본값: 이름 오름차순
+    }
+
     // getAll이 true이면 전체 조회
     if (pagination?.getAll) {
       const data = await prisma.operator.findMany({
@@ -44,10 +67,14 @@ export class OperatorService {
               parcels: true,
             },
           },
+          parcels: {
+            select: {
+              status: true,
+              isAccident: true,
+            },
+          },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy,
       });
 
       return {
@@ -78,10 +105,14 @@ export class OperatorService {
               parcels: true,
             },
           },
+          parcels: {
+            select: {
+              status: true,
+              isAccident: true,
+            },
+          },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy,
         skip,
         take: limit,
       }),
@@ -154,12 +185,47 @@ export class OperatorService {
   }
 
   /**
-   * 작업자 코드로 조회합니다.
+   * 작업자 코드로 조회합니다. (대소문자 구분 없음)
    */
-  async getOperatorByCode(code: string) {
-    return await prisma.operator.findUnique({
-      where: { code },
+  async getOperatorByCode(
+    code: string,
+    pagination?: { page?: number; limit?: number },
+    filters?: {
+      status?: string;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ) {
+    const operator = await prisma.operator.findFirst({
+      where: {
+        OR: [
+          { code: code.toUpperCase() },
+          { code: code.toLowerCase() },
+          { code: code },
+        ],
+      },
       include: {
+        shifts: {
+          orderBy: {
+            date: "desc",
+          },
+          take: 10, // 최근 10개 근무 기록
+        },
+        works: {
+          include: {
+            location: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+              },
+            },
+          },
+          orderBy: {
+            date: "desc",
+          },
+          take: 10, // 최근 10개 작업 기록
+        },
         _count: {
           select: {
             shifts: true,
@@ -169,6 +235,74 @@ export class OperatorService {
         },
       },
     });
+
+    if (!operator) {
+      return null;
+    }
+
+    // 소포 처리 내역 조회 (페이지네이션 및 필터링)
+    const page = pagination?.page || 1;
+    const limit = Math.min(pagination?.limit || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const parcelWhere: any = {
+      operatorId: operator.id,
+    };
+
+    // 상태 필터
+    if (filters?.status && filters.status !== "all") {
+      parcelWhere.status = filters.status;
+    }
+
+    // 날짜 필터
+    if (filters?.startDate || filters?.endDate) {
+      parcelWhere.processedAt = {};
+      if (filters.startDate) {
+        parcelWhere.processedAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        parcelWhere.processedAt.lte = filters.endDate;
+      }
+    }
+
+    const [parcels, totalParcels] = await Promise.all([
+      prisma.parcel.findMany({
+        where: parcelWhere,
+        include: {
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
+          waybill: {
+            select: {
+              id: true,
+              number: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          processedAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.parcel.count({ where: parcelWhere }),
+    ]);
+
+    return {
+      ...operator,
+      parcels,
+      parcelsPagination: {
+        page,
+        limit,
+        total: totalParcels,
+        totalPages: Math.ceil(totalParcels / limit),
+      },
+    };
   }
 
   /**
