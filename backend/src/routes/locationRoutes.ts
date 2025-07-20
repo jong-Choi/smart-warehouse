@@ -63,10 +63,10 @@ router.get("/stats", locationController.getLocationStats);
 
 /**
  * @swagger
- * /api/locations/{locationId}/parcels:
+ * /api/locations/{locationId}/waybills:
  *   get:
- *     summary: 특정 배송지의 소포 목록 조회
- *     description: 특정 배송지로 전달된 소포 목록을 조회합니다.
+ *     summary: 특정 배송지의 운송장 목록 조회
+ *     description: 특정 배송지로 전달된 운송장 목록을 조회합니다.
  *     tags: [배송지 (Locations)]
  *     parameters:
  *       - name: locationId
@@ -78,7 +78,7 @@ router.get("/stats", locationController.getLocationStats);
  *       - $ref: '#/components/parameters/Limit'
  *     responses:
  *       200:
- *         description: 성공적으로 소포 목록을 조회했습니다.
+ *         description: 성공적으로 운송장 목록을 조회했습니다.
  *         content:
  *           application/json:
  *             schema:
@@ -90,12 +90,12 @@ router.get("/stats", locationController.getLocationStats);
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Parcel'
+ *                     $ref: '#/components/schemas/Waybill'
  *                 count:
  *                   type: integer
  *                   example: 2
  */
-router.get("/:locationId/parcels", locationController.getLocationParcels);
+router.get("/:locationId/waybills", locationController.getLocationWaybills);
 
 /**
  * @swagger

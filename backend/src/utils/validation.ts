@@ -11,32 +11,20 @@ import { z } from "zod";
 // Enum 스키마들 (Prisma 스키마와 일치)
 // ============================================================================
 export const OperatorTypeSchema = z.enum(["HUMAN", "MACHINE"]);
-export const ParcelStatusSchema = z.enum([
+export const WaybillStatusSchema = z.enum([
   "PENDING_UNLOAD",
   "UNLOADED",
   "NORMAL",
   "ACCIDENT",
-]);
-export const WaybillStatusSchema = z.enum([
-  "IN_TRANSIT",
-  "DELIVERED",
-  "RETURNED",
-  "ERROR",
 ]);
 
 // Enum 값 상수들 (쿼리 파싱에 사용)
 export const OPERATOR_TYPES = ["HUMAN", "MACHINE"] as const;
-export const PARCEL_STATUSES = [
+export const WAYBILL_STATUSES = [
   "PENDING_UNLOAD",
   "UNLOADED",
   "NORMAL",
   "ACCIDENT",
-] as const;
-export const WAYBILL_STATUSES = [
-  "IN_TRANSIT",
-  "DELIVERED",
-  "RETURNED",
-  "ERROR",
 ] as const;
 
 // ============================================================================
@@ -63,18 +51,16 @@ export const CreateLocationSchema = z.object({
 
 export const CreateWaybillSchema = z.object({
   number: z.string().min(1, "운송장 번호는 필수입니다"),
+  unloadDate: z.date(),
+  operatorId: z.number().positive("작업자 ID는 양수여야 합니다").optional(),
+  locationId: z.number().positive("배송지 ID는 양수여야 합니다"),
   status: WaybillStatusSchema,
-  shippedAt: z.date(),
-  deliveredAt: z.date().optional(),
+  isAccident: z.boolean().default(false),
 });
 
 export const CreateParcelSchema = z.object({
   waybillId: z.number().positive("운송장 ID는 양수여야 합니다"),
-  operatorId: z.number().positive("작업자 ID는 양수여야 합니다").optional(),
-  locationId: z.number().positive("배송지 ID는 양수여야 합니다"),
-  status: ParcelStatusSchema,
   declaredValue: z.number().min(0, "가격은 0 이상이어야 합니다"),
-  isAccident: z.boolean().default(false),
 });
 
 export const CreateOperatorShiftSchema = z.object({
@@ -104,14 +90,9 @@ export const OperatorFiltersSchema = DateRangeFilterSchema.extend({
 
 export const WaybillFiltersSchema = DateRangeFilterSchema.extend({
   status: WaybillStatusSchema.optional(),
-  search: z.string().optional(),
-});
-
-export const ParcelFiltersSchema = DateRangeFilterSchema.extend({
-  status: ParcelStatusSchema.optional(),
   operatorId: z.number().positive().optional(),
   locationId: z.number().positive().optional(),
-  waybillId: z.number().positive().optional(),
+  search: z.string().optional(),
   isAccident: z.boolean().optional(),
 });
 
@@ -121,13 +102,13 @@ export const ParcelFiltersSchema = DateRangeFilterSchema.extend({
 export const UpdateOperatorSchema = CreateOperatorSchema.partial();
 export const UpdateLocationSchema = CreateLocationSchema.partial();
 export const UpdateWaybillSchema = z.object({
+  unloadDate: z.date().optional(),
+  operatorId: z.number().positive().optional(),
   status: WaybillStatusSchema.optional(),
-  deliveredAt: z.date().optional(),
+  isAccident: z.boolean().optional(),
 });
 export const UpdateParcelSchema = z.object({
-  operatorId: z.number().positive().optional(),
-  status: ParcelStatusSchema.optional(),
-  isAccident: z.boolean().optional(),
+  declaredValue: z.number().min(0).optional(),
 });
 
 // ============================================================================
@@ -163,7 +144,6 @@ export const PaginationSchema = z
 // 타입 추론 (Zod 스키마에서 TypeScript 타입 생성)
 // ============================================================================
 export type OperatorType = z.infer<typeof OperatorTypeSchema>;
-export type ParcelStatus = z.infer<typeof ParcelStatusSchema>;
 export type WaybillStatus = z.infer<typeof WaybillStatusSchema>;
 export type DateRangeFilter = z.infer<typeof DateRangeFilterSchema>;
 export type CreateOperatorRequest = z.infer<typeof CreateOperatorSchema>;
@@ -178,7 +158,6 @@ export type CreateOperatorWorkRequest = z.infer<
 >;
 export type OperatorFilters = z.infer<typeof OperatorFiltersSchema>;
 export type WaybillFilters = z.infer<typeof WaybillFiltersSchema>;
-export type ParcelFilters = z.infer<typeof ParcelFiltersSchema>;
 export type UpdateOperatorRequest = z.infer<typeof UpdateOperatorSchema>;
 export type UpdateLocationRequest = z.infer<typeof UpdateLocationSchema>;
 export type UpdateWaybillRequest = z.infer<typeof UpdateWaybillSchema>;

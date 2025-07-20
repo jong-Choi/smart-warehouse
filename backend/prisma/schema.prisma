@@ -20,26 +20,18 @@ enum OperatorType {
   MACHINE   // 자동 기계
 }
 
-/// 개별 소포(Parcel)의 처리 상태
-enum ParcelStatus {
+/// 운송장(Waybill)의 처리 상태
+enum WaybillStatus {
   PENDING_UNLOAD  // 아직 하차되지 않은 상태
   UNLOADED        // 하차 완료됨
   NORMAL          // 정상 처리됨
   ACCIDENT        // 사고 발생 처리됨
 }
 
-/// 운송장(Waybill)의 전체 배송 상태
-enum WaybillStatus {
-  IN_TRANSIT   // 배송 중
-  DELIVERED    // 배송 완료
-  RETURNED     // 반송됨
-  ERROR        // 시스템 오류 혹은 분실
-}
-
 /// Operator는 작업을 수행하는 주체로, 사람(HUMAN) 또는 기계(MACHINE)일 수 있음.
 /// code 필드는 사번 또는 기계 고유 코드로 활용.
 /// createdAt은 등록 일시.
-/// 관계: Shift (근무 기록), Work (KPI 집계), Parcel (작업한 소포)
+/// 관계: Shift (근무 기록), Work (KPI 집계), Waybill (작업한 운송장)
 model Operator {
   id        Int             @id @default(autoincrement())
   name      String
@@ -49,7 +41,7 @@ model Operator {
 
   shifts    OperatorShift[]  // 해당 작업자의 근무 기록
   works     OperatorWork[]   // 날짜별 KPI
-  parcels   Parcel[]         // 실제 처리한 소포 목록
+  waybills  Waybill[]        // 실제 처리한 운송장 목록
 
   @@map("operators")
 }
@@ -71,14 +63,14 @@ model OperatorShift {
 }
 
 /// Location은 배송지 (예: 서울 강남구, 부산 해운대 등)
-/// 작업자는 이곳으로 소포를 배달하거나 배송 처리를 수행함
+/// 작업자는 이곳으로 운송장을 배달하거나 배송 처리를 수행함
 model Location {
   id        Int             @id @default(autoincrement())
   name      String          // 배송지 이름 (예: 서울 강남구)
   address   String?         // 상세 주소 (선택)
   createdAt DateTime        @default(now())
 
-  parcels         Parcel[]         // 이 배송지로 전달된 소포들
+  waybills        Waybill[]        // 이 배송지로 전달된 운송장들
   operatorWorks   OperatorWork[]   // 이 배송지에서 작업한 결과 집계
 
   @@map("locations")
@@ -91,7 +83,7 @@ model OperatorWork {
   operatorId     Int       // 작업 주체
   date           DateTime  // 집계 날짜
   locationId     Int       // 어떤 배송지에서 작업했는지
-  processedCount Int       // 처리한 소포 수
+  processedCount Int       // 처리한 운송장 수
   accidentCount  Int       // 사고 처리 건수
   revenue        Int       // 발생 매출 (정산 기준 단가 × 수량)
   errorCount     Int       // 기타 오류 수 (옵션)
@@ -105,34 +97,33 @@ model OperatorWork {
   @@map("operator_works")
 }
 
-/// Waybill은 운송장. 소포(Parcel)와 1:1 관계
-/// 배송 단위로 조회하거나 상태를 파악할 때 사용
+/// Waybill은 운송장. 처리 정보를 모두 관리
+/// Parcel과 1:1 관계로 물건 정보 연결
 model Waybill {
-  id          Int           @id @default(autoincrement())
-  number      String        @unique        // 운송장 번호
-  status      WaybillStatus                 // 전체 배송 상태
-  shippedAt   DateTime                      // 발송 시각
-  deliveredAt DateTime?                     // 도착 시각
-  parcel      Parcel?                       // 연결된 소포 (1:1)
+  id            Int           @id @default(autoincrement())
+  number        String        @unique        // 운송장 번호
+  unloadDate    DateTime                      // 하차 예정일
+  operatorId    Int?                          // 처리한 작업자/기계
+  locationId    Int                           // 배송지
+  status        WaybillStatus
+  processedAt   DateTime      @default(now()) // 처리 일시
+  isAccident    Boolean       @default(false) // 사고 여부
+  parcel        Parcel?                       // 연결된 물건 정보 (1:1)
+
+  operator      Operator?     @relation(fields: [operatorId], references: [id])
+  location      Location      @relation(fields: [locationId], references: [id])
 
   @@map("waybills")
 }
 
-/// Parcel은 실제로 처리되는 개별 소포 단위
-/// 작업자(Operator), 배송지(Location), 운송장(Waybill)에 연결되어 있음
+/// Parcel은 물건 정보. 가격 등 물건의 속성만 관리
+/// Waybill과 1:1 관계
 model Parcel {
-  id            Int          @id @default(autoincrement())
-  waybillId     Int          @unique        // 운송장과 1:1 관계
-  operatorId    Int?                         // 처리한 작업자/기계
-  locationId    Int                          // 배송지
-  status        ParcelStatus
-  declaredValue Int                          // 소포 가격
-  processedAt   DateTime     @default(now()) // 처리 일시
-  isAccident    Boolean      @default(false) // 사고 여부
+  id            Int       @id @default(autoincrement())
+  waybillId     Int       @unique        // 운송장과 1:1 관계
+  declaredValue Int                       // 물건 가격
 
-  waybill       Waybill      @relation(fields: [waybillId], references: [id])
-  operator      Operator?    @relation(fields: [operatorId], references: [id])
-  location      Location     @relation(fields: [locationId], references: [id])
+  waybill       Waybill   @relation(fields: [waybillId], references: [id])
 
   @@map("parcels")
 }

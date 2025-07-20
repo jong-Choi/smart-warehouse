@@ -7,7 +7,7 @@ const options = {
       title: "택배 관리 시스템 API",
       version: "1.0.0",
       description:
-        "택배 배송 과정을 관리하는 REST API입니다. 소포, 운송장, 작업자, 배송지 정보를 조회할 수 있습니다. 모든 목록 조회 API는 페이지네이션을 지원합니다.",
+        "택배 배송 과정을 관리하는 REST API입니다. 운송장, 작업자, 배송지 정보를 조회할 수 있습니다. 모든 목록 조회 API는 페이지네이션을 지원합니다.",
       contact: {
         name: "API Support",
         email: "support@example.com",
@@ -67,46 +67,48 @@ const options = {
             },
           },
         },
-        // 소포 관련 스키마
+        // 소포 관련 스키마 (물건 정보만)
         Parcel: {
           type: "object",
           properties: {
             id: { type: "integer" },
             waybillId: { type: "integer" },
-            operatorId: { type: "integer", nullable: true },
-            locationId: { type: "integer" },
-            status: {
-              type: "string",
-              enum: ["PENDING_UNLOAD", "UNLOADED", "NORMAL", "ACCIDENT"],
-            },
-            declaredValue: { type: "integer" },
-            processedAt: { type: "string", format: "date-time" },
-            isAccident: { type: "boolean" },
-            operator: { $ref: "#/components/schemas/Operator" },
-            location: { $ref: "#/components/schemas/Location" },
+            declaredValue: { type: "integer", description: "물건 가격" },
             waybill: { $ref: "#/components/schemas/Waybill" },
           },
         },
-        // 운송장 관련 스키마
+        // 운송장 관련 스키마 (처리 정보 통합)
         Waybill: {
           type: "object",
           properties: {
             id: { type: "integer" },
-            number: { type: "string" },
+            number: { type: "string", description: "운송장 번호" },
+            unloadDate: {
+              type: "string",
+              format: "date",
+              description: "하차 예정일",
+            },
+            operatorId: {
+              type: "integer",
+              nullable: true,
+              description: "처리한 작업자/기계 ID",
+            },
+            locationId: { type: "integer", description: "배송지 ID" },
             status: {
               type: "string",
-              enum: ["IN_TRANSIT", "DELIVERED", "RETURNED", "ERROR"],
+              enum: ["PENDING_UNLOAD", "UNLOADED", "NORMAL", "ACCIDENT"],
+              description: "처리 상태",
             },
-            shippedAt: { type: "string", format: "date-time" },
-            deliveredAt: {
+            processedAt: {
               type: "string",
               format: "date-time",
               nullable: true,
+              description: "처리 일시",
             },
-            parcel: {
-              $ref: "#/components/schemas/Parcel",
-              nullable: true,
-            },
+            isAccident: { type: "boolean", description: "사고 여부" },
+            operator: { $ref: "#/components/schemas/Operator" },
+            location: { $ref: "#/components/schemas/Location" },
+            parcel: { $ref: "#/components/schemas/Parcel" },
           },
         },
         // 작업자 관련 스키마
@@ -126,7 +128,7 @@ const options = {
               properties: {
                 shifts: { type: "integer" },
                 works: { type: "integer" },
-                parcels: { type: "integer" },
+                waybills: { type: "integer" },
               },
             },
           },
@@ -142,7 +144,7 @@ const options = {
             _count: {
               type: "object",
               properties: {
-                parcels: { type: "integer" },
+                waybills: { type: "integer" },
                 operatorWorks: { type: "integer" },
               },
             },
@@ -186,7 +188,7 @@ const options = {
             locationId: { type: "integer" },
             processedCount: {
               type: "integer",
-              description: "처리한 소포 수",
+              description: "처리한 운송장 수",
             },
             accidentCount: {
               type: "integer",
@@ -221,7 +223,7 @@ const options = {
                   id: { type: "integer" },
                   name: { type: "string" },
                   address: { type: "string", nullable: true },
-                  parcelCount: { type: "integer" },
+                  waybillCount: { type: "integer" },
                   workCount: { type: "integer" },
                   pendingUnloadCount: {
                     type: "integer",
@@ -283,7 +285,7 @@ const options = {
                   },
                   totalProcessedCount: {
                     type: "integer",
-                    description: "총 처리한 소포 수",
+                    description: "총 처리한 운송장 수",
                   },
                   accidentCount: {
                     type: "integer",
@@ -338,21 +340,12 @@ const options = {
           description: "배송지 ID",
         },
         // 쿼리 파라미터
-        ParcelStatus: {
-          name: "status",
-          in: "query",
-          schema: {
-            type: "string",
-            enum: ["PENDING_UNLOAD", "UNLOADED", "NORMAL", "ACCIDENT"],
-          },
-          description: "소포 상태 필터",
-        },
         WaybillStatus: {
           name: "status",
           in: "query",
           schema: {
             type: "string",
-            enum: ["IN_TRANSIT", "DELIVERED", "RETURNED", "ERROR"],
+            enum: ["PENDING_UNLOAD", "UNLOADED", "NORMAL", "ACCIDENT"],
           },
           description: "운송장 상태 필터",
         },
@@ -417,10 +410,6 @@ const options = {
       },
     },
     tags: [
-      {
-        name: "소포 (Parcels)",
-        description: "소포 관련 API",
-      },
       {
         name: "운송장 (Waybills)",
         description: "운송장 관련 API",

@@ -96,9 +96,9 @@ export class LocationController {
   }
 
   /**
-   * 특정 배송지의 소포 목록을 조회합니다.
+   * 특정 배송지의 운송장 목록을 조회합니다.
    */
-  async getLocationParcels(req: Request, res: Response) {
+  async getLocationWaybills(req: Request, res: Response) {
     try {
       const locationId = parseInt(req.params.locationId);
 
@@ -111,21 +111,21 @@ export class LocationController {
 
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
 
-      const parcels = await locationService.getLocationParcels(
+      const waybills = await locationService.getLocationWaybills(
         locationId,
         limit
       );
 
       res.json({
         success: true,
-        data: parcels,
-        count: parcels.length,
+        data: waybills,
+        count: waybills.length,
       });
     } catch (error) {
-      console.error("Error fetching location parcels:", error);
+      console.error("Error fetching location waybills:", error);
       res.status(500).json({
         success: false,
-        message: "배송지 소포 목록 조회 중 오류가 발생했습니다.",
+        message: "배송지 운송장 목록 조회 중 오류가 발생했습니다.",
       });
     }
   }

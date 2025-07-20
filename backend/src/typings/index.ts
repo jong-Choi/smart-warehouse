@@ -23,7 +23,6 @@ export type {
 export type {
   // Enum 타입들
   OperatorType,
-  ParcelStatus,
   WaybillStatus,
 
   // 기본 필터 타입
@@ -40,7 +39,6 @@ export type {
   // 필터 타입들
   OperatorFilters,
   WaybillFilters,
-  ParcelFilters,
 
   // 업데이트 요청 타입들
   UpdateOperatorRequest,
@@ -87,7 +85,7 @@ export interface OperatorStats {
     name: string;
     code: string;
     type: "HUMAN" | "MACHINE";
-    totalProcessedCount: number; // 총 처리한 소포 수
+    totalProcessedCount: number; // 총 처리한 운송장 수
     accidentCount: number; // 사고 처리 건수
     totalRevenue: number; // 총 처리 금액
     accidentAmount: number; // 사고 금액
@@ -96,14 +94,6 @@ export interface OperatorStats {
 }
 
 export interface WaybillStats {
-  total: number;
-  byStatus: Array<{
-    status: "IN_TRANSIT" | "DELIVERED" | "RETURNED" | "ERROR";
-    count: number;
-  }>;
-}
-
-export interface ParcelStats {
   total: number;
   byStatus: Array<{
     status: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
@@ -118,7 +108,7 @@ export interface LocationStats {
     id: number;
     name: string;
     address: string | null;
-    parcelCount: number;
+    waybillCount: number;
     workCount: number;
     // 상세 통계 정보 추가
     pendingUnloadCount: number; // 하차 예정 수량
@@ -146,27 +136,22 @@ export interface OperatorWhereInput {
 }
 
 export interface WaybillWhereInput {
-  status?: "IN_TRANSIT" | "DELIVERED" | "RETURNED" | "ERROR";
+  status?: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
+  operatorId?: number;
+  locationId?: number;
   search?: string;
   OR?: Array<{
     number?: { contains: string };
   }>;
-  shippedAt?: {
+  unloadDate?: {
     gte?: Date;
     lte?: Date;
   };
-}
-
-export interface ParcelWhereInput {
-  status?: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
-  operatorId?: number;
-  locationId?: number;
-  waybillId?: number;
-  isAccident?: boolean;
   processedAt?: {
     gte?: Date;
     lte?: Date;
   };
+  isAccident?: boolean;
 }
 
 export interface OperatorShiftWhereInput {

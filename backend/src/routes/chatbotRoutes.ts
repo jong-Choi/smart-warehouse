@@ -10,8 +10,12 @@ import {
 } from "@langchain/core/prompts";
 import { SystemMessage } from "@langchain/core/messages";
 
+const MODEL_NAME_MAP = {
+  exaone: "exaone3.5:2.4b",
+};
+
 // Ollama 모델 설정
-const MODEL_NAME = "exaone3.5:2.4b";
+const MODEL_NAME = MODEL_NAME_MAP.exaone;
 
 export const fetchWithSecretKey = (
   url: Request | string | URL,
@@ -37,6 +41,7 @@ export async function ensureModelExists(modelName: string) {
     );
 
     if (!modelExists) {
+      console.log("모델 다운로드 중:", modelName);
       await ollama.pull({ model: modelName });
     }
   } catch (error) {
@@ -54,7 +59,7 @@ export const createLLMModel = () => {
   });
 };
 
-const SYSTEM_PROMPT = `당신은 물류 관리 시스템을 위한 전문 챗봇입니다. 사용자의 질문에 항상 한국어로 친절하고 정확하게 답변해주세요. 물류, 운송, 창고 관리, 배송 등과 관련된 질문에 특히 전문성을 발휘해주세요. 답변은 간결하고 실용적이어야 합니다.`;
+const SYSTEM_PROMPT = `당신은 물류 관리 시스템을 위한 전문 챗봇입니다. 항상 한국어로 친절하고 정확하게 답변해주세요. 물류, 운송, 창고 관리, 배송 등과 관련하여 특히 전문적이고 실용적인 면모를 발휘해주세요.`;
 
 export const setupChatbotSocket = (server: HTTPServer) => {
   const io = new SocketIOServer(server, {
@@ -148,6 +153,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
         systemContext?: string;
       }) => {
         const userId = data.userId || socket.id;
+        console.log("🔍 받은 data:", data);
 
         // 디버깅: systemContext 로그
         console.log("🔍 받은 systemContext:", data.systemContext);
@@ -161,9 +167,13 @@ export const setupChatbotSocket = (server: HTTPServer) => {
 
           let fullResponse = "";
           if (data.systemContext) {
+            const systemMessage = `
+            사용자의 메시지에 대해 대답해주세요. 사용자가 보고 있는 화면에 대한 정보는 간략하게만 대답하세요.
+            사용자의 메시지 : ${data.message} 
+            사용자가 보고 있는 화면에 대한 정보 : ${data.systemContext}`;
             await socketMessageHistory.addMessage(
               new SystemMessage({
-                content: data.systemContext,
+                content: systemMessage,
               })
             );
           }

@@ -85,7 +85,7 @@ export class SalesService {
     endDate: Date
   ): Promise<Omit<SalesData, "period">> {
     // 하차물량(운송장 수) - processedAt 기준
-    const unloadCount = await prisma.parcel.count({
+    const unloadCount = await prisma.waybill.count({
       where: {
         processedAt: {
           gte: startDate,
@@ -94,27 +94,34 @@ export class SalesService {
       },
     });
 
-    // 총 운송가액
-    const totalShippingValueResult = await prisma.parcel.aggregate({
+    // 총 운송가액 (Waybill을 통해 Parcel의 declaredValue 조회)
+    const waybillsWithParcels = await prisma.waybill.findMany({
       where: {
         processedAt: {
           gte: startDate,
           lt: endDate,
         },
       },
-      _sum: {
-        declaredValue: true,
+      include: {
+        parcel: {
+          select: {
+            declaredValue: true,
+          },
+        },
       },
     });
 
-    const totalShippingValue = totalShippingValueResult._sum.declaredValue || 0;
+    const totalShippingValue = waybillsWithParcels.reduce(
+      (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+      0
+    );
 
     // 운송장별 평균 운송가액
     const avgShippingValue =
       unloadCount > 0 ? totalShippingValue / unloadCount : 0;
 
     // 정상처리건수
-    const normalProcessCount = await prisma.parcel.count({
+    const normalProcessCount = await prisma.waybill.count({
       where: {
         processedAt: {
           gte: startDate,
@@ -124,8 +131,8 @@ export class SalesService {
       },
     });
 
-    // 처리가액 (정상처리된 소포의 가액 합계)
-    const processValueResult = await prisma.parcel.aggregate({
+    // 처리가액 (정상처리된 운송장의 가액 합계)
+    const normalWaybillsWithParcels = await prisma.waybill.findMany({
       where: {
         processedAt: {
           gte: startDate,
@@ -133,15 +140,22 @@ export class SalesService {
         },
         status: "NORMAL",
       },
-      _sum: {
-        declaredValue: true,
+      include: {
+        parcel: {
+          select: {
+            declaredValue: true,
+          },
+        },
       },
     });
 
-    const processValue = processValueResult._sum.declaredValue || 0;
+    const processValue = normalWaybillsWithParcels.reduce(
+      (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+      0
+    );
 
     // 사고건수
-    const accidentCount = await prisma.parcel.count({
+    const accidentCount = await prisma.waybill.count({
       where: {
         processedAt: {
           gte: startDate,
@@ -152,7 +166,7 @@ export class SalesService {
     });
 
     // 사고가액
-    const accidentValueResult = await prisma.parcel.aggregate({
+    const accidentWaybillsWithParcels = await prisma.waybill.findMany({
       where: {
         processedAt: {
           gte: startDate,
@@ -160,12 +174,19 @@ export class SalesService {
         },
         isAccident: true,
       },
-      _sum: {
-        declaredValue: true,
+      include: {
+        parcel: {
+          select: {
+            declaredValue: true,
+          },
+        },
       },
     });
 
-    const accidentValue = accidentValueResult._sum.declaredValue || 0;
+    const accidentValue = accidentWaybillsWithParcels.reduce(
+      (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+      0
+    );
 
     return {
       unloadCount,
@@ -259,8 +280,8 @@ export class SalesService {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year + 1, 0, 1);
 
-    const locationData = await prisma.parcel.groupBy({
-      by: ["locationId"],
+    // 정상처리된 운송장들을 지역별로 그룹화
+    const normalWaybillsWithParcels = await prisma.waybill.findMany({
       where: {
         processedAt: {
           gte: yearStart,
@@ -268,16 +289,22 @@ export class SalesService {
         },
         status: "NORMAL",
       },
-      _sum: {
-        declaredValue: true,
-      },
-      _count: {
-        id: true,
+      include: {
+        location: {
+          select: {
+            name: true,
+          },
+        },
+        parcel: {
+          select: {
+            declaredValue: true,
+          },
+        },
       },
     });
 
-    const accidentData = await prisma.parcel.groupBy({
-      by: ["locationId"],
+    // 사고 운송장들을 지역별로 그룹화
+    const accidentWaybills = await prisma.waybill.findMany({
       where: {
         processedAt: {
           gte: yearStart,
@@ -285,32 +312,67 @@ export class SalesService {
         },
         isAccident: true,
       },
-      _count: {
-        id: true,
+      include: {
+        location: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    // locationId로 그룹화된 사고 데이터를 Map으로 변환
-    const accidentMap = new Map(
-      accidentData.map((item) => [item.locationId, item._count.id])
-    );
+    // 지역별로 데이터 그룹화
+    const locationMap = new Map<
+      string,
+      {
+        locationName: string;
+        revenue: number;
+        processedCount: number;
+        accidentCount: number;
+      }
+    >();
 
-    // Location 정보와 함께 결과 반환
-    const result = await Promise.all(
-      locationData.map(async (item) => {
-        const location = await prisma.location.findUnique({
-          where: { id: item.locationId },
+    // 정상처리 데이터 처리
+    normalWaybillsWithParcels.forEach((waybill) => {
+      const locationName = waybill.location?.name || "알 수 없는 위치";
+      const value = waybill.parcel?.declaredValue || 0;
+
+      if (!locationMap.has(locationName)) {
+        locationMap.set(locationName, {
+          locationName,
+          revenue: 0,
+          processedCount: 0,
+          accidentCount: 0,
         });
+      }
 
-        return {
-          locationName: location?.name || "알 수 없는 위치",
-          revenue: item._sum.declaredValue || 0,
-          processedCount: item._count.id,
-          accidentCount: accidentMap.get(item.locationId) || 0,
-        };
-      })
+      const locationData = locationMap.get(locationName)!;
+      locationData.revenue += value;
+      locationData.processedCount += 1;
+    });
+
+    // 사고 데이터 처리
+    accidentWaybills.forEach((waybill) => {
+      const locationName = waybill.location?.name || "알 수 없는 위치";
+
+      if (!locationMap.has(locationName)) {
+        locationMap.set(locationName, {
+          locationName,
+          revenue: 0,
+          processedCount: 0,
+          accidentCount: 0,
+        });
+      }
+
+      const locationData = locationMap.get(locationName)!;
+      locationData.accidentCount += 1;
+    });
+
+    // 결과를 배열로 변환하고 매출 순으로 정렬
+    const result = Array.from(locationMap.values()).sort(
+      (a, b) => b.revenue - a.revenue
     );
 
-    return result.sort((a, b) => b.revenue - a.revenue); // 매출 순으로 정렬
+    return result;
   }
 }

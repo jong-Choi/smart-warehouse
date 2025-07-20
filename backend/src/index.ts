@@ -4,7 +4,6 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import { createServer } from "http";
 import "module-alias/register";
-import parcelRoutes from "@src/routes/parcelRoutes";
 import waybillRoutes from "@src/routes/waybillRoutes";
 import operatorRoutes from "@src/routes/operatorRoutes";
 import locationRoutes from "@src/routes/locationRoutes";
@@ -42,7 +41,6 @@ app.use(
 );
 
 // 라우트
-app.use("/api/parcels", parcelRoutes);
 app.use("/api/waybills", waybillRoutes);
 app.use("/api/operators", operatorRoutes);
 app.use("/api/locations", locationRoutes);
@@ -55,7 +53,6 @@ app.get("/health", (req, res) => {
     message: "🚀 택배 관리 시스템 API가 정상적으로 실행 중입니다",
     timestamp: new Date().toISOString(),
     endpoints: {
-      parcels: "/api/parcels",
       waybills: "/api/waybills",
       operators: "/api/operators",
       locations: "/api/locations",
@@ -95,7 +92,6 @@ setupChatbotSocket(server);
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
-  console.log(`📦 Parcels API: http://localhost:${PORT}/api/parcels`);
   console.log(`📋 Waybills API: http://localhost:${PORT}/api/waybills`);
   console.log(`👷 Operators API: http://localhost:${PORT}/api/operators`);
   console.log(`📍 Locations API: http://localhost:${PORT}/api/locations`);

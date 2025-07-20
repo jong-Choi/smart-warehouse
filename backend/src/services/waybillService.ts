@@ -22,6 +22,18 @@ export class WaybillService {
       where.status = filters.status;
     }
 
+    if (filters.operatorId) {
+      where.operatorId = filters.operatorId;
+    }
+
+    if (filters.locationId) {
+      where.locationId = filters.locationId;
+    }
+
+    if (filters.isAccident !== undefined) {
+      where.isAccident = filters.isAccident;
+    }
+
     if (filters.search) {
       where.OR = [
         {
@@ -33,12 +45,12 @@ export class WaybillService {
     }
 
     if (filters.startDate || filters.endDate) {
-      where.shippedAt = {};
+      where.unloadDate = {};
       if (filters.startDate) {
-        where.shippedAt.gte = filters.startDate;
+        where.unloadDate.gte = filters.startDate;
       }
       if (filters.endDate) {
-        where.shippedAt.lte = filters.endDate;
+        where.unloadDate.lte = filters.endDate;
       }
     }
 
@@ -47,28 +59,30 @@ export class WaybillService {
       const data = await prisma.waybill.findMany({
         where,
         include: {
+          operator: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              type: true,
+            },
+          },
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
           parcel: {
-            include: {
-              operator: {
-                select: {
-                  id: true,
-                  name: true,
-                  code: true,
-                  type: true,
-                },
-              },
-              location: {
-                select: {
-                  id: true,
-                  name: true,
-                  address: true,
-                },
-              },
+            select: {
+              id: true,
+              declaredValue: true,
             },
           },
         },
         orderBy: {
-          shippedAt: "desc",
+          unloadDate: "desc",
         },
       });
 
@@ -93,28 +107,30 @@ export class WaybillService {
       prisma.waybill.findMany({
         where,
         include: {
+          operator: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              type: true,
+            },
+          },
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
           parcel: {
-            include: {
-              operator: {
-                select: {
-                  id: true,
-                  name: true,
-                  code: true,
-                  type: true,
-                },
-              },
-              location: {
-                select: {
-                  id: true,
-                  name: true,
-                  address: true,
-                },
-              },
+            select: {
+              id: true,
+              declaredValue: true,
             },
           },
         },
         orderBy: {
-          shippedAt: "desc",
+          unloadDate: "desc",
         },
         skip,
         take: limit,
@@ -140,23 +156,25 @@ export class WaybillService {
     return await prisma.waybill.findUnique({
       where: { id },
       include: {
+        operator: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            type: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
         parcel: {
-          include: {
-            operator: {
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                type: true,
-              },
-            },
-            location: {
-              select: {
-                id: true,
-                name: true,
-                address: true,
-              },
-            },
+          select: {
+            id: true,
+            declaredValue: true,
           },
         },
       },
@@ -170,23 +188,25 @@ export class WaybillService {
     return await prisma.waybill.findUnique({
       where: { number },
       include: {
+        operator: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            type: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
         parcel: {
-          include: {
-            operator: {
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                type: true,
-              },
-            },
-            location: {
-              select: {
-                id: true,
-                name: true,
-                address: true,
-              },
-            },
+          select: {
+            id: true,
+            declaredValue: true,
           },
         },
       },
@@ -205,6 +225,9 @@ export class WaybillService {
     });
 
     const totalCount = await prisma.waybill.count();
+    const accidentCount = await prisma.waybill.count({
+      where: { isAccident: true },
+    });
 
     return {
       total: totalCount,
@@ -212,6 +235,7 @@ export class WaybillService {
         status: stat.status,
         count: stat._count.id,
       })),
+      accidentCount: accidentCount,
     };
   }
 
@@ -222,12 +246,12 @@ export class WaybillService {
     const where: any = {};
 
     if (startDate || endDate) {
-      where.shippedAt = {};
+      where.unloadDate = {};
       if (startDate) {
-        where.shippedAt.gte = startDate;
+        where.unloadDate.gte = startDate;
       }
       if (endDate) {
-        where.shippedAt.lt = endDate;
+        where.unloadDate.lt = endDate;
       }
     }
 
@@ -235,11 +259,11 @@ export class WaybillService {
     const waybills = await prisma.waybill.findMany({
       where,
       select: {
-        shippedAt: true,
+        unloadDate: true,
         status: true,
       },
       orderBy: {
-        shippedAt: "asc",
+        unloadDate: "asc",
       },
     });
 
@@ -250,7 +274,7 @@ export class WaybillService {
     >();
 
     waybills.forEach((waybill) => {
-      const dateStr = waybill.shippedAt.toISOString().split("T")[0];
+      const dateStr = waybill.unloadDate.toISOString().split("T")[0];
 
       if (!dateMap.has(dateStr)) {
         dateMap.set(dateStr, { count: 0, statuses: {} });
@@ -283,23 +307,19 @@ export class WaybillService {
     }
 
     if (filters.startDate || filters.endDate) {
-      where.shippedAt = {};
+      where.unloadDate = {};
       if (filters.startDate) {
-        where.shippedAt.gte = filters.startDate;
+        where.unloadDate.gte = filters.startDate;
       }
       if (filters.endDate) {
-        where.shippedAt.lte = filters.endDate;
+        where.unloadDate.lte = filters.endDate;
       }
     }
 
     const waybills = await prisma.waybill.findMany({
       where,
       include: {
-        parcel: {
-          include: {
-            location: true,
-          },
-        },
+        location: true,
       },
     });
 
@@ -316,7 +336,7 @@ export class WaybillService {
     >();
 
     waybills.forEach((waybill) => {
-      const location = waybill.parcel?.location;
+      const location = waybill.location;
       if (!location) return;
 
       const locationKey = `${location.id}`;
@@ -354,9 +374,7 @@ export class WaybillService {
     pagination?: { page?: number; limit?: number; getAll?: boolean }
   ) {
     const where: any = {
-      parcel: {
-        locationId: locationId,
-      },
+      locationId: locationId,
     };
 
     if (filters.status) {
@@ -374,12 +392,12 @@ export class WaybillService {
     }
 
     if (filters.startDate || filters.endDate) {
-      where.shippedAt = {};
+      where.unloadDate = {};
       if (filters.startDate) {
-        where.shippedAt.gte = filters.startDate;
+        where.unloadDate.gte = filters.startDate;
       }
       if (filters.endDate) {
-        where.shippedAt.lte = filters.endDate;
+        where.unloadDate.lte = filters.endDate;
       }
     }
 
@@ -388,20 +406,22 @@ export class WaybillService {
       const data = await prisma.waybill.findMany({
         where,
         include: {
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
           parcel: {
-            include: {
-              location: {
-                select: {
-                  id: true,
-                  name: true,
-                  address: true,
-                },
-              },
+            select: {
+              id: true,
+              declaredValue: true,
             },
           },
         },
         orderBy: {
-          shippedAt: "desc",
+          unloadDate: "desc",
         },
       });
 
@@ -425,20 +445,22 @@ export class WaybillService {
       prisma.waybill.findMany({
         where,
         include: {
+          location: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+            },
+          },
           parcel: {
-            include: {
-              location: {
-                select: {
-                  id: true,
-                  name: true,
-                  address: true,
-                },
-              },
+            select: {
+              id: true,
+              declaredValue: true,
             },
           },
         },
         orderBy: {
-          shippedAt: "desc",
+          unloadDate: "desc",
         },
         skip,
         take: limit,
@@ -470,26 +492,22 @@ export class WaybillService {
     }
 
     if (filters.startDate || filters.endDate) {
-      where.shippedAt = {};
+      where.unloadDate = {};
       if (filters.startDate) {
-        where.shippedAt.gte = filters.startDate;
+        where.unloadDate.gte = filters.startDate;
       }
       if (filters.endDate) {
-        where.shippedAt.lte = filters.endDate;
+        where.unloadDate.lte = filters.endDate;
       }
     }
 
     const waybills = await prisma.waybill.findMany({
       where,
       include: {
-        parcel: {
-          include: {
-            location: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+        location: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -506,7 +524,7 @@ export class WaybillService {
     >();
 
     waybills.forEach((waybill) => {
-      const dateStr = waybill.shippedAt.toISOString().split("T")[0];
+      const dateStr = waybill.unloadDate.toISOString().split("T")[0];
 
       if (!dateMap.has(dateStr)) {
         dateMap.set(dateStr, { count: 0, statuses: {}, locations: {} });
@@ -518,7 +536,7 @@ export class WaybillService {
         (dateData.statuses[waybill.status] || 0) + 1;
 
       // 지역별 카운트
-      const locationName = waybill.parcel?.location?.name || "미지정";
+      const locationName = waybill.location?.name || "미지정";
       if (!dateData.locations[locationName]) {
         dateData.locations[locationName] = { name: locationName, count: 0 };
       }

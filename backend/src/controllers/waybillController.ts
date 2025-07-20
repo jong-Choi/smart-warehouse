@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { WaybillService } from "@services/waybillService";
-import { WaybillFilters, WaybillStatus } from "@typings/index";
+import { WaybillFilters } from "@typings/index";
 import { parsePaginationQuery } from "@utils/queryParser";
 
 const waybillService = new WaybillService();
@@ -14,9 +14,6 @@ export class WaybillController {
       const filters: WaybillFilters = {};
 
       // 쿼리 파라미터 파싱
-      if (req.query.status) {
-        filters.status = req.query.status as WaybillStatus;
-      }
       if (req.query.search) {
         filters.search = req.query.search as string;
       }
@@ -196,9 +193,6 @@ export class WaybillController {
       const filters: WaybillFilters = {};
 
       // 쿼리 파라미터 파싱
-      if (req.query.status) {
-        filters.status = req.query.status as WaybillStatus;
-      }
       if (req.query.startDate) {
         filters.startDate = new Date(req.query.startDate as string);
       }
@@ -238,9 +232,6 @@ export class WaybillController {
       const filters: WaybillFilters = {};
 
       // 쿼리 파라미터 파싱
-      if (req.query.status) {
-        filters.status = req.query.status as WaybillStatus;
-      }
       if (req.query.search) {
         filters.search = req.query.search as string;
       }
@@ -282,9 +273,6 @@ export class WaybillController {
       const filters: WaybillFilters = {};
 
       // 쿼리 파라미터 파싱
-      if (req.query.status) {
-        filters.status = req.query.status as WaybillStatus;
-      }
       if (req.query.startDate) {
         filters.startDate = new Date(req.query.startDate as string);
       }

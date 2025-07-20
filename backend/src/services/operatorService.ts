@@ -39,12 +39,12 @@ export class OperatorService {
     if (sorting) {
       // 특별한 정렬 필드들 처리
       if (
-        sorting.field === "normalParcels" ||
-        sorting.field === "accidentParcels"
+        sorting.field === "normalWaybills" ||
+        sorting.field === "accidentWaybills"
       ) {
         // 집계된 데이터로 정렬하기 위해 서브쿼리 사용
         orderBy = {
-          parcels: {
+          waybills: {
             _count: sorting.direction,
           },
         };
@@ -64,10 +64,10 @@ export class OperatorService {
             select: {
               shifts: true,
               works: true,
-              parcels: true,
+              waybills: true,
             },
           },
-          parcels: {
+          waybills: {
             select: {
               status: true,
               isAccident: true,
@@ -102,10 +102,10 @@ export class OperatorService {
             select: {
               shifts: true,
               works: true,
-              parcels: true,
+              waybills: true,
             },
           },
-          parcels: {
+          waybills: {
             select: {
               status: true,
               isAccident: true,
@@ -158,7 +158,7 @@ export class OperatorService {
           },
           take: 10, // 최근 10개 작업 기록
         },
-        parcels: {
+        waybills: {
           include: {
             location: {
               select: {
@@ -167,18 +167,17 @@ export class OperatorService {
                 address: true,
               },
             },
-            waybill: {
+            parcel: {
               select: {
                 id: true,
-                number: true,
-                status: true,
+                declaredValue: true,
               },
             },
           },
           orderBy: {
             processedAt: "desc",
           },
-          take: 10, // 최근 10개 처리 소포
+          take: 10, // 최근 10개 처리 운송장
         },
       },
     });
@@ -230,7 +229,7 @@ export class OperatorService {
           select: {
             shifts: true,
             works: true,
-            parcels: true,
+            waybills: true,
           },
         },
       },
@@ -240,34 +239,34 @@ export class OperatorService {
       return null;
     }
 
-    // 소포 처리 내역 조회 (페이지네이션 및 필터링)
+    // 운송장 처리 내역 조회 (페이지네이션 및 필터링)
     const page = pagination?.page || 1;
     const limit = Math.min(pagination?.limit || 20, 100);
     const skip = (page - 1) * limit;
 
-    const parcelWhere: any = {
+    const waybillWhere: any = {
       operatorId: operator.id,
     };
 
     // 상태 필터
     if (filters?.status && filters.status !== "all") {
-      parcelWhere.status = filters.status;
+      waybillWhere.status = filters.status;
     }
 
     // 날짜 필터
     if (filters?.startDate || filters?.endDate) {
-      parcelWhere.processedAt = {};
+      waybillWhere.processedAt = {};
       if (filters.startDate) {
-        parcelWhere.processedAt.gte = filters.startDate;
+        waybillWhere.processedAt.gte = filters.startDate;
       }
       if (filters.endDate) {
-        parcelWhere.processedAt.lte = filters.endDate;
+        waybillWhere.processedAt.lte = filters.endDate;
       }
     }
 
-    const [parcels, totalParcels] = await Promise.all([
-      prisma.parcel.findMany({
-        where: parcelWhere,
+    const [waybills, totalWaybills] = await Promise.all([
+      prisma.waybill.findMany({
+        where: waybillWhere,
         include: {
           location: {
             select: {
@@ -276,11 +275,10 @@ export class OperatorService {
               address: true,
             },
           },
-          waybill: {
+          parcel: {
             select: {
               id: true,
-              number: true,
-              status: true,
+              declaredValue: true,
             },
           },
         },
@@ -290,17 +288,17 @@ export class OperatorService {
         skip,
         take: limit,
       }),
-      prisma.parcel.count({ where: parcelWhere }),
+      prisma.waybill.count({ where: waybillWhere }),
     ]);
 
     return {
       ...operator,
-      parcels,
-      parcelsPagination: {
+      waybills,
+      waybillsPagination: {
         page,
         limit,
-        total: totalParcels,
-        totalPages: Math.ceil(totalParcels / limit),
+        total: totalWaybills,
+        totalPages: Math.ceil(totalWaybills / limit),
       },
     };
   }
@@ -339,8 +337,8 @@ export class OperatorService {
     // 각 작업자별 상세 통계 계산
     const operatorStats = await Promise.all(
       operators.map(async (operator) => {
-        // 총 처리한 소포 수 (NORMAL + ACCIDENT)
-        const totalProcessedCount = await prisma.parcel.count({
+        // 총 처리한 운송장 수 (NORMAL + ACCIDENT)
+        const totalProcessedCount = await prisma.waybill.count({
           where: {
             operatorId: operator.id,
             status: { in: ["NORMAL", "ACCIDENT"] },
@@ -351,7 +349,7 @@ export class OperatorService {
         });
 
         // 사고 처리 건수 (ACCIDENT)
-        const accidentCount = await prisma.parcel.count({
+        const accidentCount = await prisma.waybill.count({
           where: {
             operatorId: operator.id,
             status: "ACCIDENT",
@@ -361,8 +359,8 @@ export class OperatorService {
           },
         });
 
-        // 총 처리 금액 (정상 처리된 소포들의 declaredValue 합계)
-        const totalRevenueResult = await prisma.parcel.aggregate({
+        // 총 처리 금액 (정상 처리된 운송장들의 가액 합계)
+        const normalWaybillsWithParcels = await prisma.waybill.findMany({
           where: {
             operatorId: operator.id,
             status: "NORMAL",
@@ -370,13 +368,22 @@ export class OperatorService {
               processedAt: dateFilter,
             }),
           },
-          _sum: {
-            declaredValue: true,
+          include: {
+            parcel: {
+              select: {
+                declaredValue: true,
+              },
+            },
           },
         });
 
-        // 사고 금액 (사고 처리된 소포들의 declaredValue 합계)
-        const accidentAmountResult = await prisma.parcel.aggregate({
+        const totalRevenue = normalWaybillsWithParcels.reduce(
+          (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+          0
+        );
+
+        // 사고 금액 (사고 처리된 운송장들의 가액 합계)
+        const accidentWaybillsWithParcels = await prisma.waybill.findMany({
           where: {
             operatorId: operator.id,
             status: "ACCIDENT",
@@ -384,10 +391,19 @@ export class OperatorService {
               processedAt: dateFilter,
             }),
           },
-          _sum: {
-            declaredValue: true,
+          include: {
+            parcel: {
+              select: {
+                declaredValue: true,
+              },
+            },
           },
         });
+
+        const accidentAmount = accidentWaybillsWithParcels.reduce(
+          (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+          0
+        );
 
         // 일평균 처리량 계산
         let averageDailyProcessed = 0;
@@ -409,8 +425,8 @@ export class OperatorService {
           type: operator.type,
           totalProcessedCount,
           accidentCount,
-          totalRevenue: totalRevenueResult._sum.declaredValue || 0,
-          accidentAmount: accidentAmountResult._sum.declaredValue || 0,
+          totalRevenue,
+          accidentAmount,
           averageDailyProcessed,
         };
       })

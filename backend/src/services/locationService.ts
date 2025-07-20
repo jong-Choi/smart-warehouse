@@ -18,7 +18,7 @@ export class LocationService {
         include: {
           _count: {
             select: {
-              parcels: true,
+              waybills: true,
               operatorWorks: true,
             },
           },
@@ -50,7 +50,7 @@ export class LocationService {
         include: {
           _count: {
             select: {
-              parcels: true,
+              waybills: true,
               operatorWorks: true,
             },
           },
@@ -82,7 +82,7 @@ export class LocationService {
     return await prisma.location.findUnique({
       where: { id },
       include: {
-        parcels: {
+        waybills: {
           include: {
             operator: {
               select: {
@@ -92,18 +92,17 @@ export class LocationService {
                 type: true,
               },
             },
-            waybill: {
+            parcel: {
               select: {
                 id: true,
-                number: true,
-                status: true,
+                declaredValue: true,
               },
             },
           },
           orderBy: {
             processedAt: "desc",
           },
-          take: 20, // 최근 20개 소포
+          take: 20, // 최근 20개 운송장
         },
         operatorWorks: {
           include: {
@@ -148,7 +147,7 @@ export class LocationService {
       include: {
         _count: {
           select: {
-            parcels: true,
+            waybills: true,
             operatorWorks: true,
           },
         },
@@ -159,7 +158,7 @@ export class LocationService {
     const locationStats = await Promise.all(
       locations.map(async (location) => {
         // 하차 예정 수량 (PENDING_UNLOAD)
-        const pendingUnloadCount = await prisma.parcel.count({
+        const pendingUnloadCount = await prisma.waybill.count({
           where: {
             locationId: location.id,
             status: "PENDING_UNLOAD",
@@ -170,7 +169,7 @@ export class LocationService {
         });
 
         // 전체 처리 개수 (NORMAL + ACCIDENT)
-        const totalProcessedCount = await prisma.parcel.count({
+        const totalProcessedCount = await prisma.waybill.count({
           where: {
             locationId: location.id,
             status: { in: ["NORMAL", "ACCIDENT"] },
@@ -181,7 +180,7 @@ export class LocationService {
         });
 
         // 사고 건수 (ACCIDENT)
-        const accidentCount = await prisma.parcel.count({
+        const accidentCount = await prisma.waybill.count({
           where: {
             locationId: location.id,
             status: "ACCIDENT",
@@ -191,8 +190,8 @@ export class LocationService {
           },
         });
 
-        // 처리 금액 (정상 처리된 소포들의 declaredValue 합계)
-        const totalRevenueResult = await prisma.parcel.aggregate({
+        // 처리 금액 (정상 처리된 운송장들의 가액 합계)
+        const normalWaybillsWithParcels = await prisma.waybill.findMany({
           where: {
             locationId: location.id,
             status: "NORMAL",
@@ -200,13 +199,22 @@ export class LocationService {
               processedAt: dateFilter,
             }),
           },
-          _sum: {
-            declaredValue: true,
+          include: {
+            parcel: {
+              select: {
+                declaredValue: true,
+              },
+            },
           },
         });
 
-        // 사고 금액 (사고 처리된 소포들의 declaredValue 합계)
-        const accidentAmountResult = await prisma.parcel.aggregate({
+        const totalRevenue = normalWaybillsWithParcels.reduce(
+          (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+          0
+        );
+
+        // 사고 금액 (사고 처리된 운송장들의 가액 합계)
+        const accidentWaybillsWithParcels = await prisma.waybill.findMany({
           where: {
             locationId: location.id,
             status: "ACCIDENT",
@@ -214,22 +222,31 @@ export class LocationService {
               processedAt: dateFilter,
             }),
           },
-          _sum: {
-            declaredValue: true,
+          include: {
+            parcel: {
+              select: {
+                declaredValue: true,
+              },
+            },
           },
         });
+
+        const accidentAmount = accidentWaybillsWithParcels.reduce(
+          (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+          0
+        );
 
         return {
           id: location.id,
           name: location.name,
           address: location.address,
-          parcelCount: location._count.parcels,
+          waybillCount: location._count.waybills,
           workCount: location._count.operatorWorks,
           pendingUnloadCount,
           totalProcessedCount,
           accidentCount,
-          totalRevenue: totalRevenueResult._sum.declaredValue || 0,
-          accidentAmount: accidentAmountResult._sum.declaredValue || 0,
+          totalRevenue,
+          accidentAmount,
         };
       })
     );
@@ -241,10 +258,10 @@ export class LocationService {
   }
 
   /**
-   * 특정 배송지의 소포 목록을 조회합니다.
+   * 특정 배송지의 운송장 목록을 조회합니다.
    */
-  async getLocationParcels(locationId: number, limit = 50) {
-    return await prisma.parcel.findMany({
+  async getLocationWaybills(locationId: number, limit = 50) {
+    return await prisma.waybill.findMany({
       where: { locationId },
       include: {
         operator: {
@@ -255,11 +272,10 @@ export class LocationService {
             type: true,
           },
         },
-        waybill: {
+        parcel: {
           select: {
             id: true,
-            number: true,
-            status: true,
+            declaredValue: true,
           },
         },
       },
