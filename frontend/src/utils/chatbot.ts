@@ -1,4 +1,4 @@
-import { navigationData, type NavigationItem } from "./navigationData";
+import { navigationData, type NavigationItem } from "@utils/navigationData";
 
 // navigationData에서 화면 이름을 찾는 함수
 export const getScreenName = (pathname: string): string => {

@@ -10,7 +10,7 @@ import {
   MAX_WORKERS,
   TRUCK_BASE,
   BELT_END_THRESHOLD_MARGIN,
-} from "./constants";
+} from "@utils/warehouse/constants";
 
 // 이소메트릭 변환 함수
 export const toIsometric = (x: number, y: number) => {

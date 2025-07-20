@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { UnloadingParcel } from "../components/dashboard/unloading/types";
+import type { UnloadingParcel } from "@components/dashboard/unloading/types";
 
 interface UnloadingParcelsState {
   parcels: UnloadingParcel[];

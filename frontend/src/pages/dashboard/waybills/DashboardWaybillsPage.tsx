@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import DashboardWaybillsListPage from "./DashboardWaybillsListPage";
-import DashboardWaybillDetailPage from "./DashboardWaybillDetailPage";
+import { useState } from "react";
+import DashboardWaybillsListPage from "@pages/dashboard/waybills/DashboardWaybillsListPage";
+import DashboardWaybillDetailPage from "@pages/dashboard/waybills/DashboardWaybillDetailPage";
 import type { Waybill } from "@/types";
 
 export default function DashboardWaybillsPage() {

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useCallback } from "react";
-import { createChannelInterface } from "../../../../utils/broadcastChannel";
-import type { BroadcastMessage } from "../../../../types/broadcast";
-import type { ParcelStatus } from "../../../../types/waybill";
-import type { UnloadingParcel } from "../types";
-import { useUnloadingParcelsStore } from "../../../../stores/unloadingParcelsStore";
+import { createChannelInterface } from "@utils/broadcastChannel";
+import type { BroadcastMessage } from "@/types/broadcast";
+import type { ParcelStatus } from "@/types/waybill";
+import type { UnloadingParcel } from "@components/dashboard/unloading/types";
+import { useUnloadingParcelsStore } from "@stores/unloadingParcelsStore";
 
 export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
   const { parcels, setParcels, updateParcel } = useUnloadingParcelsStore();

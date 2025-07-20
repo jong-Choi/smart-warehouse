@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Bot } from "lucide-react";
-import { MessageItem } from "../MessageItem";
+import { MessageItem } from "@/components/dashboard/chatbot/components/MessageItem";
 import { type Message } from "@/types/chatbot";
 
 interface ChatbotMessagesProps {

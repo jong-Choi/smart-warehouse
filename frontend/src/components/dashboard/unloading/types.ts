@@ -1,4 +1,4 @@
-import type { Parcel } from "../../../types/waybill";
+import type { Parcel } from "@/types/waybill";
 
 export interface UnloadingParcel extends Parcel {
   createdAt: string; // 생성일시 (운송장 생성)
