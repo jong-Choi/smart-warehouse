@@ -60,7 +60,10 @@ export function ChatbotPanel() {
         {/* 메시지 영역 */}
         {isOpen && (
           <>
-            <ChatbotMessages messages={messages} />
+            <ChatbotMessages
+              messages={messages}
+              onClearConversation={clearConversation}
+            />
 
             {/* 현재 화면 정보 및 채팅 초기화 버튼 */}
             <ChatbotStatusBar

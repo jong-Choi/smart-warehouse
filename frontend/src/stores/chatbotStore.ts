@@ -16,6 +16,7 @@ interface ChatbotStore extends ChatbotState {
   setUseContext: (useContext: boolean) => void;
   setIsMessagePending: (isMessagePending: boolean) => void;
   clearMessages: () => void;
+  removeLastMessage: () => void;
   reset: () => void;
 }
 
@@ -71,6 +72,15 @@ export const useChatbotStore = create<ChatbotStore>((set) => ({
   setIsMessagePending: (isMessagePending) => set({ isMessagePending }),
 
   clearMessages: () => set({ messages: [] }),
+
+  removeLastMessage: () =>
+    set((state) => {
+      const messages = [...state.messages];
+      if (messages.length > 0) {
+        messages.pop(); // 마지막 메시지 제거
+      }
+      return { messages };
+    }),
 
   reset: () => set(initialState),
 }));

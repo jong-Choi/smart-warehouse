@@ -7,10 +7,12 @@ import { cn } from "@/lib/utils";
 
 interface ChatbotMessagesProps {
   messages: Message[];
+  onClearConversation?: () => void;
 }
 
 export const ChatbotMessages: React.FC<ChatbotMessagesProps> = ({
   messages,
+  onClearConversation,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { connectionFailed } = useChatbotStore();
@@ -38,7 +40,11 @@ export const ChatbotMessages: React.FC<ChatbotMessagesProps> = ({
         </div>
       ) : (
         messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
+          <MessageItem
+            key={message.id}
+            message={message}
+            onClearConversation={onClearConversation}
+          />
         ))
       )}
       <div ref={messagesEndRef} />

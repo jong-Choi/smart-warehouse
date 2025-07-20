@@ -1,6 +1,7 @@
 import React from "react";
 import { RotateCcw, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface ChatbotStatusBarProps {
@@ -27,17 +28,20 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
       {/* 첫 번째 줄: 화면 기반 대화 체크박스 (연결된 경우에만 표시) */}
       {isConnected && (
         <div className="flex items-center gap-2 mb-2 border-b border-sidebar-border pb-2">
-          <div
-            className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80 cursor-pointer hover:text-sidebar-foreground"
-            role="button"
-            onClick={onToggleContext}
-          >
-            <div className="w-3 h-3 border border-sidebar-foreground/40 rounded flex items-center justify-center">
-              {useContext && (
-                <div className="w-1.5 h-1.5 bg-sidebar-foreground/80 rounded-sm"></div>
-              )}
-            </div>
-            <span>화면 기반으로 대화하기</span>
+          <div className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80">
+            <Checkbox
+              id="use-context"
+              checked={useContext}
+              onCheckedChange={onToggleContext}
+              className="h-3 w-3"
+              iconSize={2.5}
+            />
+            <label
+              htmlFor="use-context"
+              className="cursor-pointer hover:text-sidebar-foreground"
+            >
+              화면 기반으로 대화하기
+            </label>
           </div>
           <div className="flex items-center">
             <span className="text-xs text-sidebar-foreground/80 whitespace-pre">

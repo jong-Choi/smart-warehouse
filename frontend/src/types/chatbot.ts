@@ -4,6 +4,7 @@ export interface Message {
   isUser: boolean;
   timestamp: Date;
   isStreaming?: boolean;
+  isContext?: boolean;
 }
 
 export interface ChatbotState {

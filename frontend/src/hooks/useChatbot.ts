@@ -18,6 +18,7 @@ export const useChatbot = () => {
     setIsLoading,
     setConnectionFailed,
     clearMessages,
+    removeLastMessage,
     systemContext,
     setIsCollecting,
     useContext,
@@ -159,6 +160,7 @@ export const useChatbot = () => {
         isUser: false,
         timestamp: new Date(),
         isStreaming: true,
+        isContext: useContext,
       };
       addMessage(streamingMessage);
     });
@@ -178,11 +180,14 @@ export const useChatbot = () => {
     // 에러 응답
     socket.on("bot_response_error", (data: SocketErrorData) => {
       setIsLoading(false);
+      // 마지막 스트리밍 메시지만 제거
+      removeLastMessage();
       const errorMessage = {
         id: Date.now().toString(),
         text: `오류: ${data.error}`,
         isUser: false,
         timestamp: new Date(data.timestamp),
+        isContext: useContext,
       };
       addMessage(errorMessage);
     });
