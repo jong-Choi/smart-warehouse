@@ -61,7 +61,11 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
             )}
           ></div>
           <span className="text-xs font-medium text-sidebar-foreground/80 py-1">
-            {connectionFailed ? "연결 실패" : !isConnected ? "연결중" : ""}
+            {connectionFailed
+              ? "연결 실패"
+              : !isConnected
+              ? "연결중"
+              : "연결됨"}
           </span>
         </div>
         <div className="flex items-center gap-1">

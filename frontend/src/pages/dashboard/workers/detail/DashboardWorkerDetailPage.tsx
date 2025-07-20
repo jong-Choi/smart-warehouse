@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOperatorDetail } from "@/hooks/useOperator";
+import { useChatbotStore } from "@/stores/chatbotStore";
 import {
   DetailHeader,
   OperatorInfoCards,
@@ -24,6 +25,10 @@ export function DashboardWorkerDetailPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
+  // 챗봇 스토어에서 컨텍스트 수집 관련 상태 가져오기
+  const { setSystemContext, isCollecting, setIsMessagePending } =
+    useChatbotStore();
+
   const {
     data: operator,
     isLoading,
@@ -36,6 +41,90 @@ export function DashboardWorkerDetailPage() {
     startDate || undefined,
     endDate || undefined
   );
+
+  // chatbot에 사용할 컨텍스트
+  useEffect(() => {
+    // isCollecting이 true일 때만 systemContext 업데이트
+    if (operator && isCollecting) {
+      // 성과 데이터 계산 - parcels 배열에서 계산 (전체 데이터)
+      const totalProcessed = operator.parcelsPagination?.total || 0;
+      const normalParcels =
+        operator.parcels?.filter((p) => p.status === "NORMAL").length || 0;
+      const accidentParcels =
+        operator.parcels?.filter((p) => p.status === "ACCIDENT").length || 0;
+
+      // 현재 페이지의 택배들에서 수익 계산
+      const currentPageRevenue =
+        operator.parcels?.reduce(
+          (sum, parcel) => sum + (parcel.declaredValue || 0),
+          0
+        ) || 0;
+
+      // 처리율 계산 (정상 처리 / 전체 처리)
+      const parcelRate =
+        totalProcessed > 0
+          ? ((normalParcels / totalProcessed) * 100).toFixed(1)
+          : "0.0";
+
+      const context = `현재 페이지: 작업자 상세 정보 (/dashboard/workers/${code})
+⦁ 시간: ${new Date().toLocaleString()}
+
+⦁ 작업자 정보:
+- 이름: ${operator.name}
+- 코드: ${operator.code}
+- 타입: ${operator.type}
+- 생성일: ${new Date(operator.createdAt).toLocaleDateString()}
+
+⦁ 작업자 성과 (전체):
+- 총 처리 택배: ${totalProcessed}개
+- 정상 처리: ${normalParcels}개
+- 사고 발생: ${accidentParcels}개
+- 처리율: ${parcelRate}%
+- 현재 페이지 택배 수익: ${currentPageRevenue.toLocaleString()}원
+
+⦁ 택배 목록 필터 조건:
+- 상태 필터: ${statusFilter}
+- 시작일: ${startDate || "없음"}
+- 종료일: ${endDate || "없음"}
+- 현재 페이지: ${page}/${operator.parcelsPagination?.totalPages || 1}
+- 페이지당 표시: ${pageSize}개
+
+⦁ 택배 목록 현황:
+- 총 택배 수: ${operator.parcelsPagination?.total || 0}개
+- 현재 표시된 택배: ${operator.parcels?.length || 0}개
+- 현재 페이지 택배 상태 분포:
+  * 정상: ${
+    operator.parcels?.filter((p) => p.status === "NORMAL").length || 0
+  }개
+  * 사고: ${
+    operator.parcels?.filter((p) => p.status === "ACCIDENT").length || 0
+  }개
+  * 하역 대기: ${
+    operator.parcels?.filter((p) => p.status === "PENDING_UNLOAD").length || 0
+  }개
+  * 하역 완료: ${
+    operator.parcels?.filter((p) => p.status === "UNLOADED").length || 0
+  }개
+
+⦁ 사용자가 현재 보고 있는 정보:
+- 특정 작업자의 상세 정보와 성과 지표
+- 해당 작업자가 처리한 택배들의 목록과 상태
+- 필터링과 페이지네이션으로 택배 데이터 탐색 가능`;
+      setSystemContext(context);
+      setIsMessagePending(false);
+    }
+  }, [
+    operator,
+    code,
+    statusFilter,
+    startDate,
+    endDate,
+    page,
+    pageSize,
+    setSystemContext,
+    isCollecting,
+    setIsMessagePending,
+  ]);
 
   if (isLoading) {
     return (

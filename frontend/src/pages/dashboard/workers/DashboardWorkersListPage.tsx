@@ -24,7 +24,8 @@ export function DashboardWorkersListPage() {
   ]);
 
   // 챗봇 스토어에서 컨텍스트 수집 관련 상태 가져오기
-  const { setSystemContext, isCollecting } = useChatbotStore();
+  const { setSystemContext, isCollecting, setIsMessagePending } =
+    useChatbotStore();
 
   // 정렬 파라미터 변환
   const currentSort = sorting[0]; // 단일 정렬만 지원
@@ -91,32 +92,33 @@ export function DashboardWorkersListPage() {
       }
 
       const context = `현재 페이지: 작업자 목록 (/dashboard/workers/home)
-시간: ${new Date().toLocaleString()}
+⦁ 시간: ${new Date().toLocaleString()}
 
-📊 작업자 현황:
+⦁ 작업자 현황:
 - 총 작업자 수: ${pagination?.total || 0}명
 - 현재 페이지: ${page}/${pagination?.totalPages || 1}
 - 페이지당 표시: ${limit}명
 
-🔍 필터 조건:
+⦁ 필터 조건:
 - 검색어: ${appliedSearch || "없음"}
 - 타입 필터: ${typeFilter}
 - 정렬: ${currentSort?.id || "이름"} ${
         currentSort?.desc ? "내림차순" : "오름차순"
       }
 
-👥 현재 표시된 작업자들 (${displayOperators.length}명):
+⦁ 현재 표시된 작업자들 (${displayOperators.length}명):
 ${displayOperators
   .slice(0, 5)
   .map((op) => `- ${op.name} (${op.code}) - ${op.type}`)
   .join("\n")}
 ${displayOperators.length > 5 ? `... 외 ${displayOperators.length - 5}명` : ""}
 
-💡 사용자가 현재 보고 있는 정보:
+⦁ 사용자가 현재 보고 있는 정보:
 - 작업자들의 처리 실적과 사고 건수를 확인할 수 있는 페이지
 - 검색, 필터링, 정렬 기능으로 원하는 작업자를 찾을 수 있음
 - 페이지네이션으로 많은 작업자 데이터를 효율적으로 탐색`;
       setSystemContext(context);
+      setIsMessagePending(false);
     }
   }, [
     operatorsData,
@@ -129,6 +131,7 @@ ${displayOperators.length > 5 ? `... 외 ${displayOperators.length - 5}명` : ""
     setSystemContext,
     isClientSideSort,
     isCollecting,
+    setIsMessagePending,
   ]);
 
   const handleSearch = useCallback(() => {

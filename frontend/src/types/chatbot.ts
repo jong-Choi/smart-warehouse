@@ -16,6 +16,7 @@ export interface ChatbotState {
   isCollecting: boolean;
   systemContext: string;
   useContext: boolean;
+  isMessagePending: boolean;
 }
 
 export interface SocketChunkData {

@@ -14,6 +14,7 @@ interface ChatbotStore extends ChatbotState {
   setIsCollecting: (isCollecting: boolean) => void;
   setSystemContext: (context: string) => void;
   setUseContext: (useContext: boolean) => void;
+  setIsMessagePending: (isMessagePending: boolean) => void;
   clearMessages: () => void;
   reset: () => void;
 }
@@ -28,6 +29,7 @@ const initialState: ChatbotState = {
   isCollecting: false,
   systemContext: "",
   useContext: true, // 기본값은 컨텍스트 활용
+  isMessagePending: false,
 };
 
 export const useChatbotStore = create<ChatbotStore>((set) => ({
@@ -65,6 +67,8 @@ export const useChatbotStore = create<ChatbotStore>((set) => ({
   setSystemContext: (systemContext) => set({ systemContext }),
 
   setUseContext: (useContext) => set({ useContext }),
+
+  setIsMessagePending: (isMessagePending) => set({ isMessagePending }),
 
   clearMessages: () => set({ messages: [] }),
 
