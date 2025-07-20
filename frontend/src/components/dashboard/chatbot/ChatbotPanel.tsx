@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { Send, Bot, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Send, Bot, X, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { io, Socket } from "socket.io-client";
 
 interface Message {
   id: string;
@@ -22,9 +23,47 @@ export function ChatbotPanel() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+
+  // 웹소켓 연결 설정
+  useEffect(() => {
+    const socket = io("http://localhost:4000", {
+      transports: ["websocket", "polling"],
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("🔌 웹소켓 연결됨");
+      setIsConnected(true);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔌 웹소켓 연결 해제됨");
+      setIsConnected(false);
+    });
+
+    socket.on(
+      "bot_response",
+      (data: { message: string; timestamp: string; type: string }) => {
+        const botMessage: Message = {
+          id: Date.now().toString(),
+          text: data.message,
+          isUser: false,
+          timestamp: new Date(data.timestamp),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }
+    );
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !socketRef.current) return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -34,18 +73,14 @@ export function ChatbotPanel() {
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    setInputValue("");
 
-    // 챗봇 응답 시뮬레이션
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "죄송합니다. 아직 개발 중인 기능입니다. 곧 더 나은 서비스를 제공하겠습니다!",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botResponse]);
-    }, 1000);
+    // 웹소켓으로 메시지 전송
+    socketRef.current.emit("chat_message", {
+      message: inputValue,
+      userId: "user-" + Date.now(),
+    });
+
+    setInputValue("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -82,6 +117,13 @@ export function ChatbotPanel() {
                 <h3 className="font-semibold text-sidebar-foreground text-sm">
                   챗봇
                 </h3>
+                <div className="flex items-center gap-1">
+                  {isConnected ? (
+                    <Wifi className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <WifiOff className="h-3 w-3 text-red-500" />
+                  )}
+                </div>
               </div>
               <Button
                 onClick={() => setIsOpen(false)}
@@ -102,6 +144,13 @@ export function ChatbotPanel() {
               >
                 <Bot className="h-4 w-4" />
               </Button>
+              <div className="flex items-center gap-1">
+                {isConnected ? (
+                  <Wifi className="h-2 w-2 text-green-500" />
+                ) : (
+                  <WifiOff className="h-2 w-2 text-red-500" />
+                )}
+              </div>
             </div>
           )}
         </div>
