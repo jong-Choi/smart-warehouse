@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { UnloadingStatusFilter } from "@/components/dashboard/unloading/types";
 
 interface UnloadingTableState {
   // 페이징 상태
@@ -8,7 +9,7 @@ interface UnloadingTableState {
 
   // 필터링 상태
   globalFilter: string;
-  statusFilter: string;
+  statusFilter: UnloadingStatusFilter;
 
   // 정렬 상태
   sorting: Array<{ id: string; desc: boolean }>;
@@ -18,7 +19,7 @@ interface UnloadingTableState {
   setPageSize: (pageSize: number) => void;
   setLastPageIndex: (lastPageIndex: number) => void;
   setGlobalFilter: (filter: string) => void;
-  setStatusFilter: (filter: string) => void;
+  setStatusFilter: (filter: UnloadingStatusFilter) => void;
   setSorting: (
     sorting:
       | Array<{ id: string; desc: boolean }>
@@ -36,7 +37,7 @@ const INITIAL_STATE = {
   pageSize: 10,
   lastPageIndex: 0,
   globalFilter: "",
-  statusFilter: "all",
+  statusFilter: "all" as const,
   sorting: [{ id: "waybillId", desc: false }] as Array<{
     id: string;
     desc: boolean;
@@ -56,7 +57,8 @@ export const useUnloadingTableStore = create<UnloadingTableState>()((set) => ({
       lastPageIndex,
     })),
   setGlobalFilter: (globalFilter: string) => set({ globalFilter }), // 필터 변경 시 페이지 유지
-  setStatusFilter: (statusFilter: string) => set({ statusFilter }), // 필터 변경 시 페이지 유지
+  setStatusFilter: (statusFilter: UnloadingStatusFilter) =>
+    set({ statusFilter }), // 필터 변경 시 페이지 유지
   setSorting: (
     sorting:
       | Array<{ id: string; desc: boolean }>

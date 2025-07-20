@@ -7,12 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { UnloadingStatusFilter } from "@/components/dashboard/unloading/types";
 
 interface TableFiltersProps {
   globalFilter: string;
-  statusFilter: string;
+  statusFilter: UnloadingStatusFilter;
   onGlobalFilterChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onStatusFilterChange: (value: string) => void;
+  onStatusFilterChange: (value: UnloadingStatusFilter) => void;
 }
 
 export const TableFilters: React.FC<TableFiltersProps> = ({
@@ -40,9 +41,9 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
-            <SelectItem value="PENDING_UNLOAD">하차 대기</SelectItem>
+            <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
             <SelectItem value="UNLOADED">하차 완료</SelectItem>
-            <SelectItem value="NORMAL">정상</SelectItem>
+            <SelectItem value="NORMAL">정상 처리</SelectItem>
             <SelectItem value="ACCIDENT">사고</SelectItem>
           </SelectContent>
         </Select>

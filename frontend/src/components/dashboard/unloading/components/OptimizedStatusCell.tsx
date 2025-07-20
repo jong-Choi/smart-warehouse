@@ -1,19 +1,20 @@
 import React, { useCallback } from "react";
+import type { WaybillStatus } from "@/types/waybill";
 
 interface OptimizedStatusCellProps {
-  status: string;
+  status: WaybillStatus;
 }
 
 // 최적화된 상태 셀 컴포넌트
 export const OptimizedStatusCell = React.memo<OptimizedStatusCellProps>(
   ({ status }) => {
-    const getStatusDisplay = useCallback((status: string) => {
+    const getStatusDisplay = useCallback((status: WaybillStatus) => {
       switch (status) {
         case "PENDING_UNLOAD":
           return {
-            text: "하차 대기",
+            text: "하차 예정",
             className:
-              "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
           };
         case "UNLOADED":
           return {
@@ -23,7 +24,7 @@ export const OptimizedStatusCell = React.memo<OptimizedStatusCellProps>(
           };
         case "NORMAL":
           return {
-            text: "정상",
+            text: "정상 처리",
             className:
               "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
           };

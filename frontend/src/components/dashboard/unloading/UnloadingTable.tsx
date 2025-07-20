@@ -11,7 +11,10 @@ import { RefreshCw } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@ui/table";
 import { Button } from "@ui/button";
 import { useUnloadingTableStore } from "@/stores/unloadingTableStore";
-import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
+import type {
+  UnloadingParcel,
+  UnloadingStatusFilter,
+} from "@/components/dashboard/unloading/types";
 import {
   OptimizedTableRow,
   UnloadingTableHeader,
@@ -194,7 +197,7 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
   }, [dummyRowCount]);
 
   const handleStatusFilterChange = useCallback(
-    (value: string) => {
+    (value: UnloadingStatusFilter) => {
       setStatusFilter(value);
     },
     [setStatusFilter]
@@ -254,7 +257,7 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
                     const parcel = row.original;
                     return (
                       <OptimizedTableRow
-                        key={`${parcel.id}-${parcel.status}-${
+                        key={`${parcel.waybillId}-${parcel.status}-${
                           parcel.unloadedAt ||
                           parcel.workerProcessedAt ||
                           parcel.createdAt

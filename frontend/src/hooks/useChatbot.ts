@@ -250,9 +250,8 @@ export const useChatbot = () => {
         userId: userIdRef.current,
         systemContext: "",
       });
+      setInputValue("");
     }
-
-    setInputValue("");
   }, [
     inputValue,
     isLoading,
@@ -271,11 +270,13 @@ export const useChatbot = () => {
         systemContext: systemContext,
       });
       setIsCollecting(false);
+      setInputValue("");
     }
   }, [
     inputValue,
     isCollecting,
     isMessagePending,
+    setInputValue,
     setIsCollecting,
     systemContext,
   ]);

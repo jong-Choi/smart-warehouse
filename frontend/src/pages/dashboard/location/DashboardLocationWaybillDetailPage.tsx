@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -30,6 +30,7 @@ import type { Waybill, WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useChatbotStore } from "@/stores/chatbotStore";
 
 export default function DashboardLocationWaybillDetailPage() {
   const { locationId } = useParams<{ locationId: string }>();
@@ -38,6 +39,10 @@ export default function DashboardLocationWaybillDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<string>("");
+
+  // 챗봇 스토어에서 컨텍스트 수집 관련 상태 가져오기
+  const { setSystemContext, isCollecting, setIsMessagePending } =
+    useChatbotStore();
 
   // 필터 상태
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,7 +64,7 @@ export default function DashboardLocationWaybillDetailPage() {
   });
 
   // 데이터 로드
-  const loadWaybills = async () => {
+  const loadWaybills = useCallback(async () => {
     if (!locationId) return;
 
     try {
@@ -99,8 +104,8 @@ export default function DashboardLocationWaybillDetailPage() {
       setPagination(response.pagination);
 
       // 첫 번째 운송장에서 지역명 추출
-      if (response.data.length > 0 && response.data[0].parcel?.location) {
-        setLocationName(response.data[0].parcel.location.name);
+      if (response.data.length > 0 && response.data[0].location) {
+        setLocationName(response.data[0].location.name);
       }
     } catch (err) {
       console.error("Error loading waybills by location:", err);
@@ -108,18 +113,112 @@ export default function DashboardLocationWaybillDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    locationId,
+    statusFilter,
+    searchTerm,
+    dateRange,
+    pagination.page,
+    pagination.limit,
+  ]);
 
   useEffect(() => {
     loadWaybills();
-  }, [locationId, statusFilter, searchTerm, dateRange, pagination.page]);
+  }, [
+    locationId,
+    statusFilter,
+    searchTerm,
+    dateRange,
+    pagination.page,
+    loadWaybills,
+  ]);
 
   // 검색어 변경 시 첫 페이지로 이동
   useEffect(() => {
     if (pagination.page !== 1) {
       setPagination((prev) => ({ ...prev, page: 1 }));
     }
-  }, [searchTerm, statusFilter, dateRange]);
+  }, [searchTerm, statusFilter, dateRange, pagination.page]);
+
+  // chatbot에 사용할 컨텍스트
+  useEffect(() => {
+    // isCollecting이 true일 때만 systemContext 업데이트
+    if (waybills && isCollecting) {
+      // 날짜 범위 정보
+      const dateRangeText = dateRange?.from
+        ? dateRange.to
+          ? `${format(dateRange.from, "yyyy-MM-dd", { locale: ko })} ~ ${format(
+              dateRange.to,
+              "yyyy-MM-dd",
+              { locale: ko }
+            )}`
+          : `${format(dateRange.from, "yyyy-MM-dd", { locale: ko })} 이후`
+        : "전체 기간";
+
+      // 상태별 통계 계산
+      const statusStats: Record<string, number> = {};
+      waybills.forEach((waybill) => {
+        statusStats[waybill.status] = (statusStats[waybill.status] || 0) + 1;
+      });
+
+      const context = `현재 페이지: 지역별 운송장 상세 목록 (/dashboard/location/waybills/${locationId})
+⦁ 시간: ${new Date().toLocaleString()}
+
+⦁ 지역 정보:
+- 지역 ID: ${locationId}
+- 지역명: ${locationName}
+
+⦁ 전체 현황:
+- 총 운송장 수: ${waybills.length}개
+- 조회 기간: ${dateRangeText}
+
+⦁ 필터 조건:
+- 검색어: ${searchTerm || "없음"}
+- 상태 필터: ${statusFilter === "all" ? "전체" : getStatusLabel(statusFilter)}
+- 날짜 범위: ${dateRangeText}
+- 현재 페이지: ${pagination.page}/${pagination.totalPages}
+
+⦁ 상태별 분포:
+${Object.entries(statusStats)
+  .map(
+    ([status, count]) =>
+      `- ${getStatusLabel(status as WaybillStatus)}: ${count}개`
+  )
+  .join("\n")}
+
+⦁ 운송장 목록 (최대 ${pagination.limit}개씩):
+${waybills
+  .map(
+    (waybill) =>
+      `- ${waybill.number}: ${getStatusLabel(waybill.status)} (${format(
+        new Date(waybill.unloadDate),
+        "yyyy-MM-dd",
+        { locale: ko }
+      )})`
+  )
+  .join("\n")}
+
+⦁ 사용자가 현재 보고 있는 정보:
+- ${locationName} 지역으로 배송되는 운송장들의 상세 목록
+- 운송장 번호, 상태, 발송일시, 배송완료일시, 소포 가격 정보 확인 가능
+- 검색, 상태 필터, 날짜 범위 필터로 원하는 운송장 조회 가능
+- 페이지네이션으로 많은 운송장 목록을 효율적으로 탐색 가능
+- 각 운송장의 상세 정보로 이동할 수 있는 기능 제공`;
+      setSystemContext(context);
+      setIsMessagePending(false);
+    }
+  }, [
+    waybills,
+    locationId,
+    locationName,
+    searchTerm,
+    statusFilter,
+    dateRange,
+    pagination,
+    setSystemContext,
+    isCollecting,
+    setIsMessagePending,
+  ]);
 
   // 날짜 범위 적용
   const applyDateRange = () => {
@@ -142,13 +241,13 @@ export default function DashboardLocationWaybillDetailPage() {
   // 상태별 색상 가져오기
   const getStatusColor = (status: WaybillStatus) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "bg-blue-100 text-blue-800";
-      case "DELIVERED":
-        return "bg-green-100 text-green-800";
-      case "RETURNED":
+      case "PENDING_UNLOAD":
         return "bg-yellow-100 text-yellow-800";
-      case "ERROR":
+      case "UNLOADED":
+        return "bg-blue-100 text-blue-800";
+      case "NORMAL":
+        return "bg-green-100 text-green-800";
+      case "ACCIDENT":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -158,14 +257,16 @@ export default function DashboardLocationWaybillDetailPage() {
   // 상태 한글 변환
   const getStatusLabel = (status: WaybillStatus) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "배송중";
-      case "DELIVERED":
-        return "배송완료";
-      case "RETURNED":
-        return "반송";
-      case "ERROR":
-        return "오류";
+      case "PENDING_UNLOAD":
+        return "하차 예정";
+      case "UNLOADED":
+        return "하차 완료";
+      case "NORMAL":
+        return "정상 처리";
+      case "ACCIDENT":
+        return "사고";
+      default:
+        return status;
     }
   };
 
@@ -256,10 +357,10 @@ export default function DashboardLocationWaybillDetailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="IN_TRANSIT">배송중</SelectItem>
-                  <SelectItem value="DELIVERED">배송완료</SelectItem>
-                  <SelectItem value="RETURNED">반송</SelectItem>
-                  <SelectItem value="ERROR">오류</SelectItem>
+                  <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
+                  <SelectItem value="UNLOADED">하차 완료</SelectItem>
+                  <SelectItem value="NORMAL">정상 처리</SelectItem>
+                  <SelectItem value="ACCIDENT">사고</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -349,10 +450,10 @@ export default function DashboardLocationWaybillDetailPage() {
                         상태
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        발송일시
+                        하차 예정일
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        배송완료일시
+                        처리 일시
                       </th>
                       <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
                         소포 가격
@@ -385,17 +486,17 @@ export default function DashboardLocationWaybillDetailPage() {
                           </td>
                           <td className="border border-gray-300 px-4 py-3 text-center">
                             {format(
-                              new Date(waybill.shippedAt),
-                              "yyyy-MM-dd HH:mm",
+                              new Date(waybill.unloadDate),
+                              "yyyy-MM-dd",
                               {
                                 locale: ko,
                               }
                             )}
                           </td>
                           <td className="border border-gray-300 px-4 py-3 text-center">
-                            {waybill.deliveredAt
+                            {waybill.processedAt
                               ? format(
-                                  new Date(waybill.deliveredAt),
+                                  new Date(waybill.processedAt),
                                   "yyyy-MM-dd HH:mm",
                                   {
                                     locale: ko,

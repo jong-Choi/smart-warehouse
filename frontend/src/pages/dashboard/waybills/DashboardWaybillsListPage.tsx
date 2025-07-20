@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -118,11 +118,11 @@ export default function DashboardWaybillsListPage({
 
         const response = await fetchWaybills({
           page: currentPage,
-          pageSize,
+          limit: pageSize,
           search: searchTerm,
           status: statusFilter === "all" ? undefined : statusFilter,
-          date: dateRange?.from,
-          endDate: dateRange?.to,
+          startDate: dateRange?.from?.toISOString().split("T")[0],
+          endDate: dateRange?.to?.toISOString().split("T")[0],
         });
 
         setWaybills(response.waybills);
@@ -137,7 +137,14 @@ export default function DashboardWaybillsListPage({
 
     loadInitialData();
     loadCalendarData();
-  }, []);
+  }, [
+    currentPage,
+    dateRange?.from,
+    dateRange?.to,
+    pageSize,
+    searchTerm,
+    statusFilter,
+  ]);
 
   // 필터 변경 시 재로드 (검색은 디바운스 적용)
   useEffect(() => {
@@ -149,11 +156,11 @@ export default function DashboardWaybillsListPage({
 
           const response = await fetchWaybills({
             page: currentPage,
-            pageSize,
+            limit: pageSize,
             search: searchTerm,
             status: statusFilter === "all" ? undefined : statusFilter,
-            date: dateRange?.from,
-            endDate: dateRange?.to,
+            startDate: dateRange?.from?.toISOString().split("T")[0],
+            endDate: dateRange?.to?.toISOString().split("T")[0],
           });
 
           setWaybills(response.waybills);
@@ -169,7 +176,7 @@ export default function DashboardWaybillsListPage({
     ); // 검색어가 있을 때만 디바운스 적용
 
     return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter, dateRange, currentPage]);
+  }, [searchTerm, statusFilter, dateRange, currentPage, pageSize]);
 
   // 필터 초기화
   const resetFilters = () => {
@@ -194,13 +201,13 @@ export default function DashboardWaybillsListPage({
   // 상태별 배지 색상
   const getStatusBadgeClass = (status: WaybillStatus) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "bg-blue-100 text-blue-800";
-      case "DELIVERED":
-        return "bg-green-100 text-green-800";
-      case "RETURNED":
+      case "PENDING_UNLOAD":
         return "bg-yellow-100 text-yellow-800";
-      case "ERROR":
+      case "UNLOADED":
+        return "bg-blue-100 text-blue-800";
+      case "NORMAL":
+        return "bg-green-100 text-green-800";
+      case "ACCIDENT":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -210,14 +217,14 @@ export default function DashboardWaybillsListPage({
   // 상태 텍스트 변환
   const getStatusText = (status: WaybillStatus) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "운송중";
-      case "DELIVERED":
-        return "배송완료";
-      case "RETURNED":
-        return "반송";
-      case "ERROR":
-        return "오류";
+      case "PENDING_UNLOAD":
+        return "하차 예정";
+      case "UNLOADED":
+        return "하차 완료";
+      case "NORMAL":
+        return "정상 처리";
+      case "ACCIDENT":
+        return "사고";
       default:
         return status;
     }
@@ -236,10 +243,11 @@ export default function DashboardWaybillsListPage({
 
                 const response = await fetchWaybills({
                   page: currentPage,
-                  pageSize,
+                  limit: pageSize,
                   search: searchTerm,
                   status: statusFilter === "all" ? undefined : statusFilter,
-                  date: dateRange?.from,
+                  startDate: dateRange?.from?.toISOString().split("T")[0],
+                  endDate: dateRange?.to?.toISOString().split("T")[0],
                 });
 
                 setWaybills(response.waybills);
@@ -309,10 +317,10 @@ export default function DashboardWaybillsListPage({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">전체 상태</SelectItem>
-              <SelectItem value="IN_TRANSIT">운송중</SelectItem>
-              <SelectItem value="DELIVERED">배송완료</SelectItem>
-              <SelectItem value="RETURNED">반송</SelectItem>
-              <SelectItem value="ERROR">오류</SelectItem>
+              <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
+              <SelectItem value="UNLOADED">하차 완료</SelectItem>
+              <SelectItem value="NORMAL">정상 처리</SelectItem>
+              <SelectItem value="ACCIDENT">사고</SelectItem>
             </SelectContent>
           </Select>
 
@@ -443,11 +451,11 @@ export default function DashboardWaybillsListPage({
 
                 const response = await fetchWaybills({
                   page: currentPage,
-                  pageSize,
+                  limit: pageSize,
                   search: searchTerm,
                   status: statusFilter === "all" ? undefined : statusFilter,
-                  date: dateRange?.from,
-                  endDate: dateRange?.to,
+                  startDate: dateRange?.from?.toISOString().split("T")[0],
+                  endDate: dateRange?.to?.toISOString().split("T")[0],
                 });
 
                 setWaybills(response.waybills);
@@ -492,10 +500,12 @@ export default function DashboardWaybillsListPage({
                   <tr className="border-b bg-muted/50">
                     <th className="text-left p-4 font-medium">운송장 번호</th>
                     <th className="text-left p-4 font-medium">상태</th>
-                    <th className="text-left p-4 font-medium">출발일</th>
-                    <th className="text-left p-4 font-medium">도착일</th>
+                    <th className="text-left p-4 font-medium">하차 예정일</th>
+                    <th className="text-left p-4 font-medium">처리 일시</th>
+                    <th className="text-left p-4 font-medium">작업자</th>
                     <th className="text-left p-4 font-medium">배송지</th>
-                    <th className="text-left p-4 font-medium">소포 수</th>
+                    <th className="text-left p-4 font-medium">물건 가격</th>
+                    <th className="text-left p-4 font-medium">사고 여부</th>
                     <th className="text-left p-4 font-medium">작업</th>
                   </tr>
                 </thead>
@@ -518,23 +528,38 @@ export default function DashboardWaybillsListPage({
                         </span>
                       </td>
                       <td className="p-4">
-                        {format(new Date(waybill.shippedAt), "yyyy-MM-dd", {
+                        {format(new Date(waybill.unloadDate), "yyyy-MM-dd", {
                           locale: ko,
                         })}
                       </td>
                       <td className="p-4">
-                        {waybill.deliveredAt
+                        {waybill.processedAt
                           ? format(
-                              new Date(waybill.deliveredAt),
-                              "yyyy-MM-dd",
+                              new Date(waybill.processedAt),
+                              "yyyy-MM-dd HH:mm",
                               { locale: ko }
                             )
                           : "-"}
                       </td>
+                      <td className="p-4">{waybill.operator?.name || "-"}</td>
+                      <td className="p-4">{waybill.location?.name || "-"}</td>
                       <td className="p-4">
-                        {waybill.parcel?.location?.name || "-"}
+                        {waybill.parcel?.declaredValue
+                          ? `${waybill.parcel.declaredValue.toLocaleString()}원`
+                          : "-"}
                       </td>
-                      <td className="p-4">{waybill.parcel ? "1개" : "0개"}</td>
+                      <td className="p-4">
+                        <span
+                          className={cn(
+                            "px-2 py-1 rounded-full text-xs font-medium",
+                            waybill.isAccident
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          )}
+                        >
+                          {waybill.isAccident ? "사고" : "정상"}
+                        </span>
+                      </td>
                       <td className="p-4">
                         <Button
                           variant="outline"

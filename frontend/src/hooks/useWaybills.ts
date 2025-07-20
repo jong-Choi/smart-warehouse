@@ -3,14 +3,18 @@ import {
   fetchUnloadingWaybills,
   fetchUnloadingParcels,
   fetchWaybillById,
-  updateParcelStatus,
+  updateWaybillStatus,
 } from "@/api/waybillApi";
-import type {
-  WaybillListResponse,
-  ParcelListResponse,
-  Waybill,
-  ParcelStatus,
-} from "@/types";
+import type { WaybillListResponse, Waybill, WaybillStatus } from "@/types";
+import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
+
+// ParcelListResponse 타입 정의
+interface ParcelListResponse {
+  parcels: UnloadingParcel[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 // Query Keys
 export const waybillKeys = {
@@ -54,7 +58,7 @@ export function useWaybillDetail(id: number) {
 }
 
 // 소포 상태 업데이트 mutation
-export function useUpdateParcelStatus() {
+export function useUpdateWaybillStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -64,9 +68,9 @@ export function useUpdateParcelStatus() {
       operatorId,
     }: {
       parcelId: number;
-      status: ParcelStatus;
+      status: WaybillStatus;
       operatorId?: number;
-    }) => updateParcelStatus(parcelId, status, operatorId),
+    }) => updateWaybillStatus(parcelId, status, operatorId),
 
     onSuccess: (updatedParcel) => {
       // 관련 쿼리들 무효화하여 데이터 새로고침
@@ -78,9 +82,9 @@ export function useUpdateParcelStatus() {
       });
 
       // 특정 운송장 캐시도 업데이트
-      if (updatedParcel.waybillId) {
+      if (updatedParcel.id) {
         queryClient.invalidateQueries({
-          queryKey: waybillKeys.detail(updatedParcel.waybillId),
+          queryKey: waybillKeys.detail(updatedParcel.id),
         });
       }
     },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -26,6 +26,7 @@ import type { WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useChatbotStore } from "@/stores/chatbotStore";
 
 interface LocationWaybillStats {
   locationId: number;
@@ -40,6 +41,10 @@ export default function DashboardLocationWaybillsPage() {
   const [stats, setStats] = useState<LocationWaybillStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 챗봇 스토어에서 컨텍스트 수집 관련 상태 가져오기
+  const { setSystemContext, isCollecting, setIsMessagePending } =
+    useChatbotStore();
 
   // 필터 상태
   const [statusFilter, setStatusFilter] = useState<WaybillStatus | "all">(
@@ -66,7 +71,7 @@ export default function DashboardLocationWaybillsPage() {
   const [defaultMonth, setDefaultMonth] = useState<Date | undefined>(undefined);
 
   // 달력 데이터 로드
-  const loadCalendarData = async () => {
+  const loadCalendarData = useCallback(async () => {
     try {
       setCalendarLoading(true);
       const params: {
@@ -124,10 +129,10 @@ export default function DashboardLocationWaybillsPage() {
     } finally {
       setCalendarLoading(false);
     }
-  };
+  }, [statusFilter]);
 
   // 데이터 로드
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -155,12 +160,91 @@ export default function DashboardLocationWaybillsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, dateRange]);
 
   useEffect(() => {
     loadStats();
     loadCalendarData();
-  }, [statusFilter, dateRange]);
+  }, [statusFilter, dateRange, loadStats, loadCalendarData]);
+
+  // chatbot에 사용할 컨텍스트
+  useEffect(() => {
+    // isCollecting이 true일 때만 systemContext 업데이트
+    if (stats && isCollecting) {
+      // 전체 통계 계산
+      const totalWaybills = stats.reduce((sum, stat) => sum + stat.count, 0);
+      const totalLocations = stats.length;
+
+      // 상태별 전체 통계 계산
+      const totalStatuses: Record<string, number> = {};
+      stats.forEach((stat) => {
+        Object.entries(stat.statuses).forEach(([status, count]) => {
+          totalStatuses[status] = (totalStatuses[status] || 0) + count;
+        });
+      });
+
+      // 날짜 범위 정보
+      const dateRangeText = dateRange?.from
+        ? dateRange.to
+          ? `${format(dateRange.from, "yyyy-MM-dd", { locale: ko })} ~ ${format(
+              dateRange.to,
+              "yyyy-MM-dd",
+              { locale: ko }
+            )}`
+          : `${format(dateRange.from, "yyyy-MM-dd", { locale: ko })} 이후`
+        : "전체 기간";
+
+      const context = `현재 페이지: 지역별 운송장 통계 (/dashboard/location/waybills)
+⦁ 시간: ${new Date().toLocaleString()}
+
+⦁ 전체 현황:
+- 총 운송장 수: ${totalWaybills}개
+- 총 지역 수: ${totalLocations}개
+- 조회 기간: ${dateRangeText}
+
+⦁ 필터 조건:
+- 상태 필터: ${statusFilter === "all" ? "전체" : getStatusLabel(statusFilter)}
+- 날짜 범위: ${dateRangeText}
+
+⦁ 상태별 전체 분포:
+${Object.entries(totalStatuses)
+  .map(([status, count]) => `- ${getStatusLabel(status)}: ${count}개`)
+  .join("\n")}
+
+⦁ 지역별 현황 (${stats.length}개 지역):
+${stats
+  .slice(0, 5)
+  .map(
+    (stat) =>
+      `- ${stat.locationName}: ${stat.count}개 (${Object.entries(stat.statuses)
+        .map(([status, count]) => `${getStatusLabel(status)} ${count}개`)
+        .join(", ")})`
+  )
+  .join("\n")}
+${stats.length > 5 ? `... 외 ${stats.length - 5}개 지역` : ""}
+
+⦁ 달력 데이터:
+- 달력에 표시된 운송장이 있는 날짜: ${Object.keys(calendarData).length}일
+- 달력 로딩 상태: ${calendarLoading ? "로딩 중" : "완료"}
+
+⦁ 사용자가 현재 보고 있는 정보:
+- 각 지역별 운송장 수량과 상태별 분포를 확인할 수 있는 페이지
+- 상태별 필터링과 날짜 범위 선택으로 원하는 데이터를 조회 가능
+- 달력에서 날짜별 운송장 현황을 시각적으로 확인 가능
+- 각 지역의 상세 정보로 이동할 수 있는 기능 제공`;
+      setSystemContext(context);
+      setIsMessagePending(false);
+    }
+  }, [
+    stats,
+    statusFilter,
+    dateRange,
+    calendarData,
+    calendarLoading,
+    setSystemContext,
+    isCollecting,
+    setIsMessagePending,
+  ]);
 
   // 날짜 범위 적용
   const applyDateRange = () => {
@@ -178,13 +262,13 @@ export default function DashboardLocationWaybillsPage() {
   // 상태별 색상 가져오기
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "bg-blue-100 text-blue-800";
-      case "DELIVERED":
-        return "bg-green-100 text-green-800";
-      case "RETURNED":
+      case "PENDING_UNLOAD":
         return "bg-yellow-100 text-yellow-800";
-      case "ERROR":
+      case "UNLOADED":
+        return "bg-blue-100 text-blue-800";
+      case "NORMAL":
+        return "bg-green-100 text-green-800";
+      case "ACCIDENT":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -194,14 +278,14 @@ export default function DashboardLocationWaybillsPage() {
   // 상태 한글 변환
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "배송중";
-      case "DELIVERED":
-        return "배송완료";
-      case "RETURNED":
-        return "반송";
-      case "ERROR":
-        return "오류";
+      case "PENDING_UNLOAD":
+        return "하차 예정";
+      case "UNLOADED":
+        return "하차 완료";
+      case "NORMAL":
+        return "정상 처리";
+      case "ACCIDENT":
+        return "사고";
       default:
         return status;
     }
@@ -266,10 +350,10 @@ export default function DashboardLocationWaybillsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="IN_TRANSIT">배송중</SelectItem>
-                  <SelectItem value="DELIVERED">배송완료</SelectItem>
-                  <SelectItem value="RETURNED">반송</SelectItem>
-                  <SelectItem value="ERROR">오류</SelectItem>
+                  <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
+                  <SelectItem value="UNLOADED">하차 완료</SelectItem>
+                  <SelectItem value="NORMAL">정상 처리</SelectItem>
+                  <SelectItem value="ACCIDENT">사고</SelectItem>
                 </SelectContent>
               </Select>
             </div>

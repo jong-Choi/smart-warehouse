@@ -1,9 +1,8 @@
 import type {
   WaybillListResponse,
   Waybill,
-  Parcel,
-  ParcelStatus,
   WaybillStatus,
+  WaybillFilters,
 } from "@/types";
 import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
@@ -29,27 +28,26 @@ interface PaginatedApiResponse<T> {
 }
 
 // 운송장 목록 조회 (필터링, 페이지네이션 지원)
-export async function fetchWaybills(params?: {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  status?: WaybillStatus;
-  date?: Date;
-  endDate?: Date;
-}): Promise<WaybillListResponse> {
+export async function fetchWaybills(
+  params?: WaybillFilters
+): Promise<WaybillListResponse> {
   console.info("Fetching waybills with params:", params);
 
   const searchParams = new URLSearchParams();
 
   if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.pageSize)
-    searchParams.append("limit", params.pageSize.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
   if (params?.search) searchParams.append("search", params.search);
   if (params?.status) searchParams.append("status", params.status);
-  if (params?.date)
-    searchParams.append("startDate", params.date.toISOString().split("T")[0]);
-  if (params?.endDate)
-    searchParams.append("endDate", params.endDate.toISOString().split("T")[0]);
+  if (params?.operatorId)
+    searchParams.append("operatorId", params.operatorId.toString());
+  if (params?.locationId)
+    searchParams.append("locationId", params.locationId.toString());
+  if (params?.isAccident !== undefined)
+    searchParams.append("isAccident", params.isAccident.toString());
+  if (params?.startDate) searchParams.append("startDate", params.startDate);
+  if (params?.endDate) searchParams.append("endDate", params.endDate);
+  if (params?.getAll) searchParams.append("getAll", params.getAll.toString());
 
   const response = await fetch(
     `${API_BASE_URL}/api/waybills?${searchParams.toString()}`,
@@ -205,7 +203,7 @@ export async function fetchUnloadingWaybills(): Promise<WaybillListResponse> {
   console.info("Fetching unloading waybills");
 
   const response = await fetch(
-    `${API_BASE_URL}/api/waybills?status=IN_TRANSIT&getAll=true`,
+    `${API_BASE_URL}/api/waybills?status=PENDING_UNLOAD&getAll=true`,
     {
       method: "GET",
       headers: {
@@ -255,31 +253,32 @@ export async function fetchUnloadingParcels(): Promise<{
   };
 }
 
-// 소포 상태 업데이트 (하차 처리)
-export async function updateParcelStatus(
-  parcelId: number,
-  status: ParcelStatus,
+// 운송장 상태 업데이트 (하차 처리)
+export async function updateWaybillStatus(
+  waybillId: number,
+  status: WaybillStatus,
   operatorId?: number
-): Promise<Parcel> {
-  console.info("Updating parcel status:", parcelId, status);
+): Promise<Waybill> {
+  console.info("Updating waybill status:", waybillId, status);
 
-  // 실제 API가 구현되면 여기서 호출
-  // 현재는 mock 데이터 사용
-  const { getMockUnloadingParcels } = await import("@/data/mockWaybills");
+  const response = await fetch(`${API_BASE_URL}/api/waybills/${waybillId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      status,
+      operatorId,
+      processedAt: new Date().toISOString(),
+    }),
+  });
 
-  const parcels = getMockUnloadingParcels();
-  const parcel = parcels.find((p) => p.id === parcelId);
-
-  if (!parcel) {
-    throw new Error(`Parcel with id ${parcelId} not found`);
+  if (!response.ok) {
+    throw new Error(`Failed to update waybill status: ${response.statusText}`);
   }
 
-  return {
-    ...parcel,
-    status,
-    operatorId,
-    processedAt: new Date().toISOString(),
-  };
+  const result: ApiResponse<Waybill> = await response.json();
+  return result.data;
 }
 
 export const fetchWaybillsByLocationStats = async (params?: {

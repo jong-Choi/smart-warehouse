@@ -54,18 +54,10 @@ export default function DashboardWaybillDetailPage({
   // 상태별 배지 색상
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "bg-blue-100 text-blue-800";
-      case "DELIVERED":
-        return "bg-green-100 text-green-800";
-      case "RETURNED":
-        return "bg-yellow-100 text-yellow-800";
-      case "ERROR":
-        return "bg-red-100 text-red-800";
       case "PENDING_UNLOAD":
-        return "bg-orange-100 text-orange-800";
+        return "bg-yellow-100 text-yellow-800";
       case "UNLOADED":
-        return "bg-purple-100 text-purple-800";
+        return "bg-blue-100 text-blue-800";
       case "NORMAL":
         return "bg-green-100 text-green-800";
       case "ACCIDENT":
@@ -78,20 +70,12 @@ export default function DashboardWaybillDetailPage({
   // 상태 텍스트 변환
   const getStatusText = (status: string) => {
     switch (status) {
-      case "IN_TRANSIT":
-        return "운송중";
-      case "DELIVERED":
-        return "배송완료";
-      case "RETURNED":
-        return "반송";
-      case "ERROR":
-        return "오류";
       case "PENDING_UNLOAD":
-        return "하차 대기";
+        return "하차 예정";
       case "UNLOADED":
         return "하차 완료";
       case "NORMAL":
-        return "정상";
+        return "정상 처리";
       case "ACCIDENT":
         return "사고";
       default:
@@ -180,26 +164,53 @@ export default function DashboardWaybillDetailPage({
             </div>
             <Separator />
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">출발일</span>
+              <span className="text-sm text-muted-foreground">하차 예정일</span>
               <span className="font-medium">
-                {format(new Date(waybill.shippedAt), "yyyy년 MM월 dd일", {
+                {format(new Date(waybill.unloadDate), "yyyy년 MM월 dd일", {
                   locale: ko,
                 })}
               </span>
             </div>
-            {waybill.deliveredAt && (
+            {waybill.processedAt && (
               <>
                 <Separator />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">도착일</span>
+                  <span className="text-sm text-muted-foreground">
+                    처리 일시
+                  </span>
                   <span className="font-medium">
-                    {format(new Date(waybill.deliveredAt), "yyyy년 MM월 dd일", {
-                      locale: ko,
-                    })}
+                    {format(
+                      new Date(waybill.processedAt),
+                      "yyyy년 MM월 dd일 HH:mm",
+                      {
+                        locale: ko,
+                      }
+                    )}
                   </span>
                 </div>
               </>
             )}
+            <Separator />
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">작업자</span>
+              <span className="font-medium">
+                {waybill.operator?.name || "미지정"}
+              </span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">배송지</span>
+              <span className="font-medium">
+                {waybill.location?.name || "위치 정보 없음"}
+              </span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">사고 여부</span>
+              <Badge variant={waybill.isAccident ? "destructive" : "secondary"}>
+                {waybill.isAccident ? "사고" : "정상"}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
 
@@ -207,130 +218,34 @@ export default function DashboardWaybillDetailPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              소포 정보
+              물건 정보
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {waybill.parcel ? (
-              (() => {
-                const parcel = waybill.parcel;
-                return (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        소포 상태
-                      </span>
-                      <Badge className={getStatusBadgeClass(parcel.status)}>
-                        {getStatusText(parcel.status)}
-                      </Badge>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        운송가액
-                      </span>
-                      <span className="font-medium text-lg">
-                        {formatCurrency(parcel.declaredValue)}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        배송지
-                      </span>
-                      <span className="font-medium">
-                        {parcel.location?.name || "위치 정보 없음"}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        처리 작업자
-                      </span>
-                      <span className="font-medium">
-                        {parcel.operator ? (
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto font-medium"
-                            onClick={() =>
-                              navigate(
-                                `/dashboard/workers/${parcel.operator!.code}`
-                              )
-                            }
-                          >
-                            {parcel.operator.name}
-                          </Button>
-                        ) : (
-                          "미지정"
-                        )}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        사고 여부
-                      </span>
-                      <Badge
-                        variant={
-                          parcel.isAccident ? "destructive" : "secondary"
-                        }
-                      >
-                        {parcel.isAccident ? "사고" : "정상"}
-                      </Badge>
-                    </div>
-                  </>
-                );
-              })()
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    물건 가격
+                  </span>
+                  <span className="font-medium text-lg">
+                    {formatCurrency(waybill.parcel.declaredValue)}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">소포 ID</span>
+                  <span className="font-medium">#{waybill.parcel.id}</span>
+                </div>
+              </>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                연결된 소포가 없습니다.
+                연결된 물건 정보가 없습니다.
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-
-      {/* 소포 상세 정보 */}
-      {waybill.parcel &&
-        (() => {
-          const parcel = waybill.parcel;
-          return (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  소포 상세 정보
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        소포 ID
-                      </span>
-                      <span className="font-medium">#{parcel.id}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        처리일시
-                      </span>
-                      <span className="font-medium">
-                        {parcel.processedAt
-                          ? format(
-                              new Date(parcel.processedAt),
-                              "yyyy-MM-dd HH:mm",
-                              { locale: ko }
-                            )
-                          : "-"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
     </div>
   );
 }

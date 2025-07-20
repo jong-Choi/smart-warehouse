@@ -2,7 +2,7 @@ export interface Location {
   id: number;
   name: string;
   address: string | null;
-  parcelCount: number;
+  waybillCount: number;
   workCount: number;
   pendingUnloadCount: number;
   totalProcessedCount: number;

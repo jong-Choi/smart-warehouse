@@ -1,8 +1,57 @@
-import type { Waybill, Parcel, WaybillLocation, Operator } from "@/types";
-import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
+// mockWaybills.ts에서만 사용하는 타입 정의
+export type MockOperatorType = "HUMAN" | "MACHINE";
+// WaybillStatus와 호환되도록 수정
+export type MockWaybillStatus =
+  | "PENDING_UNLOAD"
+  | "UNLOADED"
+  | "NORMAL"
+  | "ACCIDENT";
+
+export interface MockOperator {
+  id: number;
+  name: string;
+  code: string;
+  type: MockOperatorType;
+  createdAt: string;
+}
+
+export interface MockWaybillLocation {
+  id: number;
+  name: string;
+  address: string;
+  createdAt: string;
+}
+
+export interface MockParcel {
+  id: number;
+  waybillId: number;
+  operatorId?: number;
+  locationId: number;
+  status: MockWaybillStatus;
+  declaredValue: number;
+  processedAt: string;
+  isAccident: boolean;
+  operator?: MockOperator;
+  location?: MockWaybillLocation;
+}
+
+export interface MockWaybill {
+  id: number;
+  number: string;
+  status: MockWaybillStatus;
+  shippedAt: string;
+  parcel: MockParcel;
+}
+
+export interface MockUnloadingParcel extends MockParcel {
+  createdAt: string;
+  unloadedAt?: string;
+  workerProcessedAt?: string;
+  processedBy?: string;
+}
 
 // 가짜 위치 데이터
-const MOCK_LOCATIONS: WaybillLocation[] = [
+const MOCK_LOCATIONS: MockWaybillLocation[] = [
   {
     id: 1,
     name: "서울 강남구",
@@ -36,7 +85,7 @@ const MOCK_LOCATIONS: WaybillLocation[] = [
 ];
 
 // 가짜 작업자 데이터
-const MOCK_OPERATORS: Operator[] = [
+const MOCK_OPERATORS: MockOperator[] = [
   {
     id: 1,
     name: "김작업",
@@ -80,7 +129,7 @@ function generateWaybillNumber(): string {
 }
 
 // 개별 소포 생성 함수 (운송장 1개당 소포 1개)
-function generateParcel(waybillId: number): Parcel {
+function generateParcel(waybillId: number): MockParcel {
   const location =
     MOCK_LOCATIONS[Math.floor(Math.random() * MOCK_LOCATIONS.length)];
   const operator =
@@ -104,13 +153,13 @@ function generateParcel(waybillId: number): Parcel {
 }
 
 // 운송장 생성 함수 (운송장 1개당 소포 1개)
-function generateWaybill(id: number): Waybill {
+function generateWaybill(id: number): MockWaybill {
   const parcel = generateParcel(id);
 
   return {
     id,
     number: generateWaybillNumber(),
-    status: "IN_TRANSIT",
+    status: "PENDING_UNLOAD",
     shippedAt: new Date(
       Date.now() - Math.random() * 24 * 60 * 60 * 1000
     ).toISOString(), // 최근 24시간 내
@@ -119,8 +168,8 @@ function generateWaybill(id: number): Waybill {
 }
 
 // 정확히 2000개의 운송장과 2000개의 하차 예정 소포 생성
-export function generateMockWaybills(): Waybill[] {
-  const waybills: Waybill[] = [];
+export function generateMockWaybills(): MockWaybill[] {
+  const waybills: MockWaybill[] = [];
 
   // 2000개의 운송장 생성 (각각 1개의 소포 포함)
   for (let i = 1; i <= 2000; i++) {
@@ -131,7 +180,7 @@ export function generateMockWaybills(): Waybill[] {
 }
 
 // 하차 예정 소포만 필터링해서 반환 (정확히 2000개)
-export function getMockUnloadingParcels(): Parcel[] {
+export function getMockUnloadingParcels(): MockParcel[] {
   const waybills = generateMockWaybills();
   return waybills
     .filter((wb) => wb.parcel && wb.parcel.status === "PENDING_UNLOAD")
@@ -139,7 +188,7 @@ export function getMockUnloadingParcels(): Parcel[] {
 }
 
 // UnloadingParcel 타입에 맞는 하차 예정 소포 생성
-export function getMockUnloadingParcelsWithTimestamps(): UnloadingParcel[] {
+export function getMockUnloadingParcelsWithTimestamps(): MockUnloadingParcel[] {
   const waybills = generateMockWaybills();
 
   return waybills

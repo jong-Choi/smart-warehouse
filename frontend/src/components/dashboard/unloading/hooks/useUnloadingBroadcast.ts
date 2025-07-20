@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { createChannelInterface } from "@utils/broadcastChannel";
 import type { BroadcastMessage } from "@/types/broadcast";
-import type { ParcelStatus } from "@/types/waybill";
+import type { WaybillStatus } from "@/types/waybill";
 import type { UnloadingParcel } from "@components/dashboard/unloading/types";
 import { useUnloadingParcelsStore } from "@stores/unloadingParcelsStore";
 
@@ -23,13 +23,13 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
       if (category === "PROCESS" && msg === "하차된 물건") {
         // 하차 완료된 운송장 상태 업데이트
         updateParcel(waybillId, {
-          status: "UNLOADED" as ParcelStatus,
+          status: "UNLOADED" as WaybillStatus,
           unloadedAt: now, // 하차일시 업데이트
         });
       } else if (category === "PROCESS" && msg === "작업자 처리") {
         // 작업자 처리 완료된 운송장 상태 업데이트
         updateParcel(waybillId, {
-          status: "NORMAL" as ParcelStatus,
+          status: "NORMAL" as WaybillStatus,
           workerProcessedAt: now, // 처리일시 업데이트
           processedBy: operatorName || `작업자${operatorId}`, // 처리 작업자 업데이트
         });
@@ -42,7 +42,7 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
           );
           if (oldestParcel) {
             updateParcel(oldestParcel.waybillId, {
-              status: "ACCIDENT" as ParcelStatus,
+              status: "ACCIDENT" as WaybillStatus,
               workerProcessedAt: now, // 사고 처리일시
               processedBy: "시스템", // 사고 처리자
             });
