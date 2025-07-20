@@ -20,9 +20,11 @@ export function ChatbotPanel() {
     inputValue,
     isConnected,
     isLoading,
+    connectionFailed,
     setInputValue,
     sendMessage,
     clearConversation,
+    retryConnection,
   } = useChatbot();
 
   return (
@@ -60,7 +62,9 @@ export function ChatbotPanel() {
             <ChatbotStatusBar
               currentScreen={currentScreen}
               isConnected={isConnected}
+              connectionFailed={connectionFailed}
               onClearConversation={clearConversation}
+              onRetryConnection={retryConnection}
             />
 
             {/* 입력 영역 */}

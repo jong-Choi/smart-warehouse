@@ -9,6 +9,7 @@ const createInitialWorkers = (): Worker[] => {
   for (let i = 1; i <= 10; i++) {
     workers.push({
       id: `A${i}`,
+      code: `A${i}`,
       name: `작업자A${i}`,
       status: "IDLE",
       processedCount: 0,
@@ -21,6 +22,7 @@ const createInitialWorkers = (): Worker[] => {
   for (let i = 1; i <= 10; i++) {
     workers.push({
       id: `B${i}`,
+      code: `B${i}`,
       name: `작업자B${i}`,
       status: "IDLE",
       processedCount: 0,

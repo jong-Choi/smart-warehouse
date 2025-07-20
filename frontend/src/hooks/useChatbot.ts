@@ -10,21 +10,128 @@ export const useChatbot = () => {
     inputValue,
     isConnected,
     isLoading,
+    connectionFailed,
     addMessage,
     updateLastMessage,
     setInputValue,
     setIsConnected,
     setIsLoading,
+    setConnectionFailed,
     clearMessages,
   } = useChatbotStore();
 
   const socketRef = useRef<Socket | null>(null);
   const userIdRef = useRef<string>(generateUserId());
+  const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 청크 처리 관련 refs
   const chunkQueueRef = useRef<string[]>([]);
   const isProcessingRef = useRef(false);
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 웹소켓 연결 함수
+  const connectSocket = useCallback(() => {
+    // 기존 연결 정리
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+    if (connectionTimeoutRef.current) {
+      clearTimeout(connectionTimeoutRef.current);
+    }
+
+    // 연결 실패 상태 초기화
+    setConnectionFailed(false);
+    setIsConnected(false);
+
+    const socket = io("http://localhost:4000", {
+      transports: ["websocket", "polling"],
+      timeout: 5000, // 5초 타임아웃
+    });
+
+    socketRef.current = socket;
+
+    // 5초 후 연결되지 않으면 실패로 처리
+    connectionTimeoutRef.current = setTimeout(() => {
+      if (!socket.connected) {
+        console.log("🔌 웹소켓 연결 타임아웃");
+        setConnectionFailed(true);
+        setIsConnected(false);
+      }
+    }, 5000);
+
+    socket.on("connect", () => {
+      console.log("🔌 웹소켓 연결됨");
+      if (connectionTimeoutRef.current) {
+        clearTimeout(connectionTimeoutRef.current);
+        connectionTimeoutRef.current = null;
+      }
+      setIsConnected(true);
+      setConnectionFailed(false);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔌 웹소켓 연결 해제됨");
+      setIsConnected(false);
+      setConnectionFailed(false);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.log("🔌 웹소켓 연결 에러:", error);
+      setConnectionFailed(true);
+      setIsConnected(false);
+    });
+
+    // 스트리밍 응답 시작
+    socket.on("bot_response_start", () => {
+      setIsLoading(true);
+      const streamingMessage = {
+        id: Date.now().toString(),
+        text: "",
+        isUser: false,
+        timestamp: new Date(),
+        isStreaming: true,
+      };
+      addMessage(streamingMessage);
+    });
+
+    // 스트리밍 청크 수신
+    socket.on("bot_response_chunk", (data: SocketChunkData) => {
+      console.log("📦 청크 수신:", data.chunk);
+      addChunkToQueue(data.chunk);
+    });
+
+    // 스트리밍 응답 완료
+    socket.on("bot_response_end", () => {
+      console.log("✅ 스트리밍 완료");
+      finishStreaming();
+    });
+
+    // 에러 응답
+    socket.on("bot_response_error", (data: SocketErrorData) => {
+      setIsLoading(false);
+      const errorMessage = {
+        id: Date.now().toString(),
+        text: `오류: ${data.error}`,
+        isUser: false,
+        timestamp: new Date(data.timestamp),
+      };
+      addMessage(errorMessage);
+    });
+
+    // 대화 기록 초기화 완료
+    socket.on("conversation_cleared", () => {
+      clearMessages();
+      // 초기화 후 새로운 인사 메시지 요청
+      socket.emit("request_welcome_message", {
+        userId: userIdRef.current,
+      });
+    });
+  }, [setIsConnected, setConnectionFailed, addMessage, clearMessages]);
+
+  // 재시도 함수
+  const retryConnection = useCallback(() => {
+    connectSocket();
+  }, [connectSocket]);
 
   // 청크를 순차적으로 처리하는 함수 (0.1초 간격)
   const processNextChunk = useCallback(
@@ -91,83 +198,21 @@ export const useChatbot = () => {
 
   // 웹소켓 연결 설정
   useEffect(() => {
-    const socket = io("http://localhost:4000", {
-      transports: ["websocket", "polling"],
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      console.log("🔌 웹소켓 연결됨");
-      setIsConnected(true);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("🔌 웹소켓 연결 해제됨");
-      setIsConnected(false);
-    });
-
-    // 스트리밍 응답 시작
-    socket.on("bot_response_start", () => {
-      setIsLoading(true);
-      const streamingMessage = {
-        id: Date.now().toString(),
-        text: "",
-        isUser: false,
-        timestamp: new Date(),
-        isStreaming: true,
-      };
-      addMessage(streamingMessage);
-    });
-
-    // 스트리밍 청크 수신
-    socket.on("bot_response_chunk", (data: SocketChunkData) => {
-      console.log("📦 청크 수신:", data.chunk);
-      addChunkToQueue(data.chunk);
-    });
-
-    // 스트리밍 응답 완료
-    socket.on("bot_response_end", () => {
-      console.log("✅ 스트리밍 완료");
-      finishStreaming();
-    });
-
-    // 에러 응답
-    socket.on("bot_response_error", (data: SocketErrorData) => {
-      setIsLoading(false);
-      const errorMessage = {
-        id: Date.now().toString(),
-        text: `오류: ${data.error}`,
-        isUser: false,
-        timestamp: new Date(data.timestamp),
-      };
-      addMessage(errorMessage);
-    });
-
-    // 대화 기록 초기화 완료
-    socket.on("conversation_cleared", () => {
-      clearMessages();
-      // 초기화 후 새로운 인사 메시지 요청
-      socket.emit("request_welcome_message", {
-        userId: userIdRef.current,
-      });
-    });
+    connectSocket();
 
     return () => {
       // 컴포넌트 언마운트 시 타이머 정리
       if (processingTimeoutRef.current) {
         clearTimeout(processingTimeoutRef.current);
       }
-      socket.disconnect();
+      if (connectionTimeoutRef.current) {
+        clearTimeout(connectionTimeoutRef.current);
+      }
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
-  }, [
-    addChunkToQueue,
-    finishStreaming,
-    addMessage,
-    setIsConnected,
-    setIsLoading,
-    clearMessages,
-  ]);
+  }, [connectSocket]);
 
   const sendMessage = useCallback(() => {
     if (!inputValue.trim() || !socketRef.current || isLoading) return;
@@ -202,8 +247,10 @@ export const useChatbot = () => {
     inputValue,
     isConnected,
     isLoading,
+    connectionFailed,
     setInputValue,
     sendMessage,
     clearConversation,
+    retryConnection,
   };
 };

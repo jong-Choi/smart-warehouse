@@ -12,6 +12,7 @@ export interface ChatbotState {
   inputValue: string;
   isConnected: boolean;
   isLoading: boolean;
+  connectionFailed: boolean;
 }
 
 export interface SocketChunkData {

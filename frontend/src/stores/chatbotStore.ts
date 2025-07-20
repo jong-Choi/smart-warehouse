@@ -10,16 +10,18 @@ interface ChatbotStore extends ChatbotState {
   setInputValue: (inputValue: string) => void;
   setIsConnected: (isConnected: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setConnectionFailed: (failed: boolean) => void;
   clearMessages: () => void;
   reset: () => void;
 }
 
 const initialState: ChatbotState = {
-  isOpen: false,
+  isOpen: true,
   messages: [],
   inputValue: "",
   isConnected: false,
   isLoading: false,
+  connectionFailed: false,
 };
 
 export const useChatbotStore = create<ChatbotStore>((set) => ({
@@ -49,6 +51,8 @@ export const useChatbotStore = create<ChatbotStore>((set) => ({
   setIsConnected: (isConnected) => set({ isConnected }),
 
   setIsLoading: (isLoading) => set({ isLoading }),
+
+  setConnectionFailed: (connectionFailed) => set({ connectionFailed }),
 
   clearMessages: () => set({ messages: [] }),
 
