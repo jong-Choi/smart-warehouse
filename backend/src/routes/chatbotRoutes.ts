@@ -2,13 +2,18 @@ import { Server as SocketIOServer } from "socket.io";
 import { Server as HTTPServer } from "http";
 import { Ollama } from "ollama";
 import { ChatOllama } from "@langchain/ollama";
-import { ChatMessageHistory } from "@langchain/community/stores/message/in_memory";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
 import {
   ChatPromptTemplate,
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
-import { SystemMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  BaseMessage,
+  HumanMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
+import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 
 const MODEL_NAME_MAP = {
   exaone: "exaone3.5:2.4b",
@@ -129,12 +134,12 @@ export const setupChatbotSocket = (server: HTTPServer) => {
     };
 
     // 이 소켓 연결만 사용하는 히스토리 인스턴스
-    const socketMessageHistory = new ChatMessageHistory();
+    const chatMessageHistoryWithDeletion = new ChatMessageHistoryWithDeletion();
 
     // 이 소켓 전용 RunnableWithMessageHistory 생성
     const chatChain = new RunnableWithMessageHistory({
       runnable: createChatChain(),
-      getMessageHistory: async () => socketMessageHistory,
+      getMessageHistory: async () => chatMessageHistoryWithDeletion,
       inputMessagesKey: "input",
       historyMessagesKey: "history",
     });
@@ -167,11 +172,19 @@ export const setupChatbotSocket = (server: HTTPServer) => {
 
           let fullResponse = "";
           if (data.systemContext) {
+            await chatMessageHistoryWithDeletion.deleteMessages(
+              (message: BaseMessage) => {
+                const messageType = message.getType();
+                console.log("🔍 메시지 타입:", messageType);
+                console.log("🔍 메시지 타입:", messageType === "system");
+                return messageType === "system";
+              }
+            );
             const systemMessage = `
             사용자의 메시지에 대해 대답해주세요. 사용자가 보고 있는 화면에 대한 정보는 간략하게만 대답하세요.
             사용자의 메시지 : ${data.message} 
             사용자가 보고 있는 화면에 대한 정보 : ${data.systemContext}`;
-            await socketMessageHistory.addMessage(
+            await chatMessageHistoryWithDeletion.addMessage(
               new SystemMessage({
                 content: systemMessage,
               })
@@ -221,7 +234,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
           });
 
           // 메시지 히스토리 콘솔 출력
-          const messages = await socketMessageHistory.getMessages();
+          const messages = await chatMessageHistoryWithDeletion.getMessages();
           console.log("메시지 히스토리:", messages);
         } catch (error) {
           console.error("LLM 응답 생성 중 에러:", error);
@@ -241,7 +254,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
       const userId = data.userId || socket.id;
 
       // 이 소켓의 메시지 히스토리 초기화
-      socketMessageHistory.clear();
+      chatMessageHistoryWithDeletion.clear();
 
       socket.emit("conversation_cleared", {
         timestamp: new Date().toISOString(),
