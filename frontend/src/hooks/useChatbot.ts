@@ -28,6 +28,68 @@ export const useChatbot = () => {
   const chunkQueueRef = useRef<string[]>([]);
   const isProcessingRef = useRef(false);
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 청크를 순차적으로 처리하는 함수 (0.1초 간격)
+  const processNextChunk = useCallback(
+    ({ onDone, delay = 100 }: { onDone?: () => void; delay?: number } = {}) => {
+      if (chunkQueueRef.current.length === 0) {
+        isProcessingRef.current = false;
+        onDone?.(); // 큐가 비었으면 정리
+        return;
+      }
+
+      const chunk = chunkQueueRef.current.shift();
+      if (chunk) {
+        updateLastMessage((message) => ({
+          ...message,
+          text: message.text + chunk,
+        }));
+      }
+
+      processingTimeoutRef.current = setTimeout(
+        () => processNextChunk({ onDone, delay }),
+        delay
+      );
+    },
+    [updateLastMessage]
+  );
+
+  // 청크를 큐에 추가하고 처리 시작
+  const addChunkToQueue = useCallback(
+    (chunk: string) => {
+      chunkQueueRef.current.push(chunk);
+      if (!isProcessingRef.current) {
+        isProcessingRef.current = true;
+        processNextChunk(); // 아직 끝내기 콜백은 필요 없음
+      }
+    },
+    [processNextChunk]
+  );
+
+  // 스트리밍 완료 처리
+  const finishStreaming = useCallback(() => {
+    // 타이머 초기화(겹치기 방지)
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
+      processingTimeoutRef.current = null;
+    }
+
+    const wrapUp = () => {
+      setIsLoading(false);
+      updateLastMessage((message) => ({
+        ...message,
+        isStreaming: false,
+      }));
+    };
+
+    // 이미 드레인 중이면 콜백만 붙여 준다
+    if (isProcessingRef.current) {
+      processNextChunk({ onDone: wrapUp, delay: 30 });
+    } else {
+      // 드레인 중이 아니면 지금부터 시작해서 끝나면 wrapUp
+      isProcessingRef.current = true;
+      processNextChunk({ onDone: wrapUp, delay: 30 });
+    }
+  }, [processNextChunk, setIsLoading, updateLastMessage]);
 
   // 웹소켓 연결 함수
   const connectSocket = useCallback(() => {
@@ -126,75 +188,20 @@ export const useChatbot = () => {
         userId: userIdRef.current,
       });
     });
-  }, [setIsConnected, setConnectionFailed, addMessage, clearMessages]);
+  }, [
+    addChunkToQueue,
+    addMessage,
+    clearMessages,
+    finishStreaming,
+    setConnectionFailed,
+    setIsConnected,
+    setIsLoading,
+  ]);
 
   // 재시도 함수
   const retryConnection = useCallback(() => {
     connectSocket();
   }, [connectSocket]);
-
-  // 청크를 순차적으로 처리하는 함수 (0.1초 간격)
-  const processNextChunk = useCallback(
-    ({ onDone, delay = 100 }: { onDone?: () => void; delay?: number } = {}) => {
-      if (chunkQueueRef.current.length === 0) {
-        isProcessingRef.current = false;
-        onDone?.(); // 큐가 비었으면 정리
-        return;
-      }
-
-      const chunk = chunkQueueRef.current.shift();
-      if (chunk) {
-        updateLastMessage((message) => ({
-          ...message,
-          text: message.text + chunk,
-        }));
-      }
-
-      processingTimeoutRef.current = setTimeout(
-        () => processNextChunk({ onDone, delay }),
-        delay
-      );
-    },
-    [updateLastMessage]
-  );
-
-  // 청크를 큐에 추가하고 처리 시작
-  const addChunkToQueue = useCallback(
-    (chunk: string) => {
-      chunkQueueRef.current.push(chunk);
-      if (!isProcessingRef.current) {
-        isProcessingRef.current = true;
-        processNextChunk(); // 아직 끝내기 콜백은 필요 없음
-      }
-    },
-    [processNextChunk]
-  );
-
-  // 스트리밍 완료 처리
-  const finishStreaming = useCallback(() => {
-    // 타이머 초기화(겹치기 방지)
-    if (processingTimeoutRef.current) {
-      clearTimeout(processingTimeoutRef.current);
-      processingTimeoutRef.current = null;
-    }
-
-    const wrapUp = () => {
-      setIsLoading(false);
-      updateLastMessage((message) => ({
-        ...message,
-        isStreaming: false,
-      }));
-    };
-
-    // 이미 드레인 중이면 콜백만 붙여 준다
-    if (isProcessingRef.current) {
-      processNextChunk({ onDone: wrapUp, delay: 30 });
-    } else {
-      // 드레인 중이 아니면 지금부터 시작해서 끝나면 wrapUp
-      isProcessingRef.current = true;
-      processNextChunk({ onDone: wrapUp, delay: 30 });
-    }
-  }, [processNextChunk, setIsLoading, updateLastMessage]);
 
   // 웹소켓 연결 설정
   useEffect(() => {
