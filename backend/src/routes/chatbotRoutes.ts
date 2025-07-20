@@ -8,6 +8,7 @@ import {
   ChatPromptTemplate,
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
+import { SystemMessage } from "@langchain/core/messages";
 
 // Ollama 모델 설정
 const MODEL_NAME = "exaone3.5:2.4b";
@@ -141,8 +142,15 @@ export const setupChatbotSocket = (server: HTTPServer) => {
     // 사용자 메시지 수신 및 LLM 응답
     socket.on(
       "chat_message",
-      async (data: { message: string; userId?: string }) => {
+      async (data: {
+        message: string;
+        userId?: string;
+        systemContext?: string;
+      }) => {
         const userId = data.userId || socket.id;
+
+        // 디버깅: systemContext 로그
+        console.log("🔍 받은 systemContext:", data.systemContext);
 
         try {
           // 스트리밍 응답 시작
@@ -152,6 +160,13 @@ export const setupChatbotSocket = (server: HTTPServer) => {
           });
 
           let fullResponse = "";
+          if (data.systemContext) {
+            await socketMessageHistory.addMessage(
+              new SystemMessage({
+                content: data.systemContext,
+              })
+            );
+          }
 
           // RunnableWithMessageHistory의 stream 사용
           const stream = await chatChain.stream(
