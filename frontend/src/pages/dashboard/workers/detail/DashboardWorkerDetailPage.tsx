@@ -66,6 +66,18 @@ export function DashboardWorkerDetailPage() {
           ? ((normalParcels / totalProcessed) * 100).toFixed(1)
           : "0.0";
 
+      // 현재 페이지 택배들의 평균 운송가액
+      const avgDeclaredValue =
+        operator.parcels && operator.parcels.length > 0
+          ? operator.parcels.reduce(
+              (sum, parcel) => sum + (parcel.declaredValue || 0),
+              0
+            ) / operator.parcels.length
+          : 0;
+
+      // 최근 처리된 택배 정보
+      const recentParcels = operator.parcels?.slice(0, 3) || [];
+
       const context = `현재 페이지: 작업자 상세 정보 (/dashboard/workers/${code})
 ⦁ 시간: ${new Date().toLocaleString()}
 
@@ -81,6 +93,7 @@ export function DashboardWorkerDetailPage() {
 - 사고 발생: ${accidentParcels}개
 - 처리율: ${parcelRate}%
 - 현재 페이지 택배 수익: ${currentPageRevenue.toLocaleString()}원
+- 평균 운송가액: ${avgDeclaredValue.toLocaleString()}원
 
 ⦁ 택배 목록 필터 조건:
 - 상태 필터: ${statusFilter}
@@ -106,10 +119,23 @@ export function DashboardWorkerDetailPage() {
     operator.parcels?.filter((p) => p.status === "UNLOADED").length || 0
   }개
 
+⦁ 최근 처리된 택배들:
+${recentParcels
+  .map(
+    (parcel) =>
+      `- ${parcel.waybill.number}: ${
+        parcel.status
+      } (운송가액: ${parcel.declaredValue?.toLocaleString()}원, 처리일시: ${new Date(
+        parcel.processedAt
+      ).toLocaleString()})`
+  )
+  .join("\n")}
+
 ⦁ 사용자가 현재 보고 있는 정보:
 - 특정 작업자의 상세 정보와 성과 지표
 - 해당 작업자가 처리한 택배들의 목록과 상태
-- 필터링과 페이지네이션으로 택배 데이터 탐색 가능`;
+- 필터링과 페이지네이션으로 택배 데이터 탐색 가능
+- 각 택배의 운송장 번호, 상태, 배송지, 운송가액, 처리일시 확인 가능`;
       setSystemContext(context);
       setIsMessagePending(false);
     }

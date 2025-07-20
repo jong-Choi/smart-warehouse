@@ -161,6 +161,20 @@ export default function DashboardLocationWaybillDetailPage() {
         statusStats[waybill.status] = (statusStats[waybill.status] || 0) + 1;
       });
 
+      // 운송가액 통계 계산 (parcel 정보가 있는 경우만)
+      const waybillsWithParcel = waybills.filter((waybill) => waybill.parcel);
+      const totalDeclaredValue = waybillsWithParcel.reduce(
+        (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
+        0
+      );
+      const avgDeclaredValue =
+        waybillsWithParcel.length > 0
+          ? totalDeclaredValue / waybillsWithParcel.length
+          : 0;
+
+      // 최근 운송장들
+      const recentWaybills = waybills.slice(0, 3);
+
       const context = `현재 페이지: 지역별 운송장 상세 목록 (/dashboard/location/waybills/${locationId})
 ⦁ 시간: ${new Date().toLocaleString()}
 
@@ -171,6 +185,8 @@ export default function DashboardLocationWaybillDetailPage() {
 ⦁ 전체 현황:
 - 총 운송장 수: ${waybills.length}개
 - 조회 기간: ${dateRangeText}
+- 총 운송가액: ${totalDeclaredValue.toLocaleString()}원
+- 평균 운송가액: ${avgDeclaredValue.toLocaleString()}원
 
 ⦁ 필터 조건:
 - 검색어: ${searchTerm || "없음"}
@@ -186,15 +202,15 @@ ${Object.entries(statusStats)
   )
   .join("\n")}
 
-⦁ 운송장 목록 (최대 ${pagination.limit}개씩):
-${waybills
+⦁ 최근 운송장들:
+${recentWaybills
   .map(
     (waybill) =>
-      `- ${waybill.number}: ${getStatusLabel(waybill.status)} (${format(
-        new Date(waybill.unloadDate),
-        "yyyy-MM-dd",
-        { locale: ko }
-      )})`
+      `- ${waybill.number}: ${getStatusLabel(waybill.status)} (운송가액: ${
+        waybill.parcel?.declaredValue?.toLocaleString() || "N/A"
+      }원, 발송일: ${format(new Date(waybill.unloadDate), "yyyy-MM-dd", {
+        locale: ko,
+      })})`
   )
   .join("\n")}
 

@@ -68,7 +68,7 @@ export function ParcelTable({ parcels, total }: ParcelTableProps) {
                 <th className="px-4 py-3 text-left font-medium">운송장 번호</th>
                 <th className="px-4 py-3 text-left font-medium">상태</th>
                 <th className="px-4 py-3 text-left font-medium">배송지</th>
-                <th className="px-4 py-3 text-left font-medium">보험가액</th>
+                <th className="px-4 py-3 text-left font-medium">운송가액</th>
                 <th className="px-4 py-3 text-left font-medium">처리일시</th>
               </tr>
             </thead>
