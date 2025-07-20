@@ -1,4 +1,4 @@
-import type { MonthlySalesResponse, DailySalesResponse } from "../types/sales";
+import type { MonthlySalesResponse, DailySalesResponse } from "@/types/sales";
 
 const API_BASE_URL = "http://localhost:4000/api";
 
