@@ -26,12 +26,7 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
     <div className="px-4 py-2 border-t border-sidebar-border bg-sidebar-accent/20">
       {/* 첫 번째 줄: 화면 기반 대화 체크박스 (연결된 경우에만 표시) */}
       {isConnected && (
-        <div className="flex items-center justify-between mb-2 border-b border-sidebar-border pb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-sidebar-foreground/80">
-              {currentScreen}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 mb-2 border-b border-sidebar-border pb-2">
           <div
             className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80 cursor-pointer hover:text-sidebar-foreground"
             role="button"
@@ -43,6 +38,15 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
               )}
             </div>
             <span>화면 기반으로 대화하기</span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-xs text-sidebar-foreground/80 whitespace-pre">
+              {"("}현재 화면:{" "}
+            </span>
+            <span className="text-xs font-bold text-sidebar-foreground/80">
+              {currentScreen}
+            </span>
+            <span className="text-xs text-sidebar-foreground/80">{")"}</span>
           </div>
         </div>
       )}

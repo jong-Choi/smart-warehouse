@@ -108,10 +108,9 @@ export function DashboardWorkersListPage() {
 
 ⦁ 현재 표시된 작업자들 (${displayOperators.length}명):
 ${displayOperators
-  .slice(0, 5)
+  .filter((op) => op.name && op.code)
   .map((op) => `- ${op.name} (${op.code}) - ${op.type}`)
   .join("\n")}
-${displayOperators.length > 5 ? `... 외 ${displayOperators.length - 5}명` : ""}
 
 ⦁ 사용자가 현재 보고 있는 정보:
 - 작업자들의 처리 실적과 사고 건수를 확인할 수 있는 페이지

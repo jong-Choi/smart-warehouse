@@ -76,7 +76,10 @@ export function DashboardWorkerDetailPage() {
           : 0;
 
       // 최근 처리된 택배 정보
-      const recentParcels = operator.parcels?.slice(0, 3) || [];
+      const recentParcels =
+        operator.parcels?.filter(
+          (parcel) => parcel.waybill && parcel.waybill.number
+        ) || [];
 
       const context = `현재 페이지: 작업자 상세 정보 (/dashboard/workers/${code})
 ⦁ 시간: ${new Date().toLocaleString()}
@@ -120,6 +123,7 @@ export function DashboardWorkerDetailPage() {
   }개
 
 ⦁ 최근 처리된 택배들:
+\`\`\`
 ${recentParcels
   .map(
     (parcel) =>
@@ -130,6 +134,7 @@ ${recentParcels
       ).toLocaleString()})`
   )
   .join("\n")}
+\`\`\`
 
 ⦁ 사용자가 현재 보고 있는 정보:
 - 특정 작업자의 상세 정보와 성과 지표

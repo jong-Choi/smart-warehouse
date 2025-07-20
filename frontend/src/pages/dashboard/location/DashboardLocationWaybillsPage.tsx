@@ -213,7 +213,7 @@ ${Object.entries(totalStatuses)
 
 ⦁ 지역별 현황 (${stats.length}개 지역):
 ${stats
-  .slice(0, 5)
+  .filter((stat) => stat.count > 0)
   .map(
     (stat) =>
       `- ${stat.locationName}: ${stat.count}개 (${Object.entries(stat.statuses)
@@ -221,7 +221,6 @@ ${stats
         .join(", ")})`
   )
   .join("\n")}
-${stats.length > 5 ? `... 외 ${stats.length - 5}개 지역` : ""}
 
 ⦁ 달력 데이터:
 - 달력에 표시된 운송장이 있는 날짜: ${Object.keys(calendarData).length}일

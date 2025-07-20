@@ -173,7 +173,7 @@ export default function DashboardLocationWaybillDetailPage() {
           : 0;
 
       // 최근 운송장들
-      const recentWaybills = waybills.slice(0, 3);
+      const recentWaybills = waybills.filter((waybill) => waybill.number);
 
       const context = `현재 페이지: 지역별 운송장 상세 목록 (/dashboard/location/waybills/${locationId})
 ⦁ 시간: ${new Date().toLocaleString()}
