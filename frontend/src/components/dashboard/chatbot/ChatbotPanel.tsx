@@ -14,7 +14,7 @@ export function ChatbotPanel() {
   const location = useLocation();
   const currentScreen = getScreenName(location.pathname);
 
-  const { isOpen, setIsOpen } = useChatbotStore();
+  const { isOpen, setIsOpen, useContext, setUseContext } = useChatbotStore();
   const {
     messages,
     inputValue,
@@ -26,6 +26,10 @@ export function ChatbotPanel() {
     clearConversation,
     retryConnection,
   } = useChatbot();
+
+  const handleToggleContext = () => {
+    setUseContext(!useContext);
+  };
 
   return (
     <div className="flex flex-col h-full p-2">
@@ -63,8 +67,10 @@ export function ChatbotPanel() {
               currentScreen={currentScreen}
               isConnected={isConnected}
               connectionFailed={connectionFailed}
+              useContext={useContext}
               onClearConversation={clearConversation}
               onRetryConnection={retryConnection}
+              onToggleContext={handleToggleContext}
             />
 
             {/* 입력 영역 */}

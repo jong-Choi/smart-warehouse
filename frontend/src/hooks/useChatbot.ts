@@ -18,6 +18,9 @@ export const useChatbot = () => {
     setIsLoading,
     setConnectionFailed,
     clearMessages,
+    systemContext,
+    setIsCollecting,
+    useContext,
   } = useChatbotStore();
 
   const socketRef = useRef<Socket | null>(null);
@@ -75,6 +78,7 @@ export const useChatbot = () => {
 
     const wrapUp = () => {
       setIsLoading(false);
+      setIsCollecting(false); // 컨텍스트 수집 종료
       updateLastMessage((message) => ({
         ...message,
         isStreaming: false,
@@ -89,7 +93,7 @@ export const useChatbot = () => {
       isProcessingRef.current = true;
       processNextChunk({ onDone: wrapUp, delay: 30 });
     }
-  }, [processNextChunk, setIsLoading, updateLastMessage]);
+  }, [processNextChunk, setIsLoading, setIsCollecting, updateLastMessage]);
 
   // 웹소켓 연결 함수
   const connectSocket = useCallback(() => {
@@ -171,6 +175,7 @@ export const useChatbot = () => {
     // 에러 응답
     socket.on("bot_response_error", (data: SocketErrorData) => {
       setIsLoading(false);
+      setIsCollecting(false); // 컨텍스트 수집 종료
       const errorMessage = {
         id: Date.now().toString(),
         text: `오류: ${data.error}`,
@@ -194,6 +199,7 @@ export const useChatbot = () => {
     clearMessages,
     finishStreaming,
     setConnectionFailed,
+    setIsCollecting,
     setIsConnected,
     setIsLoading,
   ]);
@@ -233,14 +239,44 @@ export const useChatbot = () => {
 
     addMessage(newMessage);
 
-    // 웹소켓으로 메시지 전송
-    socketRef.current.emit("chat_message", {
-      message: inputValue,
-      userId: userIdRef.current,
-    });
+    if (useContext) {
+      // useContext가 true일 때만 컨텍스트 수집 로직 실행
+      setIsCollecting(true);
+
+      // 0.5초 후에 컨텍스트 수집 종료하고 메시지 전송
+      setTimeout(() => {
+        setIsCollecting(false);
+
+        // 웹소켓으로 메시지 전송 (컨텍스트 포함)
+        console.log("📤 메시지 전송 (컨텍스트 포함):", {
+          message: inputValue,
+          systemContext,
+          useContext,
+        });
+        socketRef.current?.emit("chat_message", {
+          message: inputValue,
+          userId: userIdRef.current,
+          systemContext: systemContext,
+        });
+      }, 500);
+    } else {
+      socketRef.current.emit("chat_message", {
+        message: inputValue,
+        userId: userIdRef.current,
+        systemContext: "",
+      });
+    }
 
     setInputValue("");
-  }, [inputValue, isLoading, addMessage, setInputValue]);
+  }, [
+    inputValue,
+    isLoading,
+    addMessage,
+    setInputValue,
+    systemContext,
+    setIsCollecting,
+    useContext,
+  ]);
 
   const clearConversation = useCallback(() => {
     if (!socketRef.current) return;

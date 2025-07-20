@@ -11,6 +11,9 @@ interface ChatbotStore extends ChatbotState {
   setIsConnected: (isConnected: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
   setConnectionFailed: (failed: boolean) => void;
+  setIsCollecting: (isCollecting: boolean) => void;
+  setSystemContext: (context: string) => void;
+  setUseContext: (useContext: boolean) => void;
   clearMessages: () => void;
   reset: () => void;
 }
@@ -22,6 +25,9 @@ const initialState: ChatbotState = {
   isConnected: false,
   isLoading: false,
   connectionFailed: false,
+  isCollecting: false,
+  systemContext: "",
+  useContext: true, // 기본값은 컨텍스트 활용
 };
 
 export const useChatbotStore = create<ChatbotStore>((set) => ({
@@ -53,6 +59,12 @@ export const useChatbotStore = create<ChatbotStore>((set) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
 
   setConnectionFailed: (connectionFailed) => set({ connectionFailed }),
+
+  setIsCollecting: (isCollecting) => set({ isCollecting }),
+
+  setSystemContext: (systemContext) => set({ systemContext }),
+
+  setUseContext: (useContext) => set({ useContext }),
 
   clearMessages: () => set({ messages: [] }),
 

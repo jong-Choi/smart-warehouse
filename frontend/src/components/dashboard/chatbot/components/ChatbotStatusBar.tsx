@@ -7,19 +7,47 @@ interface ChatbotStatusBarProps {
   currentScreen: string;
   isConnected: boolean;
   connectionFailed: boolean;
+  useContext: boolean;
   onClearConversation: () => void;
   onRetryConnection: () => void;
+  onToggleContext: () => void;
 }
 
 export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
   currentScreen,
   isConnected,
   connectionFailed,
+  useContext,
   onClearConversation,
   onRetryConnection,
+  onToggleContext,
 }) => {
   return (
     <div className="px-4 py-2 border-t border-sidebar-border bg-sidebar-accent/20">
+      {/* 첫 번째 줄: 화면 기반 대화 체크박스 (연결된 경우에만 표시) */}
+      {isConnected && (
+        <div className="flex items-center justify-between mb-2 border-b border-sidebar-border pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-sidebar-foreground/80">
+              {currentScreen}
+            </span>
+          </div>
+          <div
+            className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80 cursor-pointer hover:text-sidebar-foreground"
+            role="button"
+            onClick={onToggleContext}
+          >
+            <div className="w-3 h-3 border border-sidebar-foreground/40 rounded flex items-center justify-center">
+              {useContext && (
+                <div className="w-1.5 h-1.5 bg-sidebar-foreground/80 rounded-sm"></div>
+              )}
+            </div>
+            <span>화면 기반으로 대화하기</span>
+          </div>
+        </div>
+      )}
+
+      {/* 두 번째 줄: 현재 화면 정보와 대화 초기화 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div
@@ -32,10 +60,8 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
                 : "bg-yellow-500"
             )}
           ></div>
-          <span className="text-xs font-medium text-sidebar-foreground/80">
-            {connectionFailed
-              ? "일시적으로 챗봇을 이용할 수 없습니다"
-              : currentScreen}
+          <span className="text-xs font-medium text-sidebar-foreground/80 py-1">
+            {connectionFailed ? "연결 실패" : !isConnected ? "연결중" : ""}
           </span>
         </div>
         <div className="flex items-center gap-1">

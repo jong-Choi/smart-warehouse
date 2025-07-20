@@ -13,6 +13,9 @@ export interface ChatbotState {
   isConnected: boolean;
   isLoading: boolean;
   connectionFailed: boolean;
+  isCollecting: boolean;
+  systemContext: string;
+  useContext: boolean;
 }
 
 export interface SocketChunkData {
