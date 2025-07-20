@@ -16,11 +16,12 @@ import {
 import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 
 const MODEL_NAME_MAP = {
-  exaone: "exaone3.5:2.4b",
+  hyperclova05:
+    "hf.co/mradermacher/HyperCLOVAX-SEED-Text-Instruct-0.5B-hf-i1-GGUF:Q4_K_M",
 };
 
 // Ollama 모델 설정
-const MODEL_NAME = MODEL_NAME_MAP.exaone;
+const MODEL_NAME = MODEL_NAME_MAP.hyperclova05;
 
 export const fetchWithSecretKey = (
   url: Request | string | URL,
@@ -181,7 +182,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
               }
             );
             const systemMessage = `
-            사용자의 메시지에 대해 대답해주세요. 사용자가 보고 있는 화면에 대한 정보는 간략하게만 대답하세요.
+            사용자의 메시지에 대해 간략하게 대답해주세요. 화면에 대한 정보 알려주지 마세요.
             사용자의 메시지 : ${data.message} 
             사용자가 보고 있는 화면에 대한 정보 : ${data.systemContext}`;
             await chatMessageHistoryWithDeletion.addMessage(
