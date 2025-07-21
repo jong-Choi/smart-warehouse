@@ -29,8 +29,8 @@ export interface OperatorDetail {
   createdAt: string;
   shifts: OperatorShift[];
   works: OperatorWork[];
-  parcels: OperatorParcel[];
-  parcelsPagination: {
+  waybills: OperatorParcel[];
+  waybillsPagination: {
     page: number;
     limit: number;
     total: number;
@@ -93,5 +93,9 @@ export interface OperatorParcel {
     id: number;
     number: string;
     status: string;
+  };
+  parcel?: {
+    id: number;
+    declaredValue: number;
   };
 }

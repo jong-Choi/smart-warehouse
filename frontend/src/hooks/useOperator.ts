@@ -34,6 +34,25 @@ export function useOperators(
   });
 }
 
+// Suspense를 사용하는 작업자 목록 조회 훅
+export function useOperatorsSuspense(
+  params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
+  } = {}
+) {
+  return useQuery({
+    queryKey: operatorKeys.list(params),
+    queryFn: () => fetchOperators(params),
+    staleTime: 5 * 60 * 1000,
+    throwOnError: true,
+  });
+}
+
 // 작업자 기본 정보 조회
 export function useOperator(id: string) {
   return useQuery<Operator>({
@@ -66,6 +85,32 @@ export function useOperatorDetail(
       fetchOperatorDetail(code, page, pageSize, status, startDate, endDate),
     enabled: !!code,
     staleTime: 5 * 60 * 1000, // 5분간 fresh
+  });
+}
+
+// Suspense를 사용하는 작업자 상세 정보 조회 훅
+export function useOperatorDetailSuspense(
+  code: string,
+  page: number = 1,
+  pageSize: number = 20,
+  status: string = "all",
+  startDate?: string,
+  endDate?: string
+) {
+  return useQuery({
+    queryKey: [
+      ...operatorKeys.detail(code),
+      page,
+      pageSize,
+      status,
+      startDate,
+      endDate,
+    ],
+    queryFn: () =>
+      fetchOperatorDetail(code, page, pageSize, status, startDate, endDate),
+    enabled: !!code,
+    staleTime: 5 * 60 * 1000,
+    throwOnError: true,
   });
 }
 

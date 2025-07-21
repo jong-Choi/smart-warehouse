@@ -4,6 +4,9 @@ import {
   fetchUnloadingParcels,
   fetchWaybillById,
   updateWaybillStatus,
+  fetchWaybills, // 추가
+  fetchWaybillsByLocationStats,
+  fetchWaybillsByLocation,
 } from "@/api/waybillApi";
 import type { WaybillListResponse, Waybill, WaybillStatus } from "@/types";
 import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
@@ -103,5 +106,84 @@ export function useUnloadingParcelsSuspense() {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     throwOnError: true, // Suspense와 ErrorBoundary를 위해
+  });
+}
+
+// 전체 운송장 목록 Suspense hook
+export function useWaybillsSuspense(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: WaybillStatus;
+  startDate?: string;
+  endDate?: string;
+}) {
+  return useQuery<WaybillListResponse>({
+    queryKey: ["waybills", params],
+    queryFn: () => fetchWaybills(params),
+    staleTime: 5 * 60 * 1000,
+    throwOnError: true,
+  });
+}
+
+// 운송장 상세 Suspense hook
+export function useWaybillDetailSuspense(id: number) {
+  return useQuery<Waybill>({
+    queryKey: waybillKeys.detail(id),
+    queryFn: () => fetchWaybillById(id),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+    throwOnError: true,
+  });
+}
+
+// LocationWaybillStats 타입 정의
+export interface LocationWaybillStats {
+  locationId: number;
+  locationName: string;
+  address: string;
+  count: number;
+  statuses: { [key: string]: number };
+}
+
+// 지역별 운송장 통계 Suspense hook
+export function useLocationWaybillsStatsSuspense(params: {
+  status?: WaybillStatus;
+  startDate?: Date;
+  endDate?: Date;
+}) {
+  return useQuery<LocationWaybillStats[]>({
+    queryKey: ["locationWaybillsStats", params],
+    queryFn: () => fetchWaybillsByLocationStats(params),
+    staleTime: 5 * 60 * 1000,
+    throwOnError: true,
+  });
+}
+
+// 지역별 운송장 목록 Suspense hook
+export function useWaybillsByLocationSuspense(
+  locationId: number,
+  params: {
+    status?: WaybillStatus;
+    search?: string;
+    startDate?: Date;
+    endDate?: Date;
+    page?: number;
+    limit?: number;
+  }
+) {
+  return useQuery<{
+    data: Waybill[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>({
+    queryKey: ["waybillsByLocation", locationId, params],
+    queryFn: () => fetchWaybillsByLocation(locationId, params),
+    staleTime: 5 * 60 * 1000,
+    throwOnError: true,
   });
 }

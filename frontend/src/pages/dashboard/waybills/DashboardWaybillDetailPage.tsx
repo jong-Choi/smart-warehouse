@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { fetchWaybillById } from "@/api/waybillApi";
+import { useWaybillDetailSuspense } from "@/hooks/useWaybills";
 import type { Waybill } from "@/types";
 
 interface DashboardWaybillDetailPageProps {
@@ -15,41 +15,21 @@ interface DashboardWaybillDetailPageProps {
   onBack?: () => void;
 }
 
-export default function DashboardWaybillDetailPage({
-  waybill: propWaybill,
+function WaybillDetailContent({
+  waybill,
   onBack,
-}: DashboardWaybillDetailPageProps) {
+}: {
+  waybill?: Waybill;
+  onBack?: () => void;
+}) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [waybill, setWaybill] = useState<Waybill | null>(propWaybill || null);
-  const [loading, setLoading] = useState(!propWaybill);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadWaybill = async () => {
-      if (propWaybill) {
-        setWaybill(propWaybill);
-        setLoading(false);
-        return;
-      }
-
-      if (!id) return;
-
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await fetchWaybillById(parseInt(id));
-        setWaybill(data);
-      } catch (err) {
-        setError("운송장 정보를 불러오는데 실패했습니다.");
-        console.error("Failed to load waybill:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadWaybill();
-  }, [id, propWaybill]);
+  const suspenseWaybill = useWaybillDetailSuspense(id ? parseInt(id) : 0).data;
+  const waybillData: Waybill | null = waybill
+    ? waybill
+    : id
+    ? suspenseWaybill ?? null
+    : null;
 
   // 상태별 배지 색상
   const getStatusBadgeClass = (status: string) => {
@@ -93,25 +73,12 @@ export default function DashboardWaybillDetailPage({
     }).format(amount);
   };
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground ml-3">
-            운송장 정보를 불러오는 중...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !waybill) {
+  if (!waybillData) {
     return (
       <div className="p-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
           <p className="text-destructive font-medium">
-            {error || "운송장을 찾을 수 없습니다."}
+            운송장을 찾을 수 없습니다.
           </p>
           <Button
             onClick={() => navigate("/dashboard/waybills")}
@@ -138,9 +105,10 @@ export default function DashboardWaybillDetailPage({
           목록으로 돌아가기
         </Button>
         <h1 className="text-3xl font-bold">운송장 상세 정보</h1>
-        <p className="text-muted-foreground">운송장 번호: {waybill.number}</p>
+        <p className="text-muted-foreground">
+          운송장 번호: {waybillData.number}
+        </p>
       </div>
-
       {/* 운송장 기본 정보 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
@@ -153,25 +121,25 @@ export default function DashboardWaybillDetailPage({
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">운송장 번호</span>
-              <span className="font-medium">{waybill.number}</span>
+              <span className="font-medium">{waybillData.number}</span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">상태</span>
-              <Badge className={getStatusBadgeClass(waybill.status)}>
-                {getStatusText(waybill.status)}
+              <Badge className={getStatusBadgeClass(waybillData.status)}>
+                {getStatusText(waybillData.status)}
               </Badge>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">하차 예정일</span>
               <span className="font-medium">
-                {format(new Date(waybill.unloadDate), "yyyy년 MM월 dd일", {
+                {format(new Date(waybillData.unloadDate), "yyyy년 MM월 dd일", {
                   locale: ko,
                 })}
               </span>
             </div>
-            {waybill.processedAt && (
+            {waybillData.processedAt && (
               <>
                 <Separator />
                 <div className="flex justify-between items-center">
@@ -180,11 +148,9 @@ export default function DashboardWaybillDetailPage({
                   </span>
                   <span className="font-medium">
                     {format(
-                      new Date(waybill.processedAt),
+                      new Date(waybillData.processedAt),
                       "yyyy년 MM월 dd일 HH:mm",
-                      {
-                        locale: ko,
-                      }
+                      { locale: ko }
                     )}
                   </span>
                 </div>
@@ -194,26 +160,27 @@ export default function DashboardWaybillDetailPage({
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">작업자</span>
               <span className="font-medium">
-                {waybill.operator?.name || "미지정"}
+                {waybillData.operator?.name || "미지정"}
               </span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">배송지</span>
               <span className="font-medium">
-                {waybill.location?.name || "위치 정보 없음"}
+                {waybillData.location?.name || "위치 정보 없음"}
               </span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">사고 여부</span>
-              <Badge variant={waybill.isAccident ? "destructive" : "secondary"}>
-                {waybill.isAccident ? "사고" : "정상"}
+              <Badge
+                variant={waybillData.isAccident ? "destructive" : "secondary"}
+              >
+                {waybillData.isAccident ? "사고" : "정상"}
               </Badge>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -222,20 +189,20 @@ export default function DashboardWaybillDetailPage({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {waybill.parcel ? (
+            {waybillData.parcel ? (
               <>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">
                     물건 가격
                   </span>
                   <span className="font-medium text-lg">
-                    {formatCurrency(waybill.parcel.declaredValue)}
+                    {formatCurrency(waybillData.parcel.declaredValue)}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">소포 ID</span>
-                  <span className="font-medium">#{waybill.parcel.id}</span>
+                  <span className="font-medium">#{waybillData.parcel.id}</span>
                 </div>
               </>
             ) : (
@@ -247,5 +214,26 @@ export default function DashboardWaybillDetailPage({
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function DashboardWaybillDetailPage(
+  props: DashboardWaybillDetailPageProps
+) {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-muted-foreground ml-3">
+              운송장 정보를 불러오는 중...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <WaybillDetailContent {...props} />
+    </Suspense>
   );
 }

@@ -51,6 +51,8 @@ interface ParcelTableProps {
 export function ParcelTable({ parcels, total }: ParcelTableProps) {
   const navigate = useNavigate();
 
+  console.log("[ParcelTable] parcels:", parcels);
+
   return (
     <div className="bg-card rounded-lg border">
       <div className="p-6">
@@ -73,35 +75,48 @@ export function ParcelTable({ parcels, total }: ParcelTableProps) {
               </tr>
             </thead>
             <TableBody>
-              {parcels.map((parcel) => (
-                <TableRow key={parcel.id}>
-                  <TableCell className="font-medium">
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto font-medium"
-                      onClick={() =>
-                        navigate(`/dashboard/waybills/${parcel.waybill.id}`)
-                      }
-                    >
-                      {parcel.waybill.number}
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
-                        parcel.status
-                      )}`}
-                    >
-                      {getStatusLabel(parcel.status)}
-                    </span>
-                  </TableCell>
-                  <TableCell>{parcel.location.name}</TableCell>
-                  <TableCell>{formatCurrency(parcel.declaredValue)}</TableCell>
-                  <TableCell>
-                    {new Date(parcel.processedAt).toLocaleString("ko-KR")}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {parcels.map((parcel) => {
+                console.log(
+                  "[ParcelTable] parcel.declaredValue:",
+                  parcel.declaredValue
+                );
+                return (
+                  <TableRow key={parcel.id}>
+                    <TableCell className="font-medium">
+                      <Button
+                        variant="link"
+                        className="p-0 h-auto font-medium"
+                        onClick={() =>
+                          parcel.waybill
+                            ? navigate(
+                                `/dashboard/waybills/${parcel.waybill.id}`
+                              )
+                            : undefined
+                        }
+                        disabled={!parcel.waybill}
+                      >
+                        {parcel.waybill ? parcel.waybill.number : "-"}
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
+                          parcel.status
+                        )}`}
+                      >
+                        {getStatusLabel(parcel.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{parcel.location.name}</TableCell>
+                    <TableCell>
+                      {formatCurrency(parcel.parcel?.declaredValue ?? 0)}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(parcel.processedAt).toLocaleString("ko-KR")}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

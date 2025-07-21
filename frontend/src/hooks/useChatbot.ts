@@ -113,10 +113,13 @@ export const useChatbot = () => {
     setConnectionFailed(false);
     setIsConnected(false);
 
-    const socket = io("http://localhost:4000", {
-      transports: ["websocket", "polling"],
-      timeout: 5000, // 5초 타임아웃
-    });
+    const socket = io(
+      import.meta.env.VITE_API_BASE_URL || "http://localhost:3050",
+      {
+        transports: ["websocket", "polling"],
+        timeout: 5000, // 5초 타임아웃
+      }
+    );
 
     socketRef.current = socket;
 

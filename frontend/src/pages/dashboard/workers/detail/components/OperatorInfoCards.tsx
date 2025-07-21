@@ -27,7 +27,7 @@ export function OperatorInfoCards({ operator }: OperatorInfoCardsProps) {
         <h3 className="font-semibold text-sm text-muted-foreground mb-2">
           총 처리 건수
         </h3>
-        <p className="text-lg font-medium">{operator.parcels.length}건</p>
+        <p className="text-lg font-medium">{operator.waybills.length}건</p>
       </div>
     </div>
   );

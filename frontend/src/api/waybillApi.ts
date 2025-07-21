@@ -7,7 +7,7 @@ import type {
 import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3050";
 
 // API 응답 타입
 interface ApiResponse<T> {

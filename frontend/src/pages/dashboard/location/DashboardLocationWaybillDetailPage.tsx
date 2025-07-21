@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { Suspense, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -17,33 +17,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  CalendarIcon,
-  Search,
-  Filter,
-  RefreshCw,
-  ArrowLeft,
-} from "lucide-react";
+import { CalendarIcon, Search, Filter, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fetchWaybillsByLocation } from "@/api/waybillApi";
-import type { Waybill, WaybillStatus } from "@/types";
+import { useWaybillsByLocationSuspense } from "@/hooks/useWaybills";
+import type { WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useChatbotStore } from "@/stores/chatbotStore";
 
-export default function DashboardLocationWaybillDetailPage() {
+function LocationWaybillDetailContent() {
   const { locationId } = useParams<{ locationId: string }>();
   const navigate = useNavigate();
-  const [waybills, setWaybills] = useState<Waybill[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [locationName, setLocationName] = useState<string>("");
-
-  // 챗봇 스토어에서 컨텍스트 수집 관련 상태 가져오기
-  const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore();
-
   // 필터 상태
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<WaybillStatus | "all">(
@@ -54,206 +38,44 @@ export default function DashboardLocationWaybillDetailPage() {
     undefined
   );
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
   // 페이지네이션 상태
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 20,
-    total: 0,
-    totalPages: 0,
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  // Suspense 데이터 패칭
+  const { data } = useWaybillsByLocationSuspense(Number(locationId), {
+    status: statusFilter === "all" ? undefined : statusFilter,
+    search: searchTerm.trim() || undefined,
+    startDate: dateRange?.from,
+    endDate: dateRange?.to,
+    page,
+    limit,
   });
-
-  // 데이터 로드
-  const loadWaybills = useCallback(async () => {
-    if (!locationId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params: {
-        status?: WaybillStatus;
-        search?: string;
-        startDate?: Date;
-        endDate?: Date;
-        page?: number;
-        limit?: number;
-      } = {
-        page: pagination.page,
-        limit: pagination.limit,
-      };
-
-      if (statusFilter !== "all") {
-        params.status = statusFilter;
-      }
-      if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
-      }
-      if (dateRange?.from) {
-        params.startDate = dateRange.from;
-      }
-      if (dateRange?.to) {
-        params.endDate = dateRange.to;
-      }
-
-      const response = await fetchWaybillsByLocation(
-        parseInt(locationId),
-        params
-      );
-      setWaybills(response.data);
-      setPagination(response.pagination);
-
-      // 첫 번째 운송장에서 지역명 추출
-      if (response.data.length > 0 && response.data[0].location) {
-        setLocationName(response.data[0].location.name);
-      }
-    } catch (err) {
-      console.error("Error loading waybills by location:", err);
-      setError("운송장 목록을 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    locationId,
-    statusFilter,
-    searchTerm,
-    dateRange,
-    pagination.page,
-    pagination.limit,
-  ]);
-
-  useEffect(() => {
-    loadWaybills();
-  }, [
-    locationId,
-    statusFilter,
-    searchTerm,
-    dateRange,
-    pagination.page,
-    loadWaybills,
-  ]);
-
-  // 검색어 변경 시 첫 페이지로 이동
-  useEffect(() => {
-    if (pagination.page !== 1) {
-      setPagination((prev) => ({ ...prev, page: 1 }));
-    }
-  }, [searchTerm, statusFilter, dateRange, pagination.page]);
-
-  // chatbot에 사용할 컨텍스트
-  useEffect(() => {
-    // isCollecting이 true일 때만 systemContext 업데이트
-    if (waybills && isCollecting) {
-      // 날짜 범위 정보
-      const dateRangeText = dateRange?.from
-        ? dateRange.to
-          ? `${format(dateRange.from, "yyyy-MM-dd", { locale: ko })} ~ ${format(
-              dateRange.to,
-              "yyyy-MM-dd",
-              { locale: ko }
-            )}`
-          : `${format(dateRange.from, "yyyy-MM-dd", { locale: ko })} 이후`
-        : "전체 기간";
-
-      // 상태별 통계 계산
-      const statusStats: Record<string, number> = {};
-      waybills.forEach((waybill) => {
-        statusStats[waybill.status] = (statusStats[waybill.status] || 0) + 1;
-      });
-
-      // 운송가액 통계 계산 (parcel 정보가 있는 경우만)
-      const waybillsWithParcel = waybills.filter((waybill) => waybill.parcel);
-      const totalDeclaredValue = waybillsWithParcel.reduce(
-        (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
-        0
-      );
-      const avgDeclaredValue =
-        waybillsWithParcel.length > 0
-          ? totalDeclaredValue / waybillsWithParcel.length
-          : 0;
-
-      // 최근 운송장들
-      const recentWaybills = waybills.filter((waybill) => waybill.number);
-
-      const context = `현재 페이지: 지역별 운송장 상세 목록 (/dashboard/location/waybills/${locationId})
-⦁ 시간: ${new Date().toLocaleString()}
-
-⦁ 지역 정보:
-- 지역 ID: ${locationId}
-- 지역명: ${locationName}
-
-⦁ 전체 현황:
-- 총 운송장 수: ${waybills.length}개
-- 조회 기간: ${dateRangeText}
-- 총 운송가액: ${totalDeclaredValue.toLocaleString()}원
-- 평균 운송가액: ${avgDeclaredValue.toLocaleString()}원
-
-⦁ 필터 조건:
-- 검색어: ${searchTerm || "없음"}
-- 상태 필터: ${statusFilter === "all" ? "전체" : getStatusLabel(statusFilter)}
-- 날짜 범위: ${dateRangeText}
-- 현재 페이지: ${pagination.page}/${pagination.totalPages}
-
-⦁ 상태별 분포:
-${Object.entries(statusStats)
-  .map(
-    ([status, count]) =>
-      `- ${getStatusLabel(status as WaybillStatus)}: ${count}개`
-  )
-  .join("\n")}
-
-⦁ 최근 운송장들:
-${recentWaybills
-  .map(
-    (waybill) =>
-      `- ${waybill.number}: ${getStatusLabel(waybill.status)} (운송가액: ${
-        waybill.parcel?.declaredValue?.toLocaleString() || "N/A"
-      }원, 발송일: ${format(new Date(waybill.unloadDate), "yyyy-MM-dd", {
-        locale: ko,
-      })})`
-  )
-  .join("\n")}
-
-⦁ 사용자가 현재 보고 있는 정보:
-- ${locationName} 지역으로 배송되는 운송장들의 상세 목록
-- 운송장 번호, 상태, 발송일시, 배송완료일시, 소포 가격 정보 확인 가능
-- 검색, 상태 필터, 날짜 범위 필터로 원하는 운송장 조회 가능
-- 페이지네이션으로 많은 운송장 목록을 효율적으로 탐색 가능
-- 각 운송장의 상세 정보로 이동할 수 있는 기능 제공`;
-      setSystemContext(context);
-      setIsMessagePending(false);
-    }
-  }, [
-    waybills,
-    locationId,
-    locationName,
-    searchTerm,
-    statusFilter,
-    dateRange,
-    pagination,
-    setSystemContext,
-    isCollecting,
-    setIsMessagePending,
-  ]);
-
+  const waybills = data?.data || [];
+  const pagination = data?.pagination || {
+    page: 1,
+    limit,
+    total: 0,
+    totalPages: 1,
+  };
+  const locationName =
+    waybills.length > 0 && waybills[0].location
+      ? waybills[0].location.name
+      : "";
   // 날짜 범위 적용
   const applyDateRange = () => {
     setDateRange(tempDateRange);
     setIsDatePickerOpen(false);
   };
-
   // 날짜 범위 초기화
   const clearDateRange = () => {
     setDateRange(undefined);
     setTempDateRange(undefined);
     setIsDatePickerOpen(false);
   };
-
   // 페이지 변경
-  const handlePageChange = (page: number) => {
-    setPagination((prev) => ({ ...prev, page }));
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
-
   // 상태별 색상 가져오기
   const getStatusColor = (status: WaybillStatus) => {
     switch (status) {
@@ -269,7 +91,6 @@ ${recentWaybills
         return "bg-gray-100 text-gray-800";
     }
   };
-
   // 상태 한글 변환
   const getStatusLabel = (status: WaybillStatus) => {
     switch (status) {
@@ -285,21 +106,6 @@ ${recentWaybills
         return status;
     }
   };
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={loadWaybills} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            다시 시도
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -322,14 +128,7 @@ ${recentWaybills
             </p>
           </div>
         </div>
-        <Button onClick={loadWaybills} variant="outline" disabled={loading}>
-          <RefreshCw
-            className={cn("w-4 h-4 mr-2", loading && "animate-spin")}
-          />
-          새로고침
-        </Button>
       </div>
-
       {/* 필터 영역 */}
       <Card className="mb-6">
         <CardHeader>
@@ -356,7 +155,6 @@ ${recentWaybills
                 />
               </div>
             </div>
-
             {/* 상태 필터 */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">
@@ -380,7 +178,6 @@ ${recentWaybills
                 </SelectContent>
               </Select>
             </div>
-
             {/* 날짜 범위 선택 */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">
@@ -402,18 +199,11 @@ ${recentWaybills
                     {dateRange?.from ? (
                       dateRange.to ? (
                         <>
-                          {format(dateRange.from, "yyyy-MM-dd", {
-                            locale: ko,
-                          })}{" "}
-                          -{" "}
-                          {format(dateRange.to, "yyyy-MM-dd", {
-                            locale: ko,
-                          })}
+                          {format(dateRange.from, "yyyy-MM-dd", { locale: ko })}{" "}
+                          - {format(dateRange.to, "yyyy-MM-dd", { locale: ko })}
                         </>
                       ) : (
-                        format(dateRange.from, "yyyy-MM-dd", {
-                          locale: ko,
-                        })
+                        format(dateRange.from, "yyyy-MM-dd", { locale: ko })
                       )
                     ) : (
                       "날짜 범위 선택"
@@ -442,160 +232,155 @@ ${recentWaybills
           </div>
         </CardContent>
       </Card>
-
       {/* 운송장 목록 */}
       <Card>
         <CardHeader>
           <CardTitle>운송장 목록 ({pagination.total}개)</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
-                        운송장 번호
-                      </th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        상태
-                      </th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        하차 예정일
-                      </th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        처리 일시
-                      </th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        소포 가격
-                      </th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                        작업
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {waybills.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="border border-gray-300 px-4 py-8 text-center text-gray-500"
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                    운송장 번호
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                    상태
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                    하차 예정일
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                    처리 일시
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                    소포 가격
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                    작업
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {waybills.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="border border-gray-300 px-4 py-8 text-center text-gray-500"
+                    >
+                      조건에 맞는 운송장이 없습니다.
+                    </td>
+                  </tr>
+                ) : (
+                  waybills.map((waybill) => (
+                    <tr key={waybill.id} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3">
+                        <div className="font-medium">{waybill.number}</div>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">
+                        <Badge className={getStatusColor(waybill.status)}>
+                          {getStatusLabel(waybill.status)}
+                        </Badge>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">
+                        {format(new Date(waybill.unloadDate), "yyyy-MM-dd", {
+                          locale: ko,
+                        })}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">
+                        {waybill.processedAt
+                          ? format(
+                              new Date(waybill.processedAt),
+                              "yyyy-MM-dd HH:mm",
+                              { locale: ko }
+                            )
+                          : "-"}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">
+                        {waybill.parcel?.declaredValue
+                          ? `${waybill.parcel.declaredValue.toLocaleString()}원`
+                          : "-"}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigate(`/dashboard/waybills/${waybill.id}`)
+                          }
                         >
-                          조건에 맞는 운송장이 없습니다.
-                        </td>
-                      </tr>
-                    ) : (
-                      waybills.map((waybill) => (
-                        <tr key={waybill.id} className="hover:bg-gray-50">
-                          <td className="border border-gray-300 px-4 py-3">
-                            <div className="font-medium">{waybill.number}</div>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-3 text-center">
-                            <Badge className={getStatusColor(waybill.status)}>
-                              {getStatusLabel(waybill.status)}
-                            </Badge>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-3 text-center">
-                            {format(
-                              new Date(waybill.unloadDate),
-                              "yyyy-MM-dd",
-                              {
-                                locale: ko,
-                              }
-                            )}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-3 text-center">
-                            {waybill.processedAt
-                              ? format(
-                                  new Date(waybill.processedAt),
-                                  "yyyy-MM-dd HH:mm",
-                                  {
-                                    locale: ko,
-                                  }
-                                )
-                              : "-"}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-3 text-center">
-                            {waybill.parcel?.declaredValue
-                              ? `${waybill.parcel.declaredValue.toLocaleString()}원`
-                              : "-"}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-3 text-center">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                navigate(`/dashboard/waybills/${waybill.id}`)
-                              }
-                            >
-                              상세보기
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                          상세보기
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* 페이지네이션 */}
+          {pagination.totalPages > 1 && (
+            <div className="flex justify-center items-center mt-6 space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+              >
+                이전
+              </Button>
+              <div className="flex space-x-1">
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                  .filter(
+                    (pageNum) =>
+                      Math.abs(pageNum - pagination.page) <= 2 ||
+                      pageNum === 1 ||
+                      pageNum === pagination.totalPages
+                  )
+                  .map((pageNum, index, array) => (
+                    <React.Fragment key={pageNum}>
+                      {index > 0 && array[index - 1] !== pageNum - 1 && (
+                        <span className="px-2 py-1 text-gray-500">...</span>
+                      )}
+                      <Button
+                        variant={
+                          pagination.page === pageNum ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    </React.Fragment>
+                  ))}
               </div>
-
-              {/* 페이지네이션 */}
-              {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center mt-6 space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                  >
-                    이전
-                  </Button>
-                  <div className="flex space-x-1">
-                    {Array.from(
-                      { length: pagination.totalPages },
-                      (_, i) => i + 1
-                    )
-                      .filter(
-                        (page) =>
-                          Math.abs(page - pagination.page) <= 2 ||
-                          page === 1 ||
-                          page === pagination.totalPages
-                      )
-                      .map((page, index, array) => (
-                        <React.Fragment key={page}>
-                          {index > 0 && array[index - 1] !== page - 1 && (
-                            <span className="px-2 py-1 text-gray-500">...</span>
-                          )}
-                          <Button
-                            variant={
-                              pagination.page === page ? "default" : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePageChange(page)}
-                          >
-                            {page}
-                          </Button>
-                        </React.Fragment>
-                      ))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page === pagination.totalPages}
-                  >
-                    다음
-                  </Button>
-                </div>
-              )}
-            </>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+              >
+                다음
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function DashboardLocationWaybillDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      }
+    >
+      <LocationWaybillDetailContent />
+    </Suspense>
   );
 }
