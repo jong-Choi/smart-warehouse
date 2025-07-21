@@ -1,0 +1,20 @@
+# docker-compose.yml
+
+services:
+  factory-backend:
+    build: .
+    container_name: factory-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3050:3050"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - factory-network
+
+networks:
+  factory-network:
+    driver: bridge

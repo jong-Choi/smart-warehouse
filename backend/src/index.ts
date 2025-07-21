@@ -89,6 +89,7 @@ app.use(
 // 웹소켓 서버 설정
 setupChatbotSocket(server);
 
-server.listen(PORT, () => {
+server.listen(Number(PORT), "0.0.0.0", () => {
   // Server started successfully
+  console.log(`Server is running on port ${PORT}`);
 });
