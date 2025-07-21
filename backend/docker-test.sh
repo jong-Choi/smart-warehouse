@@ -36,18 +36,18 @@ log_success "Docker가 정상 실행 중입니다."
 
 # 2. 기존 컨테이너 및 캐시 정리
 log_info "기존 컨테이너 및 캐시 정리 중..."
-docker-compose down > /dev/null 2>&1
+docker compose down > /dev/null 2>&1
 docker system prune -f > /dev/null 2>&1
 log_success "정리 완료"
 
 # 3. 로컬 Prisma 클라이언트 재생성 (플랫폼 호환성)
 log_info "Prisma 클라이언트 재생성 중..."
-npx prisma generate > /dev/null 2>&1
+npx prisma generate
 log_success "Prisma 클라이언트 생성 완료"
 
 # 4. Docker 이미지 빌드
 log_info "Docker 이미지 빌드 중..."
-if docker-compose build --no-cache; then
+if docker compose build --no-cache; then
     log_success "이미지 빌드 완료"
 else
     log_error "이미지 빌드 실패"
@@ -56,7 +56,7 @@ fi
 
 # 5. 컨테이너 시작
 log_info "컨테이너 시작 중..."
-if docker-compose up -d; then
+if docker compose up -d; then
     log_success "컨테이너 시작 완료"
 else
     log_error "컨테이너 시작 실패"
@@ -66,18 +66,18 @@ fi
 # 6. 컨테이너 상태 확인
 log_info "컨테이너 상태 확인 중..."
 sleep 3
-if docker-compose ps | grep -q "Up"; then
+if docker compose ps | grep -q "Up"; then
     log_success "컨테이너가 정상 실행 중입니다"
 else
     log_error "컨테이너 실행 실패"
-    docker-compose logs factory-backend
+    docker compose logs factory-backend
     exit 1
 fi
 
 # 7. 데이터베이스 파일 확인
 log_info "데이터베이스 파일 확인 중..."
-if docker-compose exec -T factory-backend ls -la dev.db > /dev/null 2>&1; then
-    db_size=$(docker-compose exec -T factory-backend stat -f%z dev.db 2>/dev/null || docker-compose exec -T factory-backend stat -c%s dev.db 2>/dev/null)
+if docker compose exec -T factory-backend ls -la dev.db > /dev/null 2>&1; then
+    db_size=$(docker compose exec -T factory-backend stat -f%z dev.db 2>/dev/null || docker compose exec -T factory-backend stat -c%s dev.db 2>/dev/null)
     if [ "$db_size" -gt 1000000 ]; then
         log_success "기존 데이터베이스 파일 확인 완료 (크기: ${db_size} bytes)"
     else
@@ -94,7 +94,7 @@ if curl -s http://localhost:3050/health > /dev/null; then
     log_success "API 서버가 정상 작동 중입니다"
 else
     log_error "API 서버 응답 없음"
-    docker-compose logs factory-backend
+    docker compose logs factory-backend
     exit 1
 fi
 
@@ -161,10 +161,10 @@ echo "   - 기존 시드 데이터가 포함된 dev.db 파일을 사용합니다
 echo "   - 운송장, 작업자, 배송지, 근무기록, 작업통계 데이터 포함"
 echo ""
 echo "🔧 유용한 명령어:"
-echo "   - 로그 확인: docker-compose logs -f factory-backend"
-echo "   - 컨테이너 중지: docker-compose down"
-echo "   - 컨테이너 재시작: docker-compose restart"
-echo "   - 데이터베이스 확인: docker-compose exec factory-backend ls -la dev.db"
-echo "   - 데이터베이스 스키마 동기화: docker-compose exec factory-backend npx prisma db push"
+echo "   - 로그 확인: docker compose logs -f factory-backend"
+echo "   - 컨테이너 중지: docker compose down"
+echo "   - 컨테이너 재시작: docker compose restart"
+echo "   - 데이터베이스 확인: docker compose exec factory-backend ls -la dev.db"
+echo "   - 데이터베이스 스키마 동기화: docker compose exec factory-backend npx prisma db push"
 echo ""
 echo "🚀 이제 프론트엔드에서 http://localhost:3050으로 API를 호출할 수 있습니다!" 
