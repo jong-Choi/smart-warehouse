@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useDailySalesSuspense } from "@/hooks/useSales";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,12 +115,12 @@ ${salesData
       setIsMessagePending(false);
     }
   }, [
-    salesData,
-    currentYear,
     currentMonth,
-    setSystemContext,
+    currentYear,
     isCollecting,
+    salesData,
     setIsMessagePending,
+    setSystemContext,
   ]);
 
   const formatCurrency = (value: number) => {
@@ -200,7 +199,7 @@ ${salesData
             <tbody className="bg-white divide-y divide-gray-200">
               {salesData.map((data, index) => (
                 <tr
-                  key={data.period}
+                  key={`${data.period}-${index}`}
                   className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                 >
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -350,18 +349,11 @@ export function DashboardDailySalesPage() {
           </Button>
         </div>
       </div>
-      <Suspense
-        fallback={
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        }
-      >
-        <DailySalesContent
-          currentYear={currentYear}
-          currentMonth={currentMonth}
-        />
-      </Suspense>
+
+      <DailySalesContent
+        currentYear={currentYear}
+        currentMonth={currentMonth}
+      />
     </div>
   );
 }

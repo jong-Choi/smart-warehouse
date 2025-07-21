@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useWaybillsSuspense } from "@/hooks/useWaybills";
 import type { Waybill, WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
+import { TableSkeleton } from "@pages/dashboard/workers/components";
 
 interface WaybillsListPageProps {
   onWaybillSelect?: (waybill: Waybill) => void;
@@ -78,9 +79,8 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
   const handleWaybillSelect = (waybill: Waybill) => {
     if (onWaybillSelect) {
       onWaybillSelect(waybill);
-    } else {
-      navigate(`/dashboard/waybills/${waybill.id}`);
     }
+    navigate(`/dashboard/waybills/${waybill.id}`);
   };
 
   // 상태별 배지 색상
@@ -381,16 +381,7 @@ export default function DashboardWaybillsListPage(
   props: WaybillsListPageProps
 ) {
   return (
-    <Suspense
-      fallback={
-        <div className="p-6 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground mt-2">
-            운송장 목록을 불러오는 중...
-          </p>
-        </div>
-      }
-    >
+    <Suspense fallback={<TableSkeleton rows={20} />}>
       <WaybillsListContent {...props} />
     </Suspense>
   );

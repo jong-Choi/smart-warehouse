@@ -23,6 +23,7 @@ import type { WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TableSkeleton } from "@pages/dashboard/workers/components";
 
 function LocationWaybillsContent() {
   const navigate = useNavigate();
@@ -302,13 +303,7 @@ function LocationWaybillsContent() {
 
 export default function DashboardLocationWaybillsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      }
-    >
+    <Suspense fallback={<TableSkeleton rows={20} />}>
       <LocationWaybillsContent />
     </Suspense>
   );

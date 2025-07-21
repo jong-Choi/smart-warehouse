@@ -1,4 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   fetchUnloadingWaybills,
   fetchUnloadingParcels,
@@ -32,7 +36,7 @@ export const waybillKeys = {
 
 // 하차 예정 운송장 목록 조회
 export function useUnloadingWaybills() {
-  return useQuery<WaybillListResponse>({
+  return useSuspenseQuery<WaybillListResponse>({
     queryKey: waybillKeys.unloading(),
     queryFn: fetchUnloadingWaybills,
     staleTime: 60 * 60 * 1000, // 60분간 fresh
@@ -42,7 +46,7 @@ export function useUnloadingWaybills() {
 
 // 하차 예정 소포 목록 조회 (2000개) - 가장 중요한 hook
 export function useUnloadingParcels() {
-  return useQuery<ParcelListResponse>({
+  return useSuspenseQuery<ParcelListResponse>({
     queryKey: waybillKeys.parcels.unloading(),
     queryFn: fetchUnloadingParcels,
     staleTime: 60 * 60 * 1000, // 60분간 fresh
@@ -52,10 +56,9 @@ export function useUnloadingParcels() {
 
 // 특정 운송장 상세 조회
 export function useWaybillDetail(id: number) {
-  return useQuery<Waybill>({
+  return useSuspenseQuery<Waybill>({
     queryKey: waybillKeys.detail(id),
     queryFn: () => fetchWaybillById(id),
-    enabled: !!id, // id가 있을 때만 실행
     staleTime: 2 * 60 * 1000, // 2분간 fresh
   });
 }
@@ -100,12 +103,11 @@ export function useUpdateWaybillStatus() {
 
 // Suspense를 사용하는 하차 예정 소포 hook
 export function useUnloadingParcelsSuspense() {
-  return useQuery<ParcelListResponse>({
+  return useSuspenseQuery<ParcelListResponse>({
     queryKey: waybillKeys.parcels.unloading(),
     queryFn: fetchUnloadingParcels,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    throwOnError: true, // Suspense와 ErrorBoundary를 위해
   });
 }
 
@@ -118,22 +120,19 @@ export function useWaybillsSuspense(params: {
   startDate?: string;
   endDate?: string;
 }) {
-  return useQuery<WaybillListResponse>({
+  return useSuspenseQuery<WaybillListResponse>({
     queryKey: ["waybills", params],
     queryFn: () => fetchWaybills(params),
     staleTime: 5 * 60 * 1000,
-    throwOnError: true,
   });
 }
 
 // 운송장 상세 Suspense hook
 export function useWaybillDetailSuspense(id: number) {
-  return useQuery<Waybill>({
+  return useSuspenseQuery<Waybill>({
     queryKey: waybillKeys.detail(id),
     queryFn: () => fetchWaybillById(id),
-    enabled: !!id,
     staleTime: 2 * 60 * 1000,
-    throwOnError: true,
   });
 }
 
@@ -152,11 +151,10 @@ export function useLocationWaybillsStatsSuspense(params: {
   startDate?: Date;
   endDate?: Date;
 }) {
-  return useQuery<LocationWaybillStats[]>({
+  return useSuspenseQuery<LocationWaybillStats[]>({
     queryKey: ["locationWaybillsStats", params],
     queryFn: () => fetchWaybillsByLocationStats(params),
     staleTime: 5 * 60 * 1000,
-    throwOnError: true,
   });
 }
 
@@ -172,7 +170,7 @@ export function useWaybillsByLocationSuspense(
     limit?: number;
   }
 ) {
-  return useQuery<{
+  return useSuspenseQuery<{
     data: Waybill[];
     pagination: {
       page: number;
@@ -184,6 +182,5 @@ export function useWaybillsByLocationSuspense(
     queryKey: ["waybillsByLocation", locationId, params],
     queryFn: () => fetchWaybillsByLocation(locationId, params),
     staleTime: 5 * 60 * 1000,
-    throwOnError: true,
   });
 }

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   fetchOperatorById,
   fetchOperatorDetail,
@@ -27,7 +27,7 @@ export function useOperators(
     sortDirection?: "asc" | "desc";
   } = {}
 ) {
-  return useQuery({
+  return useSuspenseQuery({
     queryKey: operatorKeys.list(params),
     queryFn: () => fetchOperators(params),
     staleTime: 5 * 60 * 1000, // 5분간 fresh
@@ -45,20 +45,18 @@ export function useOperatorsSuspense(
     sortDirection?: "asc" | "desc";
   } = {}
 ) {
-  return useQuery({
+  return useSuspenseQuery({
     queryKey: operatorKeys.list(params),
     queryFn: () => fetchOperators(params),
     staleTime: 5 * 60 * 1000,
-    throwOnError: true,
   });
 }
 
 // 작업자 기본 정보 조회
 export function useOperator(id: string) {
-  return useQuery<Operator>({
+  return useSuspenseQuery<Operator>({
     queryKey: operatorKeys.detail(id),
     queryFn: () => fetchOperatorById(id),
-    enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5분간 fresh
   });
 }
@@ -72,7 +70,7 @@ export function useOperatorDetail(
   startDate?: string,
   endDate?: string
 ) {
-  return useQuery<OperatorDetail>({
+  return useSuspenseQuery<OperatorDetail>({
     queryKey: [
       ...operatorKeys.detail(code),
       page,
@@ -83,7 +81,6 @@ export function useOperatorDetail(
     ],
     queryFn: () =>
       fetchOperatorDetail(code, page, pageSize, status, startDate, endDate),
-    enabled: !!code,
     staleTime: 5 * 60 * 1000, // 5분간 fresh
   });
 }
@@ -97,7 +94,7 @@ export function useOperatorDetailSuspense(
   startDate?: string,
   endDate?: string
 ) {
-  return useQuery({
+  return useSuspenseQuery({
     queryKey: [
       ...operatorKeys.detail(code),
       page,
@@ -108,9 +105,7 @@ export function useOperatorDetailSuspense(
     ],
     queryFn: () =>
       fetchOperatorDetail(code, page, pageSize, status, startDate, endDate),
-    enabled: !!code,
     staleTime: 5 * 60 * 1000,
-    throwOnError: true,
   });
 }
 
@@ -121,7 +116,7 @@ export function useOperatorParcels(
   pageSize: number = 20,
   status: string = "all"
 ) {
-  return useQuery<{
+  return useSuspenseQuery<{
     data: OperatorParcel[];
     pagination: {
       page: number;
@@ -132,7 +127,6 @@ export function useOperatorParcels(
   }>({
     queryKey: [...operatorKeys.parcels(operatorId), page, pageSize, status],
     queryFn: () => fetchOperatorParcels(operatorId, page, pageSize, status),
-    enabled: !!operatorId,
     staleTime: 2 * 60 * 1000, // 2분간 fresh
   });
 }

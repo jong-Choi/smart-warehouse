@@ -8,20 +8,21 @@ export function TableSkeleton({ rows = 5 }: TableSkeletonProps) {
   return (
     <div className="bg-white rounded-lg border">
       <div className="p-6 border-b">
-        <h2 className="text-lg font-semibold">작업자 정보</h2>
+        {/* <h2 className="text-lg font-semibold">작업자 정보</h2> */}
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
       </div>
       <div className="p-6">
         <Table>
           <thead>
             <TableRow>
-              <TableHead>코드</TableHead>
-              <TableHead>이름</TableHead>
-              <TableHead>타입</TableHead>
-              <TableHead>상태</TableHead>
-              <TableHead>근무일수</TableHead>
-              <TableHead>정상 처리</TableHead>
-              <TableHead>사고 처리</TableHead>
-              <TableHead>등록일</TableHead>
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
+              <TableHead className="bg-gray-200 rounded animate-pulse" />
             </TableRow>
           </thead>
           <TableBody>

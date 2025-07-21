@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useWaybillDetailSuspense } from "@/hooks/useWaybills";
 import type { Waybill } from "@/types";
+import { TableSkeleton } from "@pages/dashboard/workers/components";
 
 interface DashboardWaybillDetailPageProps {
   waybill?: Waybill;
@@ -221,18 +222,7 @@ export default function DashboardWaybillDetailPage(
   props: DashboardWaybillDetailPageProps
 ) {
   return (
-    <Suspense
-      fallback={
-        <div className="p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-muted-foreground ml-3">
-              운송장 정보를 불러오는 중...
-            </p>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<TableSkeleton rows={20} />}>
       <WaybillDetailContent {...props} />
     </Suspense>
   );
