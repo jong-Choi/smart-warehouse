@@ -144,6 +144,8 @@ model WaybillStats {
   date        String   // 'YYYY-MM-DD'
   locationId  Int
   totalCount  Int
+  normalCount Int      @default(0) // 정상처리 운송장 수
+  accidentCount Int    @default(0) // 사고 운송장 수
 
   location    Location @relation(fields: [locationId], references: [id])
 
@@ -156,6 +158,11 @@ model SalesStats {
   date        String   // 'YYYY-MM-DD'
   locationId  Int
   totalSales  Int
+  totalCount  Int      @default(0) // 전체 운송장 수
+  normalCount Int      @default(0) // 정상처리 운송장 수
+  normalValue Int      @default(0) // 정상처리 declaredValue 합
+  accidentCount Int    @default(0) // 사고 운송장 수
+  accidentValue Int    @default(0) // 사고 declaredValue 합
 
   location    Location @relation(fields: [locationId], references: [id])
 
@@ -168,6 +175,8 @@ model WaybillYearlyStats {
   year        Int
   locationId  Int
   totalCount  Int
+  normalCount Int      @default(0) // 정상처리 운송장 수
+  accidentCount Int    @default(0) // 사고 운송장 수
 
   location    Location @relation(fields: [locationId], references: [id])
 
@@ -181,6 +190,8 @@ model WaybillMonthlyStats {
   month       Int
   locationId  Int
   totalCount  Int
+  normalCount Int      @default(0) // 정상처리 운송장 수
+  accidentCount Int    @default(0) // 사고 운송장 수
 
   location    Location @relation(fields: [locationId], references: [id])
 
@@ -193,6 +204,11 @@ model SalesYearlyStats {
   year        Int
   locationId  Int
   totalSales  Int
+  totalCount  Int      @default(0)
+  normalCount Int      @default(0)
+  normalValue Int      @default(0)
+  accidentCount Int    @default(0)
+  accidentValue Int    @default(0)
 
   location    Location @relation(fields: [locationId], references: [id])
 
@@ -206,6 +222,11 @@ model SalesMonthlyStats {
   month       Int
   locationId  Int
   totalSales  Int
+  totalCount  Int      @default(0)
+  normalCount Int      @default(0)
+  normalValue Int      @default(0)
+  accidentCount Int    @default(0)
+  accidentValue Int    @default(0)
 
   location    Location @relation(fields: [locationId], references: [id])
 

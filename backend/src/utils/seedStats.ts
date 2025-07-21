@@ -8,22 +8,42 @@ async function seedWaybillStats() {
     select: {
       unloadDate: true,
       locationId: true,
+      status: true,
+      isAccident: true,
     },
   });
 
-  // Map<date-locationId, count>
+  // Map<date-locationId, {date, locationId, totalCount, normalCount, accidentCount}>
   const statsMap = new Map<
     string,
-    { date: string; locationId: number; totalCount: number }
+    {
+      date: string;
+      locationId: number;
+      totalCount: number;
+      normalCount: number;
+      accidentCount: number;
+    }
   >();
 
   waybills.forEach((wb) => {
     const date = wb.unloadDate.toISOString().split("T")[0];
     const key = `${date}-${wb.locationId}`;
     if (!statsMap.has(key)) {
-      statsMap.set(key, { date, locationId: wb.locationId, totalCount: 0 });
+      statsMap.set(key, {
+        date,
+        locationId: wb.locationId,
+        totalCount: 0,
+        normalCount: 0,
+        accidentCount: 0,
+      });
     }
-    statsMap.get(key)!.totalCount++;
+    const stat = statsMap.get(key)!;
+    stat.totalCount++;
+    if (wb.status === "NORMAL" && !wb.isAccident) {
+      stat.normalCount++;
+    } else if (wb.status === "ACCIDENT" || wb.isAccident) {
+      stat.accidentCount++;
+    }
   });
 
   // 기존 데이터 삭제 후 insert
@@ -40,6 +60,8 @@ async function seedSalesStats() {
     select: {
       unloadDate: true,
       locationId: true,
+      status: true,
+      isAccident: true,
       parcel: {
         select: {
           declaredValue: true,
@@ -48,19 +70,47 @@ async function seedSalesStats() {
     },
   });
 
-  // Map<date-locationId, totalSales>
+  // Map<date-locationId, {...}>
   const statsMap = new Map<
     string,
-    { date: string; locationId: number; totalSales: number }
+    {
+      date: string;
+      locationId: number;
+      totalSales: number;
+      totalCount: number;
+      normalCount: number;
+      normalValue: number;
+      accidentCount: number;
+      accidentValue: number;
+    }
   >();
 
   waybills.forEach((wb) => {
     const date = wb.unloadDate.toISOString().split("T")[0];
     const key = `${date}-${wb.locationId}`;
     if (!statsMap.has(key)) {
-      statsMap.set(key, { date, locationId: wb.locationId, totalSales: 0 });
+      statsMap.set(key, {
+        date,
+        locationId: wb.locationId,
+        totalSales: 0,
+        totalCount: 0,
+        normalCount: 0,
+        normalValue: 0,
+        accidentCount: 0,
+        accidentValue: 0,
+      });
     }
-    statsMap.get(key)!.totalSales += wb.parcel?.declaredValue || 0;
+    const stat = statsMap.get(key)!;
+    const value = wb.parcel?.declaredValue || 0;
+    stat.totalSales += value;
+    stat.totalCount++;
+    if (wb.status === "NORMAL" && !wb.isAccident) {
+      stat.normalCount++;
+      stat.normalValue += value;
+    } else if (wb.status === "ACCIDENT" || wb.isAccident) {
+      stat.accidentCount++;
+      stat.accidentValue += value;
+    }
   });
 
   // 기존 데이터 삭제 후 insert
@@ -73,19 +123,42 @@ async function seedSalesStats() {
 
 async function seedWaybillYearlyStats() {
   const waybills = await prisma.waybill.findMany({
-    select: { unloadDate: true, locationId: true },
+    select: {
+      unloadDate: true,
+      locationId: true,
+      status: true,
+      isAccident: true,
+    },
   });
   const statsMap = new Map<
     string,
-    { year: number; locationId: number; totalCount: number }
+    {
+      year: number;
+      locationId: number;
+      totalCount: number;
+      normalCount: number;
+      accidentCount: number;
+    }
   >();
   waybills.forEach((wb) => {
     const year = wb.unloadDate.getFullYear();
     const key = `${year}-${wb.locationId}`;
     if (!statsMap.has(key)) {
-      statsMap.set(key, { year, locationId: wb.locationId, totalCount: 0 });
+      statsMap.set(key, {
+        year,
+        locationId: wb.locationId,
+        totalCount: 0,
+        normalCount: 0,
+        accidentCount: 0,
+      });
     }
-    statsMap.get(key)!.totalCount++;
+    const stat = statsMap.get(key)!;
+    stat.totalCount++;
+    if (wb.status === "NORMAL" && !wb.isAccident) {
+      stat.normalCount++;
+    } else if (wb.status === "ACCIDENT" || wb.isAccident) {
+      stat.accidentCount++;
+    }
   });
   await prisma.waybillYearlyStats.deleteMany({});
   await prisma.waybillYearlyStats.createMany({
@@ -96,11 +169,23 @@ async function seedWaybillYearlyStats() {
 
 async function seedWaybillMonthlyStats() {
   const waybills = await prisma.waybill.findMany({
-    select: { unloadDate: true, locationId: true },
+    select: {
+      unloadDate: true,
+      locationId: true,
+      status: true,
+      isAccident: true,
+    },
   });
   const statsMap = new Map<
     string,
-    { year: number; month: number; locationId: number; totalCount: number }
+    {
+      year: number;
+      month: number;
+      locationId: number;
+      totalCount: number;
+      normalCount: number;
+      accidentCount: number;
+    }
   >();
   waybills.forEach((wb) => {
     const year = wb.unloadDate.getFullYear();
@@ -112,9 +197,17 @@ async function seedWaybillMonthlyStats() {
         month,
         locationId: wb.locationId,
         totalCount: 0,
+        normalCount: 0,
+        accidentCount: 0,
       });
     }
-    statsMap.get(key)!.totalCount++;
+    const stat = statsMap.get(key)!;
+    stat.totalCount++;
+    if (wb.status === "NORMAL" && !wb.isAccident) {
+      stat.normalCount++;
+    } else if (wb.status === "ACCIDENT" || wb.isAccident) {
+      stat.accidentCount++;
+    }
   });
   await prisma.waybillMonthlyStats.deleteMany({});
   await prisma.waybillMonthlyStats.createMany({
@@ -128,20 +221,50 @@ async function seedSalesYearlyStats() {
     select: {
       unloadDate: true,
       locationId: true,
+      status: true,
+      isAccident: true,
       parcel: { select: { declaredValue: true } },
     },
   });
   const statsMap = new Map<
     string,
-    { year: number; locationId: number; totalSales: number }
+    {
+      year: number;
+      locationId: number;
+      totalSales: number;
+      totalCount: number;
+      normalCount: number;
+      normalValue: number;
+      accidentCount: number;
+      accidentValue: number;
+    }
   >();
   waybills.forEach((wb) => {
     const year = wb.unloadDate.getFullYear();
     const key = `${year}-${wb.locationId}`;
     if (!statsMap.has(key)) {
-      statsMap.set(key, { year, locationId: wb.locationId, totalSales: 0 });
+      statsMap.set(key, {
+        year,
+        locationId: wb.locationId,
+        totalSales: 0,
+        totalCount: 0,
+        normalCount: 0,
+        normalValue: 0,
+        accidentCount: 0,
+        accidentValue: 0,
+      });
     }
-    statsMap.get(key)!.totalSales += wb.parcel?.declaredValue || 0;
+    const stat = statsMap.get(key)!;
+    const value = wb.parcel?.declaredValue || 0;
+    stat.totalSales += value;
+    stat.totalCount++;
+    if (wb.status === "NORMAL" && !wb.isAccident) {
+      stat.normalCount++;
+      stat.normalValue += value;
+    } else if (wb.status === "ACCIDENT" || wb.isAccident) {
+      stat.accidentCount++;
+      stat.accidentValue += value;
+    }
   });
   await prisma.salesYearlyStats.deleteMany({});
   await prisma.salesYearlyStats.createMany({
@@ -155,12 +278,24 @@ async function seedSalesMonthlyStats() {
     select: {
       unloadDate: true,
       locationId: true,
+      status: true,
+      isAccident: true,
       parcel: { select: { declaredValue: true } },
     },
   });
   const statsMap = new Map<
     string,
-    { year: number; month: number; locationId: number; totalSales: number }
+    {
+      year: number;
+      month: number;
+      locationId: number;
+      totalSales: number;
+      totalCount: number;
+      normalCount: number;
+      normalValue: number;
+      accidentCount: number;
+      accidentValue: number;
+    }
   >();
   waybills.forEach((wb) => {
     const year = wb.unloadDate.getFullYear();
@@ -172,9 +307,24 @@ async function seedSalesMonthlyStats() {
         month,
         locationId: wb.locationId,
         totalSales: 0,
+        totalCount: 0,
+        normalCount: 0,
+        normalValue: 0,
+        accidentCount: 0,
+        accidentValue: 0,
       });
     }
-    statsMap.get(key)!.totalSales += wb.parcel?.declaredValue || 0;
+    const stat = statsMap.get(key)!;
+    const value = wb.parcel?.declaredValue || 0;
+    stat.totalSales += value;
+    stat.totalCount++;
+    if (wb.status === "NORMAL" && !wb.isAccident) {
+      stat.normalCount++;
+      stat.normalValue += value;
+    } else if (wb.status === "ACCIDENT" || wb.isAccident) {
+      stat.accidentCount++;
+      stat.accidentValue += value;
+    }
   });
   await prisma.salesMonthlyStats.deleteMany({});
   await prisma.salesMonthlyStats.createMany({

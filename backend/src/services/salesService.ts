@@ -8,7 +8,7 @@ export interface SalesData {
   totalShippingValue: number; // 총 운송가액
   avgShippingValue: number; // 운송장별 평균 운송가액
   normalProcessCount: number; // 정상처리건수
-  processValue: number; // 처리가액
+  processValue: number; // 정상처리가액
   accidentCount: number; // 사고건수
   accidentValue: number; // 사고가액
 }
@@ -29,21 +29,33 @@ export class SalesService {
    * 월별 매출 통계를 통계 테이블에서 조회
    */
   async getMonthlySales(year: number): Promise<SalesData[]> {
-    const stats = await prisma.salesMonthlyStats.findMany({
+    const salesStats = await prisma.salesMonthlyStats.findMany({
       where: { year },
-      select: { month: true, totalSales: true },
       orderBy: { month: "asc" },
+      select: {
+        month: true,
+        totalSales: true,
+        totalCount: true,
+        normalCount: true,
+        normalValue: true,
+        accidentCount: true,
+        accidentValue: true,
+        locationId: true,
+      },
     });
-    return stats.map((row) => ({
-      period: `${year}.${String(row.month).padStart(2, "0")}`,
-      unloadCount: 0,
-      totalShippingValue: row.totalSales,
-      avgShippingValue: row.totalSales, // 단순화(필요시 평균 계산 가능)
-      normalProcessCount: 0,
-      processValue: 0,
-      accidentCount: 0,
-      accidentValue: 0,
-    }));
+    return salesStats.map((row) => {
+      return {
+        period: `${year}.${String(row.month).padStart(2, "0")}`,
+        unloadCount: row.totalCount,
+        totalShippingValue: row.totalSales,
+        avgShippingValue:
+          row.totalCount > 0 ? Math.round(row.totalSales / row.totalCount) : 0,
+        normalProcessCount: row.normalCount,
+        processValue: row.normalValue,
+        accidentCount: row.accidentCount,
+        accidentValue: row.accidentValue,
+      };
+    });
   }
 
   /**
@@ -51,24 +63,37 @@ export class SalesService {
    */
   async getDailySales(year: number, month: number): Promise<SalesData[]> {
     const monthStr = String(month).padStart(2, "0");
-    const stats = await prisma.salesStats.findMany({
+    const salesStats = await prisma.salesStats.findMany({
       where: {
-        date: { gte: `${year}-${monthStr}-01`, lte: `${year}-${monthStr}-31` },
+        date: {
+          gte: `${year}-${monthStr}-01`,
+          lte: `${year}-${monthStr}-31`,
+        },
       },
-      select: { date: true, totalSales: true },
       orderBy: { date: "asc" },
+      select: {
+        date: true,
+        totalSales: true,
+        totalCount: true,
+        normalCount: true,
+        normalValue: true,
+        accidentCount: true,
+        accidentValue: true,
+        locationId: true,
+      },
     });
-    return stats.map((row) => {
+    return salesStats.map((row) => {
       const day = Number(row.date.split("-")[2]);
       return {
         period: `${day}일`,
-        unloadCount: 0,
+        unloadCount: row.totalCount,
         totalShippingValue: row.totalSales,
-        avgShippingValue: row.totalSales,
-        normalProcessCount: 0,
-        processValue: 0,
-        accidentCount: 0,
-        accidentValue: 0,
+        avgShippingValue:
+          row.totalCount > 0 ? Math.round(row.totalSales / row.totalCount) : 0,
+        normalProcessCount: row.normalCount,
+        processValue: row.normalValue,
+        accidentCount: row.accidentCount,
+        accidentValue: row.accidentValue,
       };
     });
   }
@@ -82,25 +107,27 @@ export class SalesService {
   ): Promise<Omit<SalesData, "period">> {
     const start = startDate.toISOString().split("T")[0];
     const end = endDate.toISOString().split("T")[0];
-    // 해당 기간의 sales_stats 집계
     const stats = await prisma.salesStats.findMany({
       where: {
         date: { gte: start, lt: end },
       },
     });
-    const unloadCount = stats.length; // 일수(집계 row 수)
+    const unloadCount = stats.reduce((sum, s) => sum + s.totalCount, 0);
     const totalShippingValue = stats.reduce((sum, s) => sum + s.totalSales, 0);
     const avgShippingValue =
       unloadCount > 0 ? totalShippingValue / unloadCount : 0;
-    // processValue, accidentValue 등은 통계 테이블에 없으므로 0으로 반환(추후 확장 가능)
+    const normalProcessCount = stats.reduce((sum, s) => sum + s.normalCount, 0);
+    const processValue = stats.reduce((sum, s) => sum + s.normalValue, 0);
+    const accidentCount = stats.reduce((sum, s) => sum + s.accidentCount, 0);
+    const accidentValue = stats.reduce((sum, s) => sum + s.accidentValue, 0);
     return {
       unloadCount,
       totalShippingValue,
       avgShippingValue: Math.round(avgShippingValue),
-      normalProcessCount: 0,
-      processValue: 0,
-      accidentCount: 0,
-      accidentValue: 0,
+      normalProcessCount,
+      processValue,
+      accidentCount,
+      accidentValue,
     };
   }
 
@@ -109,22 +136,55 @@ export class SalesService {
    */
   async getSalesOverview(year: number): Promise<SalesOverviewData> {
     const yearStr = year.toString();
-    // 연간 전체
     const stats = await prisma.salesStats.findMany({
       where: { date: { gte: `${yearStr}-01-01`, lte: `${yearStr}-12-31` } },
     });
     const totalRevenue = stats.reduce((sum, s) => sum + s.totalSales, 0);
-    const avgShippingValue = stats.length > 0 ? totalRevenue / stats.length : 0;
-    // 월별 성장률, 사고율 등은 통계 테이블에 없으므로 0으로 반환(추후 확장 가능)
+    const avgShippingValue =
+      stats.reduce((sum, s) => sum + s.totalSales, 0) /
+      (stats.reduce((sum, s) => sum + s.totalCount, 0) || 1);
+    const totalProcessedCount = stats.reduce((sum, s) => sum + s.totalCount, 0);
+    const totalAccidentCount = stats.reduce(
+      (sum, s) => sum + s.accidentCount,
+      0
+    );
+    const totalAccidentValue = stats.reduce(
+      (sum, s) => sum + s.accidentValue,
+      0
+    );
+    const accidentLossRate =
+      totalRevenue > 0
+        ? Math.round((totalAccidentValue / totalRevenue) * 1000) / 10
+        : 0; // %
+    // 월별 성장률 계산
+    const monthlyStats = await prisma.salesMonthlyStats.findMany({
+      where: { year },
+      orderBy: { month: "asc" },
+    });
+    let monthlyGrowthRate = 0;
+    let currentMonthRevenue = 0;
+    let previousMonthRevenue = 0;
+    if (monthlyStats.length >= 2) {
+      currentMonthRevenue = monthlyStats[monthlyStats.length - 1].totalSales;
+      previousMonthRevenue = monthlyStats[monthlyStats.length - 2].totalSales;
+      if (previousMonthRevenue > 0) {
+        monthlyGrowthRate =
+          Math.round(
+            ((currentMonthRevenue - previousMonthRevenue) /
+              previousMonthRevenue) *
+              1000
+          ) / 10;
+      }
+    }
     return {
       totalRevenue,
       avgShippingValue: Math.round(avgShippingValue),
-      accidentLossRate: 0,
-      monthlyGrowthRate: 0,
-      totalProcessedCount: 0,
-      totalAccidentCount: 0,
-      currentMonthRevenue: 0,
-      previousMonthRevenue: 0,
+      accidentLossRate,
+      monthlyGrowthRate,
+      totalProcessedCount,
+      totalAccidentCount,
+      currentMonthRevenue,
+      previousMonthRevenue,
     };
   }
 
@@ -133,15 +193,18 @@ export class SalesService {
    */
   async getLocationSales(year: number) {
     const yearStr = year.toString();
-    const stats = await prisma.salesStats.findMany({
+    // location별 매출, 운송장수 각각 조회 후 매핑
+    const salesStats = await prisma.salesStats.findMany({
       where: { date: { gte: `${yearStr}-01-01`, lte: `${yearStr}-12-31` } },
       select: {
         locationId: true,
         totalSales: true,
+        totalCount: true,
+        accidentCount: true,
         location: { select: { name: true } },
       },
     });
-    // locationId별로 합산
+    // locationId별로 집계
     const locMap = new Map<
       number,
       {
@@ -151,7 +214,7 @@ export class SalesService {
         accidentCount: number;
       }
     >();
-    stats.forEach((row) => {
+    salesStats.forEach((row) => {
       if (!locMap.has(row.locationId)) {
         locMap.set(row.locationId, {
           locationName: row.location.name,
@@ -160,8 +223,10 @@ export class SalesService {
           accidentCount: 0,
         });
       }
-      locMap.get(row.locationId)!.revenue += row.totalSales;
-      locMap.get(row.locationId)!.processedCount += 1;
+      const loc = locMap.get(row.locationId)!;
+      loc.revenue += row.totalSales;
+      loc.processedCount += row.totalCount;
+      loc.accidentCount += row.accidentCount;
     });
     return Array.from(locMap.values()).sort((a, b) => b.revenue - a.revenue);
   }
