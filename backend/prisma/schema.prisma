@@ -74,6 +74,16 @@ model Location {
   waybills        Waybill[]        // 이 배송지로 전달된 운송장들
   operatorWorks   OperatorWork[]   // 이 배송지에서 작업한 결과 집계
 
+  // 추가: 통계 테이블 relation
+  waybillStats    WaybillStats[]
+  salesStats      SalesStats[]
+
+  // 연간/월간 통계 relation
+  waybillYearlyStats   WaybillYearlyStats[]
+  waybillMonthlyStats  WaybillMonthlyStats[]
+  salesYearlyStats     SalesYearlyStats[]
+  salesMonthlyStats    SalesMonthlyStats[]
+
   @@map("locations")
 }
 
@@ -127,4 +137,78 @@ model Parcel {
   waybill       Waybill   @relation(fields: [waybillId], references: [id])
 
   @@map("parcels")
+}
+
+/// Materialized View: 일별/배송지별 운송장 통계
+model WaybillStats {
+  date        String   // 'YYYY-MM-DD'
+  locationId  Int
+  totalCount  Int
+
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@id([date, locationId])
+  @@map("waybill_stats")
+}
+
+/// Materialized View: 일별/배송지별 매출 통계
+model SalesStats {
+  date        String   // 'YYYY-MM-DD'
+  locationId  Int
+  totalSales  Int
+
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@id([date, locationId])
+  @@map("sales_stats")
+}
+
+/// 연간 운송장 통계
+model WaybillYearlyStats {
+  year        Int
+  locationId  Int
+  totalCount  Int
+
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@id([year, locationId])
+  @@map("waybill_yearly_stats")
+}
+
+/// 월간 운송장 통계
+model WaybillMonthlyStats {
+  year        Int
+  month       Int
+  locationId  Int
+  totalCount  Int
+
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@id([year, month, locationId])
+  @@map("waybill_monthly_stats")
+}
+
+/// 연간 매출 통계
+model SalesYearlyStats {
+  year        Int
+  locationId  Int
+  totalSales  Int
+
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@id([year, locationId])
+  @@map("sales_yearly_stats")
+}
+
+/// 월간 매출 통계
+model SalesMonthlyStats {
+  year        Int
+  month       Int
+  locationId  Int
+  totalSales  Int
+
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@id([year, month, locationId])
+  @@map("sales_monthly_stats")
 }

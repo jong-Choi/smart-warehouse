@@ -26,304 +26,124 @@ export interface SalesOverviewData {
 
 export class SalesService {
   /**
-   * 월별 매출 통계를 조회합니다.
-   * @param year 조회할 연도 (예: 2024)
-   * @returns 월별 매출 데이터 배열
+   * 월별 매출 통계를 통계 테이블에서 조회
    */
   async getMonthlySales(year: number): Promise<SalesData[]> {
-    const startDate = new Date(year, 0, 1); // 1월 1일
-    const endDate = new Date(year + 1, 0, 1); // 다음 년도 1월 1일
-
-    const monthlyData: SalesData[] = [];
-
-    for (let month = 0; month < 12; month++) {
-      const monthStart = new Date(year, month, 1);
-      const monthEnd = new Date(year, month + 1, 1);
-
-      const data = await this.calculateSalesForPeriod(monthStart, monthEnd);
-      monthlyData.push({
-        ...data,
-        period: `${year}.${String(month + 1).padStart(2, "0")}`,
-      });
-    }
-
-    return monthlyData;
+    const stats = await prisma.salesMonthlyStats.findMany({
+      where: { year },
+      select: { month: true, totalSales: true },
+      orderBy: { month: "asc" },
+    });
+    return stats.map((row) => ({
+      period: `${year}.${String(row.month).padStart(2, "0")}`,
+      unloadCount: 0,
+      totalShippingValue: row.totalSales,
+      avgShippingValue: row.totalSales, // 단순화(필요시 평균 계산 가능)
+      normalProcessCount: 0,
+      processValue: 0,
+      accidentCount: 0,
+      accidentValue: 0,
+    }));
   }
 
   /**
-   * 일별 매출 통계를 조회합니다.
-   * @param year 조회할 연도
-   * @param month 조회할 월 (1-12)
-   * @returns 일별 매출 데이터 배열
+   * 일별 매출 통계를 통계 테이블에서 조회
    */
   async getDailySales(year: number, month: number): Promise<SalesData[]> {
-    const monthStart = new Date(year, month - 1, 1);
-    const monthEnd = new Date(year, month, 1);
-    const daysInMonth = new Date(year, month, 0).getDate();
-
-    const dailyData: SalesData[] = [];
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayStart = new Date(year, month - 1, day);
-      const dayEnd = new Date(year, month - 1, day + 1);
-
-      const data = await this.calculateSalesForPeriod(dayStart, dayEnd);
-      dailyData.push({
-        ...data,
+    const monthStr = String(month).padStart(2, "0");
+    const stats = await prisma.salesStats.findMany({
+      where: {
+        date: { gte: `${year}-${monthStr}-01`, lte: `${year}-${monthStr}-31` },
+      },
+      select: { date: true, totalSales: true },
+      orderBy: { date: "asc" },
+    });
+    return stats.map((row) => {
+      const day = Number(row.date.split("-")[2]);
+      return {
         period: `${day}일`,
-      });
-    }
-
-    return dailyData;
+        unloadCount: 0,
+        totalShippingValue: row.totalSales,
+        avgShippingValue: row.totalSales,
+        normalProcessCount: 0,
+        processValue: 0,
+        accidentCount: 0,
+        accidentValue: 0,
+      };
+    });
   }
 
   /**
-   * 특정 기간의 매출 통계를 계산합니다.
+   * 특정 기간의 매출 통계를 통계 테이블에서 계산
    */
   private async calculateSalesForPeriod(
     startDate: Date,
     endDate: Date
   ): Promise<Omit<SalesData, "period">> {
-    // 하차물량(운송장 수) - processedAt 기준
-    const unloadCount = await prisma.waybill.count({
+    const start = startDate.toISOString().split("T")[0];
+    const end = endDate.toISOString().split("T")[0];
+    // 해당 기간의 sales_stats 집계
+    const stats = await prisma.salesStats.findMany({
       where: {
-        processedAt: {
-          gte: startDate,
-          lt: endDate,
-        },
+        date: { gte: start, lt: end },
       },
     });
-
-    // 총 운송가액 (Waybill을 통해 Parcel의 declaredValue 조회)
-    const waybillsWithParcels = await prisma.waybill.findMany({
-      where: {
-        processedAt: {
-          gte: startDate,
-          lt: endDate,
-        },
-      },
-      include: {
-        parcel: {
-          select: {
-            declaredValue: true,
-          },
-        },
-      },
-    });
-
-    const totalShippingValue = waybillsWithParcels.reduce(
-      (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
-      0
-    );
-
-    // 운송장별 평균 운송가액
+    const unloadCount = stats.length; // 일수(집계 row 수)
+    const totalShippingValue = stats.reduce((sum, s) => sum + s.totalSales, 0);
     const avgShippingValue =
       unloadCount > 0 ? totalShippingValue / unloadCount : 0;
-
-    // 정상처리건수
-    const normalProcessCount = await prisma.waybill.count({
-      where: {
-        processedAt: {
-          gte: startDate,
-          lt: endDate,
-        },
-        status: "NORMAL",
-      },
-    });
-
-    // 처리가액 (정상처리된 운송장의 가액 합계)
-    const normalWaybillsWithParcels = await prisma.waybill.findMany({
-      where: {
-        processedAt: {
-          gte: startDate,
-          lt: endDate,
-        },
-        status: "NORMAL",
-      },
-      include: {
-        parcel: {
-          select: {
-            declaredValue: true,
-          },
-        },
-      },
-    });
-
-    const processValue = normalWaybillsWithParcels.reduce(
-      (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
-      0
-    );
-
-    // 사고건수
-    const accidentCount = await prisma.waybill.count({
-      where: {
-        processedAt: {
-          gte: startDate,
-          lt: endDate,
-        },
-        isAccident: true,
-      },
-    });
-
-    // 사고가액
-    const accidentWaybillsWithParcels = await prisma.waybill.findMany({
-      where: {
-        processedAt: {
-          gte: startDate,
-          lt: endDate,
-        },
-        isAccident: true,
-      },
-      include: {
-        parcel: {
-          select: {
-            declaredValue: true,
-          },
-        },
-      },
-    });
-
-    const accidentValue = accidentWaybillsWithParcels.reduce(
-      (sum, waybill) => sum + (waybill.parcel?.declaredValue || 0),
-      0
-    );
-
+    // processValue, accidentValue 등은 통계 테이블에 없으므로 0으로 반환(추후 확장 가능)
     return {
       unloadCount,
       totalShippingValue,
       avgShippingValue: Math.round(avgShippingValue),
-      normalProcessCount,
-      processValue,
-      accidentCount,
-      accidentValue,
+      normalProcessCount: 0,
+      processValue: 0,
+      accidentCount: 0,
+      accidentValue: 0,
     };
   }
 
   /**
-   * 매출 개요 데이터를 조회합니다.
-   * @param year 조회할 연도
-   * @returns 매출 개요 데이터
+   * 매출 개요 데이터를 통계 테이블에서 조회
    */
   async getSalesOverview(year: number): Promise<SalesOverviewData> {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-
-    // 요청된 연도의 12월 데이터 (이번 달 대신)
-    const requestedYearMonthStart = new Date(year, 11, 1); // 12월 1일
-    const requestedYearMonthEnd = new Date(year + 1, 0, 1); // 다음 년도 1월 1일
-    const currentMonthData = await this.calculateSalesForPeriod(
-      requestedYearMonthStart,
-      requestedYearMonthEnd
-    );
-
-    // 요청된 연도의 11월 데이터 (지난 달 대신)
-    const previousMonthStart = new Date(year, 10, 1); // 11월 1일
-    const previousMonthEnd = new Date(year, 11, 1); // 12월 1일
-    const previousMonthData = await this.calculateSalesForPeriod(
-      previousMonthStart,
-      previousMonthEnd
-    );
-
-    // 요청된 연도 전체 데이터
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year + 1, 0, 1);
-    const yearData = await this.calculateSalesForPeriod(yearStart, yearEnd);
-
-    // 요청된 연도의 이전 년도 전체 데이터 (성장률 계산용)
-    const lastYearStart = new Date(year - 1, 0, 1);
-    const lastYearEnd = new Date(year, 0, 1);
-    const lastYearData = await this.calculateSalesForPeriod(
-      lastYearStart,
-      lastYearEnd
-    );
-
-    // 월별 성장률 계산
-    const monthlyGrowthRate =
-      previousMonthData.processValue > 0
-        ? ((currentMonthData.processValue - previousMonthData.processValue) /
-            previousMonthData.processValue) *
-          100
-        : 0;
-
-    // 사고 손실률 계산
-    const accidentLossRate =
-      yearData.processValue > 0
-        ? (yearData.accidentValue / yearData.processValue) * 100
-        : 0;
-
+    const yearStr = year.toString();
+    // 연간 전체
+    const stats = await prisma.salesStats.findMany({
+      where: { date: { gte: `${yearStr}-01-01`, lte: `${yearStr}-12-31` } },
+    });
+    const totalRevenue = stats.reduce((sum, s) => sum + s.totalSales, 0);
+    const avgShippingValue = stats.length > 0 ? totalRevenue / stats.length : 0;
+    // 월별 성장률, 사고율 등은 통계 테이블에 없으므로 0으로 반환(추후 확장 가능)
     return {
-      totalRevenue: yearData.processValue,
-      avgShippingValue: Math.round(yearData.avgShippingValue),
-      accidentLossRate: Math.round(accidentLossRate * 100) / 100, // 소수점 2자리
-      monthlyGrowthRate: Math.round(monthlyGrowthRate * 100) / 100, // 소수점 2자리
-      totalProcessedCount: yearData.normalProcessCount,
-      totalAccidentCount: yearData.accidentCount,
-      currentMonthRevenue: currentMonthData.processValue,
-      previousMonthRevenue: previousMonthData.processValue,
+      totalRevenue,
+      avgShippingValue: Math.round(avgShippingValue),
+      accidentLossRate: 0,
+      monthlyGrowthRate: 0,
+      totalProcessedCount: 0,
+      totalAccidentCount: 0,
+      currentMonthRevenue: 0,
+      previousMonthRevenue: 0,
     };
   }
 
   /**
-   * 지역별 매출 데이터를 조회합니다.
-   * @param year 조회할 연도
-   * @returns 지역별 매출 데이터
+   * 지역별 매출 통계를 통계 테이블에서 조회
    */
-  async getLocationSales(year: number): Promise<
-    Array<{
-      locationName: string;
-      revenue: number;
-      processedCount: number;
-      accidentCount: number;
-    }>
-  > {
-    const yearStart = new Date(year, 0, 1);
-    const yearEnd = new Date(year + 1, 0, 1);
-
-    // 정상처리된 운송장들을 지역별로 그룹화
-    const normalWaybillsWithParcels = await prisma.waybill.findMany({
-      where: {
-        processedAt: {
-          gte: yearStart,
-          lt: yearEnd,
-        },
-        status: "NORMAL",
-      },
-      include: {
-        location: {
-          select: {
-            name: true,
-          },
-        },
-        parcel: {
-          select: {
-            declaredValue: true,
-          },
-        },
+  async getLocationSales(year: number) {
+    const yearStr = year.toString();
+    const stats = await prisma.salesStats.findMany({
+      where: { date: { gte: `${yearStr}-01-01`, lte: `${yearStr}-12-31` } },
+      select: {
+        locationId: true,
+        totalSales: true,
+        location: { select: { name: true } },
       },
     });
-
-    // 사고 운송장들을 지역별로 그룹화
-    const accidentWaybills = await prisma.waybill.findMany({
-      where: {
-        processedAt: {
-          gte: yearStart,
-          lt: yearEnd,
-        },
-        isAccident: true,
-      },
-      include: {
-        location: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    // 지역별로 데이터 그룹화
-    const locationMap = new Map<
-      string,
+    // locationId별로 합산
+    const locMap = new Map<
+      number,
       {
         locationName: string;
         revenue: number;
@@ -331,48 +151,18 @@ export class SalesService {
         accidentCount: number;
       }
     >();
-
-    // 정상처리 데이터 처리
-    normalWaybillsWithParcels.forEach((waybill) => {
-      const locationName = waybill.location?.name || "알 수 없는 위치";
-      const value = waybill.parcel?.declaredValue || 0;
-
-      if (!locationMap.has(locationName)) {
-        locationMap.set(locationName, {
-          locationName,
+    stats.forEach((row) => {
+      if (!locMap.has(row.locationId)) {
+        locMap.set(row.locationId, {
+          locationName: row.location.name,
           revenue: 0,
           processedCount: 0,
           accidentCount: 0,
         });
       }
-
-      const locationData = locationMap.get(locationName)!;
-      locationData.revenue += value;
-      locationData.processedCount += 1;
+      locMap.get(row.locationId)!.revenue += row.totalSales;
+      locMap.get(row.locationId)!.processedCount += 1;
     });
-
-    // 사고 데이터 처리
-    accidentWaybills.forEach((waybill) => {
-      const locationName = waybill.location?.name || "알 수 없는 위치";
-
-      if (!locationMap.has(locationName)) {
-        locationMap.set(locationName, {
-          locationName,
-          revenue: 0,
-          processedCount: 0,
-          accidentCount: 0,
-        });
-      }
-
-      const locationData = locationMap.get(locationName)!;
-      locationData.accidentCount += 1;
-    });
-
-    // 결과를 배열로 변환하고 매출 순으로 정렬
-    const result = Array.from(locationMap.values()).sort(
-      (a, b) => b.revenue - a.revenue
-    );
-
-    return result;
+    return Array.from(locMap.values()).sort((a, b) => b.revenue - a.revenue);
   }
 }
