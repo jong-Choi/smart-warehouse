@@ -1,0 +1,32 @@
+import { defineConfig } from "tsup";
+
+export default defineConfig({
+  entry: ["src/index.ts"],
+  format: ["cjs"],
+  target: "node18",
+  outDir: "dist",
+  clean: true,
+  sourcemap: true,
+  external: [
+    "express",
+    "cors",
+    "morgan",
+    "swagger-ui-express",
+    "swagger-jsdoc",
+    "socket.io",
+    "@prisma/client",
+    "prisma",
+    "dotenv",
+    "jsonfile",
+    "zod",
+    "@langchain/anthropic",
+    "@langchain/community",
+    "@langchain/core",
+    "@langchain/ollama",
+    "langchain",
+    "ollama",
+    "@upstash/redis",
+    "@faker-js/faker",
+  ],
+  noExternal: ["module-alias"],
+});

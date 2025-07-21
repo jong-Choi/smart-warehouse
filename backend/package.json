@@ -4,9 +4,9 @@
   "description": "TypeScript Express Backend with JSON file storage",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "dev": "nodemon --exec ts-node src/index.ts",
-    "start": "node dist/index.js",
+    "start": "PORT=3050 node dist/index.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "db:generate": "prisma generate",
@@ -56,6 +56,7 @@
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   },
   "_moduleAliases": {
