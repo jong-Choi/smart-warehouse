@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
   ParcelFilters,
   ParcelTable,
 } from "./components";
+import { useChatbotStore } from "@/stores/chatbotStore";
 
 function WorkerDetailContent() {
   const { code } = useParams<{ code: string }>();
@@ -32,6 +33,63 @@ function WorkerDetailContent() {
     startDate || undefined,
     endDate || undefined
   );
+  const { setSystemContext, isCollecting, setIsMessagePending } =
+    useChatbotStore();
+  // 챗봇 컨텍스트 업데이트
+  useEffect(() => {
+    if (!operator || !isCollecting) return;
+    // operator 주요 정보
+    const info =
+      `작업자 상세 정보 (/dashboard/workers/detail/${operator.code})\n\n` +
+      `⦁ 이름: ${operator.name}\n` +
+      `⦁ 코드: ${operator.code}\n` +
+      `⦁ 타입: ${operator.type === "HUMAN" ? "사람" : "기계"}\n` +
+      `⦁ 등록일: ${new Date(operator.createdAt).toLocaleDateString(
+        "ko-KR"
+      )}\n` +
+      `⦁ 총 처리 건수: ${operator.waybills.length}건\n`;
+    // 필터 정보
+    const filters = `\n⦁ 적용된 필터:\n- 상태: ${
+      statusFilter === "all" ? "전체" : statusFilter
+    }\n- 시작일: ${startDate || "(미지정)"}\n- 종료일: ${
+      endDate || "(미지정)"
+    }`;
+    // 테이블(waybills) 마크다운
+    const tableHeader = `| 운송장 번호 | 상태 | 배송지 | 운송가액 | 처리일시 |\n|---|---|---|---|---|`;
+    const tableRows = operator.waybills
+      .map((parcel) => {
+        const statusLabel =
+          parcel.status === "NORMAL"
+            ? "정상"
+            : parcel.status === "ACCIDENT"
+            ? "사고"
+            : parcel.status === "UNLOADED"
+            ? "하차완료"
+            : parcel.status === "PENDING_UNLOAD"
+            ? "하차대기"
+            : parcel.status;
+        const declaredValue = parcel.parcel?.declaredValue ?? 0;
+        return `| ${parcel.waybill?.number ?? "-"} | ${statusLabel} | ${
+          parcel.location.name
+        } | ${declaredValue.toLocaleString()}원 | ${new Date(
+          parcel.processedAt
+        ).toLocaleString("ko-KR")} |`;
+      })
+      .join("\n");
+    const table = `\n⦁ 처리 내역 (최대 20건):\n${tableHeader}\n${tableRows}`;
+    // 전체 context
+    const context = `${info}${filters}${table}`;
+    setSystemContext(context);
+    setIsMessagePending(false);
+  }, [
+    operator,
+    statusFilter,
+    startDate,
+    endDate,
+    isCollecting,
+    setSystemContext,
+    setIsMessagePending,
+  ]);
   if (!operator) {
     return (
       <div className="space-y-6">
