@@ -1,10 +1,9 @@
 import { PrismaClient, OperatorType, WaybillStatus } from "@generated/prisma";
+import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
 async function seedData() {
-  console.log("🌱 샘플 데이터 생성 시작...");
-
   try {
     // 기존 데이터 삭제 (순서 중요: 외래키 제약조건 때문에)
     await prisma.parcel.deleteMany();
@@ -14,69 +13,45 @@ async function seedData() {
     await prisma.operator.deleteMany();
     await prisma.location.deleteMany();
 
-    console.log("✅ 기존 데이터 삭제 완료");
-
     // 배송지 생성
-    const locations = await Promise.all([
-      prisma.location.create({
-        data: {
-          name: "서울 강남구",
-          address: "서울특별시 강남구 테헤란로 123",
-        },
-      }),
-      prisma.location.create({
-        data: {
-          name: "부산 해운대구",
-          address: "부산광역시 해운대구 해운대로 456",
-        },
-      }),
-      prisma.location.create({
-        data: {
-          name: "대구 중구",
-          address: "대구광역시 중구 동성로 789",
-        },
-      }),
-      prisma.location.create({
-        data: {
-          name: "인천 연수구",
-          address: "인천광역시 연수구 송도대로 321",
-        },
-      }),
-    ]);
+    const SEOUL_LOCATIONS = [
+      { name: "서울시 강남구", address: "서울시 강남구 학동로 426" },
+      { name: "서울시 강동구", address: "서울시 강동구 성내로 25" },
+      { name: "서울시 강북구", address: "서울시 강북구 도봉로89길 13" },
+      { name: "서울시 강서구", address: "서울시 강서구 화곡로 302" },
+      { name: "서울시 관악구", address: "서울시 관악구 관악로 145" },
+      { name: "서울시 광진구", address: "서울시 광진구 자양로 117" },
+      { name: "서울시 구로구", address: "서울시 구로구 가마산로 245" },
+      { name: "서울시 금천구", address: "서울시 금천구 시흥대로73길 70" },
+      { name: "서울시 노원구", address: "서울시 노원구 노해로 437" },
+      { name: "서울시 도봉구", address: "서울시 도봉구 마들로 656" },
+      { name: "서울시 동대문구", address: "서울시 동대문구 천호대로 145" },
+      { name: "서울시 동작구", address: "서울시 동작구 장승배기로 161" },
+      { name: "서울시 마포구", address: "서울시 마포구 월드컵로 212" },
+      { name: "서울시 서대문구", address: "서울시 서대문구 연희로 248" },
+      { name: "서울시 서초구", address: "서울시 서초구 남부순환로 2584" },
+      { name: "서울시 성동구", address: "서울시 성동구 고산자로 270" },
+      { name: "서울시 성북구", address: "서울시 성북구 보문로 168" },
+      { name: "서울시 송파구", address: "서울시 송파구 올림픽로 326" },
+      { name: "서울시 양천구", address: "서울시 양천구 목동동로 105" },
+      { name: "서울시 영등포구", address: "서울시 영등포구 당산로 123" },
+      { name: "서울시 용산구", address: "서울시 용산구 녹사평대로 150" },
+      { name: "서울시 은평구", address: "서울시 은평구 은평로 195" },
+      { name: "서울시 종로구", address: "서울시 종로구 삼봉로 43" },
+      { name: "서울시 중구", address: "서울시 중구 창경궁로 17" },
+      { name: "서울시 중랑구", address: "서울시 중랑구 봉화산로 179" },
+    ];
 
-    console.log("✅ 배송지 생성 완료");
+    const locations = await Promise.all(
+      SEOUL_LOCATIONS.map((loc) =>
+        prisma.location.create({
+          data: loc,
+        })
+      )
+    );
 
     // 작업자 생성
-    const operators = await Promise.all([
-      prisma.operator.create({
-        data: {
-          name: "김택배",
-          code: "OP001",
-          type: OperatorType.HUMAN,
-        },
-      }),
-      prisma.operator.create({
-        data: {
-          name: "이배송",
-          code: "OP002",
-          type: OperatorType.HUMAN,
-        },
-      }),
-      prisma.operator.create({
-        data: {
-          name: "자동분류기-A",
-          code: "MACH001",
-          type: OperatorType.MACHINE,
-        },
-      }),
-      prisma.operator.create({
-        data: {
-          name: "자동분류기-B",
-          code: "MACH002",
-          type: OperatorType.MACHINE,
-        },
-      }),
-    ]);
+    const operators = await Promise.all([]);
 
     // A1~B10 코드의 기계들 생성 (이름은 A01, B02 형식)
     const machineCodes = [];
@@ -105,230 +80,145 @@ async function seedData() {
     // 모든 작업자 배열에 기계들 추가
     const allOperators = [...operators, ...machines];
 
-    console.log("✅ 작업자 생성 완료");
+    // 운송장 생성
+    // 날짜유틸함수
 
-    // 운송장 생성 (처리 정보 포함)
-    const waybillData = [
-      {
-        number: "WB20241201001",
-        unloadDate: "2024-12-01T09:00:00Z",
-        operatorIndex: 0,
-        locationIndex: 0,
-        status: WaybillStatus.NORMAL,
-        processedAt: "2024-12-02T14:30:00Z",
-        isAccident: false,
-        declaredValue: 50000,
-      },
-      {
-        number: "WB20241201002",
-        unloadDate: "2024-12-01T10:00:00Z",
-        operatorIndex: 3,
-        locationIndex: 3,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-02T16:00:00Z",
-        isAccident: false,
-        declaredValue: 75000,
-      },
-      {
-        number: "WB20241201003",
-        unloadDate: "2024-12-01T11:00:00Z",
-        operatorIndex: 0,
-        locationIndex: 0,
-        status: WaybillStatus.ACCIDENT,
-        processedAt: "2024-12-03T16:00:00Z",
-        isAccident: true,
-        declaredValue: 100000,
-      },
-      {
-        number: "WB20241201004",
-        unloadDate: "2024-12-01T12:00:00Z",
-        operatorIndex: 1,
-        locationIndex: 1,
-        status: WaybillStatus.ACCIDENT,
-        processedAt: "2024-12-02T18:00:00Z",
-        isAccident: true,
-        declaredValue: 45000,
-      },
-      {
-        number: "WB20241202001",
-        unloadDate: "2024-12-02T08:00:00Z",
-        operatorIndex: 2,
-        locationIndex: 2,
-        status: WaybillStatus.NORMAL,
-        processedAt: "2024-12-03T10:00:00Z",
-        isAccident: false,
-        declaredValue: 60000,
-      },
-      {
-        number: "WB20241202002",
-        unloadDate: "2024-12-02T09:00:00Z",
-        operatorIndex: 4,
-        locationIndex: 0,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-03T11:00:00Z",
-        isAccident: false,
-        declaredValue: 55000,
-      },
-      {
-        number: "WB20241202003",
-        unloadDate: "2024-12-02T10:00:00Z",
-        operatorIndex: 7,
-        locationIndex: 3,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-03T12:30:00Z",
-        isAccident: false,
-        declaredValue: 42000,
-      },
-      {
-        number: "WB20241202004",
-        unloadDate: "2024-12-02T11:00:00Z",
-        operatorIndex: 9,
-        locationIndex: 1,
-        status: WaybillStatus.NORMAL,
-        processedAt: "2024-12-03T12:00:00Z",
-        isAccident: false,
-        declaredValue: 67000,
-      },
-      {
-        number: "WB20241203001",
-        unloadDate: "2024-12-03T07:00:00Z",
-        operatorIndex: 10,
-        locationIndex: 2,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-04T11:00:00Z",
-        isAccident: false,
-        declaredValue: 48000,
-      },
-      {
-        number: "WB20241203002",
-        unloadDate: "2024-12-03T08:00:00Z",
-        operatorIndex: 13,
-        locationIndex: 1,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-04T12:30:00Z",
-        isAccident: false,
-        declaredValue: 52000,
-      },
-      {
-        number: "WB20241203003",
-        unloadDate: "2024-12-03T09:00:00Z",
-        operatorIndex: 15,
-        locationIndex: 3,
-        status: WaybillStatus.NORMAL,
-        processedAt: "2024-12-04T11:00:00Z",
-        isAccident: false,
-        declaredValue: 58000,
-      },
-      {
-        number: "WB20241203004",
-        unloadDate: "2024-12-03T10:00:00Z",
-        operatorIndex: 16,
-        locationIndex: 0,
-        status: WaybillStatus.ACCIDENT,
-        processedAt: "2024-12-04T15:00:00Z",
-        isAccident: true,
-        declaredValue: 72000,
-      },
-      {
-        number: "WB20241204001",
-        unloadDate: "2024-12-04T06:00:00Z",
-        operatorIndex: 17,
-        locationIndex: 1,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-05T10:00:00Z",
-        isAccident: false,
-        declaredValue: 39000,
-      },
-      {
-        number: "WB20241204002",
-        unloadDate: "2024-12-04T07:00:00Z",
-        operatorIndex: 19,
-        locationIndex: 3,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-05T11:00:00Z",
-        isAccident: false,
-        declaredValue: 44000,
-      },
-      {
-        number: "WB20241204003",
-        unloadDate: "2024-12-04T08:00:00Z",
-        operatorIndex: 22,
-        locationIndex: 2,
-        status: WaybillStatus.ACCIDENT,
-        processedAt: "2024-12-05T12:30:00Z",
-        isAccident: true,
-        declaredValue: 38000,
-      },
-      {
-        number: "WB20241204004",
-        unloadDate: "2024-12-04T09:00:00Z",
-        operatorIndex: 23,
-        locationIndex: 3,
-        status: WaybillStatus.NORMAL,
-        processedAt: "2024-12-05T10:00:00Z",
-        isAccident: false,
-        declaredValue: 51000,
-      },
-      {
-        number: "WB20241205001",
-        unloadDate: "2024-12-05T05:00:00Z",
-        operatorIndex: 1,
-        locationIndex: 1,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-06T09:00:00Z",
-        isAccident: false,
-        declaredValue: 47000,
-      },
-      {
-        number: "WB20241205002",
-        unloadDate: "2024-12-05T06:00:00Z",
-        operatorIndex: 3,
-        locationIndex: 3,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-06T10:00:00Z",
-        isAccident: false,
-        declaredValue: 56000,
-      },
-      {
-        number: "WB20241205003",
-        unloadDate: "2024-12-05T07:00:00Z",
-        operatorIndex: 6,
-        locationIndex: 2,
-        status: WaybillStatus.UNLOADED,
-        processedAt: "2024-12-06T11:30:00Z",
-        isAccident: false,
-        declaredValue: 42000,
-      },
-      {
-        number: "WB20241205004",
-        unloadDate: "2024-12-05T08:00:00Z",
-        operatorIndex: 8,
-        locationIndex: 0,
-        status: WaybillStatus.NORMAL,
-        processedAt: "2024-12-06T09:00:00Z",
-        isAccident: false,
-        declaredValue: 64000,
-      },
-    ];
+    function getWeekdaysBetween(start: Date, end: Date): Date[] {
+      const dates: Date[] = [];
+      const current = new Date(start);
+
+      while (current <= end) {
+        const day = current.getDay();
+        if (day !== 0 && day !== 6) {
+          dates.push(new Date(current));
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      return dates;
+    }
+
+    type WaybillEntry = {
+      number: string;
+      unloadDate: Date;
+      operatorIndex: number;
+      locationIndex: number;
+      status: WaybillStatus;
+      processedAt: Date;
+      isAccident: boolean;
+      declaredValue: number;
+    };
+
+    type WaybillSeedInput = {
+      date: Date;
+      index: number;
+      operatorCount: number;
+      locationCount: number;
+      number: string;
+    };
+
+    function createWaybillEntry({
+      date,
+      index,
+      operatorCount,
+      locationCount,
+    }: WaybillSeedInput): WaybillEntry {
+      const formattedDate = date.toISOString().slice(0, 10).replace(/-/g, "");
+      const number = `WB${formattedDate}${String(index + 1).padStart(5, "0")}`;
+      const operatorIndex = faker.number.int({
+        min: 0,
+        max: operatorCount - 1,
+      });
+      const locationIndex = faker.number.int({
+        min: 0,
+        max: locationCount - 1,
+      });
+
+      const isAccident = faker.number.float({ min: 0, max: 1 }) < 0.07;
+
+      const status = isAccident
+        ? WaybillStatus.ACCIDENT
+        : faker.helpers.arrayElement([
+            WaybillStatus.NORMAL,
+            WaybillStatus.UNLOADED,
+          ]);
+
+      const processedAt = new Date(date);
+      processedAt.setDate(date.getDate() + 1);
+      processedAt.setHours(faker.number.int({ min: 8, max: 17 }));
+      processedAt.setMinutes(faker.number.int({ min: 0, max: 59 }));
+
+      const declaredValue = faker.number.int({ min: 30000, max: 100000 });
+
+      return {
+        number,
+        unloadDate: date,
+        operatorIndex,
+        locationIndex,
+        status,
+        processedAt,
+        isAccident,
+        declaredValue,
+      };
+    }
+    function generateWaybillData(
+      operatorCount: number,
+      locationCount: number
+    ): WaybillEntry[] {
+      const start = new Date("2025-04-01");
+      const end = new Date("2025-07-15");
+      const allWeekdays = getWeekdaysBetween(start, end);
+
+      // 평일 중에서 무작위로 날짜 60개 선택 (전체 기간 중 일부만)
+      const shuffled = faker.helpers.shuffle(allWeekdays);
+      const selectedDates = shuffled.slice(0, 60); // 필요한 날짜 수는 조절 가능
+
+      const result: WaybillEntry[] = [];
+
+      for (const date of selectedDates) {
+        const dateStr = date.toISOString().slice(0, 10); // ex: '2025-05-04'
+        const count = faker.number.int({ min: 1500, max: 2200 });
+
+        for (let i = 0; i < count; i++) {
+          const number = `WB${dateStr.replace(/-/g, "")}${String(
+            i + 1
+          ).padStart(5, "0")}`;
+          result.push(
+            createWaybillEntry({
+              date,
+              index: i,
+              operatorCount,
+              locationCount,
+              number,
+            })
+          );
+        }
+      }
+
+      return result;
+    }
+    const waybillData = generateWaybillData(
+      allOperators.length,
+      locations.length
+    );
 
     const waybills = await Promise.all(
       waybillData.map((data) =>
         prisma.waybill.create({
           data: {
             number: data.number,
-            unloadDate: new Date(data.unloadDate),
-            operatorId:
-              allOperators[data.operatorIndex % allOperators.length].id,
-            locationId: locations[data.locationIndex % locations.length].id,
+            unloadDate: data.unloadDate,
+            operatorId: allOperators[data.operatorIndex].id,
+            locationId: locations[data.locationIndex].id,
             status: data.status,
-            processedAt: new Date(data.processedAt),
+            processedAt: data.processedAt,
             isAccident: data.isAccident,
           },
         })
       )
     );
-
-    console.log("✅ 운송장 생성 완료");
+    //--------------------------------
+    // 운송장 생성 (처리 정보 포함)
 
     // 소포 생성 (물건 정보만)
     const parcels = await Promise.all(
@@ -341,8 +231,6 @@ async function seedData() {
         })
       )
     );
-
-    console.log("✅ 소포 생성 완료");
 
     // 근무 기록 생성
     const shifts = await Promise.all([
@@ -372,57 +260,60 @@ async function seedData() {
       }),
     ]);
 
-    console.log("✅ 근무 기록 생성 완료");
+    // 작업 통계 생성 - 실제 운송장 데이터 기반으로 계산
+    const workStatsMap = new Map<
+      string,
+      {
+        operatorId: number;
+        date: Date;
+        locationId: number;
+        processedCount: number;
+        accidentCount: number;
+        revenue: number;
+        errorCount: number;
+      }
+    >();
 
-    // 작업 통계 생성
-    const works = await Promise.all([
-      prisma.operatorWork.create({
-        data: {
-          operatorId: allOperators[0].id,
-          date: new Date("2024-12-02"),
-          locationId: locations[0].id,
-          processedCount: 2,
-          accidentCount: 1,
-          revenue: 150000,
-          errorCount: 0,
-        },
-      }),
-      prisma.operatorWork.create({
-        data: {
-          operatorId: allOperators[1].id,
-          date: new Date("2024-12-02"),
-          locationId: locations[1].id,
-          processedCount: 2,
-          accidentCount: 1,
-          revenue: 75000,
-          errorCount: 1,
-        },
-      }),
-      prisma.operatorWork.create({
-        data: {
-          operatorId: allOperators[2].id,
-          date: new Date("2024-12-02"),
-          locationId: locations[2].id,
-          processedCount: 1,
+    // 운송장 데이터를 기반으로 작업 통계 계산
+    waybillData.forEach((waybill, index) => {
+      const operator = allOperators[waybill.operatorIndex];
+      const location = locations[waybill.locationIndex];
+      const dateKey = `${operator.id}-${
+        waybill.unloadDate.toISOString().split("T")[0]
+      }-${location.id}`;
+
+      if (!workStatsMap.has(dateKey)) {
+        workStatsMap.set(dateKey, {
+          operatorId: operator.id,
+          date: waybill.unloadDate,
+          locationId: location.id,
+          processedCount: 0,
           accidentCount: 0,
-          revenue: 75000,
+          revenue: 0,
           errorCount: 0,
-        },
-      }),
-    ]);
+        });
+      }
 
-    console.log("✅ 작업 통계 생성 완료");
+      const stats = workStatsMap.get(dateKey)!;
+      stats.processedCount += 1;
 
-    console.log("🎉 샘플 데이터 생성 완료!");
-    console.log(`📊 생성된 데이터:`);
-    console.log(`   - 배송지: ${locations.length}개`);
-    console.log(
-      `   - 작업자: ${allOperators.length}개 (기본 4개 + A1~B10 기계 20개)`
+      if (waybill.isAccident) {
+        stats.accidentCount += 1;
+        stats.errorCount += 1;
+      }
+
+      // 소포의 declaredValue를 revenue에 추가
+      stats.revenue += waybill.declaredValue;
+    });
+
+    // Map에서 작업 통계 데이터 생성
+    const works = await Promise.all(
+      Array.from(workStatsMap.values()).map((stats) =>
+        prisma.operatorWork.create({
+          data: stats,
+        })
+      )
     );
-    console.log(`   - 운송장: ${waybills.length}개`);
-    console.log(`   - 소포: ${parcels.length}개`);
-    console.log(`   - 근무기록: ${shifts.length}개`);
-    console.log(`   - 작업통계: ${works.length}개`);
   } catch (error) {
     console.error("❌ 샘플 데이터 생성 중 오류 발생:", error);
   } finally {

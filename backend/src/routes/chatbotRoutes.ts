@@ -47,7 +47,6 @@ export async function ensureModelExists(modelName: string) {
     );
 
     if (!modelExists) {
-      console.log("모델 다운로드 중:", modelName);
       await ollama.pull({ model: modelName });
     }
   } catch (error) {
@@ -159,10 +158,6 @@ export const setupChatbotSocket = (server: HTTPServer) => {
         systemContext?: string;
       }) => {
         const userId = data.userId || socket.id;
-        console.log("🔍 받은 data:", data);
-
-        // 디버깅: systemContext 로그
-        console.log("🔍 받은 systemContext:", data.systemContext);
 
         try {
           // 스트리밍 응답 시작
@@ -176,8 +171,6 @@ export const setupChatbotSocket = (server: HTTPServer) => {
             await chatMessageHistoryWithDeletion.deleteMessages(
               (message: BaseMessage) => {
                 const messageType = message.getType();
-                console.log("🔍 메시지 타입:", messageType);
-                console.log("🔍 메시지 타입:", messageType === "system");
                 return messageType === "system";
               }
             );
@@ -234,9 +227,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
             type: "bot_response_end",
           });
 
-          // 메시지 히스토리 콘솔 출력
-          const messages = await chatMessageHistoryWithDeletion.getMessages();
-          console.log("메시지 히스토리:", messages);
+          // 메시지 히스토리 처리 완료
         } catch (error) {
           console.error("LLM 응답 생성 중 에러:", error);
 

@@ -90,11 +90,5 @@ app.use(
 setupChatbotSocket(server);
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
-  console.log(`📋 Waybills API: http://localhost:${PORT}/api/waybills`);
-  console.log(`👷 Operators API: http://localhost:${PORT}/api/operators`);
-  console.log(`📍 Locations API: http://localhost:${PORT}/api/locations`);
-  console.log(`🤖 Chatbot WebSocket: ws://localhost:${PORT}`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
+  // Server started successfully
 });
