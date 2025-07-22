@@ -8,6 +8,7 @@ import {
   DashboardSalesOverviewTable,
 } from "@components/dashboard/sales/overview";
 import { useSalesContextMessage } from "@components/dashboard/sales/overview/hooks/useSalesContextMessage";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills/LoadingSkeleton";
 
 function OverviewContent({ currentYear }: { currentYear: number }) {
   const { setStatsMessage, setTableMessage, isCollecting } =
@@ -25,11 +26,13 @@ function OverviewContent({ currentYear }: { currentYear: number }) {
         <Stat.Head>지역별 매출 상세</Stat.Head>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <DashboardSalesOverviewTable
-              currentYear={currentYear}
-              isCollecting={isCollecting}
-              setTableMessage={setTableMessage}
-            />
+            <Suspense fallback={<LoadingSkeleton />}>
+              <DashboardSalesOverviewTable
+                currentYear={currentYear}
+                isCollecting={isCollecting}
+                setTableMessage={setTableMessage}
+              />
+            </Suspense>
           </div>
         </CardContent>
       </Stat.Container>
@@ -72,15 +75,8 @@ export function DashboardSalesOverviewPage() {
           </Button>
         </div>
       </div>
-      <Suspense
-        fallback={
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        }
-      >
-        <OverviewContent currentYear={currentYear} />
-      </Suspense>
+
+      <OverviewContent currentYear={currentYear} />
     </div>
   );
 }

@@ -124,6 +124,7 @@ export function DashboardSalesOverviewTable({
       }
     });
   }, []);
+
   return (
     <Table>
       <TableHeader>
