@@ -1,6 +1,5 @@
 import type { StoreApi, UseBoundStore } from "zustand";
-import { shallow } from "zustand/shallow";
-import { useStoreWithEqualityFn } from "zustand/traditional";
+import { useShallow } from "zustand/react/shallow";
 
 export const createStoreWithSelectors = <T>(
   store: UseBoundStore<StoreApi<T>>
@@ -10,16 +9,14 @@ export const createStoreWithSelectors = <T>(
   >(
     keys: K[]
   ) => {
-    return useStoreWithEqualityFn(
-      store,
-      (state) => {
+    return store(
+      useShallow((state: T) => {
         const selected = {} as Pick<T, K>;
         for (const key of keys) {
           selected[key] = state[key];
         }
         return selected;
-      },
-      shallow
+      })
     );
   };
 
