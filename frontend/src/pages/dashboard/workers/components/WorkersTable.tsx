@@ -1,9 +1,16 @@
 import { memo } from "react";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  SortableHeader,
+} from "@ui/table";
 import { Calendar, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@components/ui/button";
-import { SortableHeader } from "@components/ui/sortable-header";
 import {
   getNormalParcelCount,
   getAccidentParcelCount,
@@ -53,7 +60,7 @@ export const WorkersTable = memo<WorkersTableProps>(
         </div>
         <div className="p-6">
           <Table>
-            <thead>
+            <TableHeader>
               <TableRow>
                 <SortableHeader
                   columnId="code"
@@ -94,7 +101,7 @@ export const WorkersTable = memo<WorkersTableProps>(
                   등록일
                 </SortableHeader>
               </TableRow>
-            </thead>
+            </TableHeader>
             <TableBody>
               {operators.map((operator) => (
                 <TableRow

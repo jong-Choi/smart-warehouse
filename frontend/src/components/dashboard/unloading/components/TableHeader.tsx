@@ -1,5 +1,5 @@
-import { TableHeader, TableRow } from "@ui/table";
-import { SortableHeader } from "@/components/ui/sortable-header";
+import { SortableHeader, TableHeader, TableRow } from "@ui/table";
+
 import { useUnloadingTableStore } from "@/stores/unloadingTableStore";
 
 export const UnloadingTableHeader: React.FC = () => {

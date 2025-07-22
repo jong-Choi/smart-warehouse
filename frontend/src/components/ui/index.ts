@@ -63,7 +63,6 @@ export {
 } from "./warehouse";
 export { Slider } from "./slider";
 export { DonutChart } from "./donut-chart";
-export { SortableHeader } from "./sortable-header";
 export { Calendar } from "./calendar";
 export { Badge } from "./badge";
 export {

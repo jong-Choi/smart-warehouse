@@ -4,9 +4,16 @@ import {
   useSalesOverviewSuspense,
   useLocationSalesSuspense,
 } from "@/hooks/useSales";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table } from "@/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/ui/table";
 import {
   DollarSign,
   TrendingUp,
@@ -19,6 +26,7 @@ import {
 } from "lucide-react";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { useState, useEffect } from "react";
+import Stat from "@/components/ui/stat";
 
 function OverviewContent({ currentYear }: { currentYear: number }) {
   const navigate = useNavigate();
@@ -109,118 +117,88 @@ ${locationData
 
   return (
     <>
-      {/* 매출 요약 카드들 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 매출</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(overviewData?.totalRevenue || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">올해 누적 매출</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">평균 운송가액</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(overviewData?.avgShippingValue || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">운송장당 평균</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">사고 손실률</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {overviewData?.accidentLossRate || 0}%
-            </div>
-            <p className="text-xs text-muted-foreground">총 매출 대비 손실</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">월별 성장률</CardTitle>
-            {overviewData?.monthlyGrowthRate &&
-            overviewData.monthlyGrowthRate > 0 ? (
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-600" />
-            )}
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${
-                overviewData?.monthlyGrowthRate &&
-                overviewData.monthlyGrowthRate > 0
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {overviewData?.monthlyGrowthRate || 0}%
-            </div>
-            <p className="text-xs text-muted-foreground">지난달 대비</p>
-          </CardContent>
-        </Card>
-      </div>
-      {/* 추가 통계 카드들 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 처리 건수</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(overviewData?.totalProcessedCount || 0)}건
-            </div>
-            <p className="text-xs text-muted-foreground">정상 처리된 운송장</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 사고 건수</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {formatNumber(overviewData?.totalAccidentCount || 0)}건
-            </div>
-            <p className="text-xs text-muted-foreground">사고 발생 건수</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">이번 달 매출</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(overviewData?.currentMonthRevenue || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">현재 월 누적</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* 매출 요약 + 추가 통계 카드들 */}
+      <Stat.Container>
+        <Stat.Header>
+          <h3 className="text-lg font-semibold mb-2">매출 요약 및 통계</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            올해 전체 매출, 주요 지표, 처리 건수 등 상세 통계를 한눈에
+            확인하세요.
+          </p>
+        </Stat.Header>
+        <Stat.Grid cols={3}>
+          <Stat.Card
+            icon={DollarSign}
+            title="총 매출"
+            value={formatCurrency(overviewData?.totalRevenue || 0)}
+            variant="purple"
+            helpMessage="올해 누적 매출입니다."
+          />
+          <Stat.Card
+            icon={Package}
+            title="평균 운송가액"
+            value={formatCurrency(overviewData?.avgShippingValue || 0)}
+            variant="blue"
+            helpMessage="운송장 1건당 평균 운송가액입니다."
+          />
+
+          <Stat.Card
+            icon={DollarSign}
+            title="이번 달 매출"
+            value={formatCurrency(overviewData?.currentMonthRevenue || 0)}
+            variant="green"
+            helpMessage="이번 달 누적 매출입니다."
+          />
+        </Stat.Grid>
+        <Stat.Grid cols={4} className="mt-6">
+          <Stat.Card
+            icon={Package}
+            title="총 처리 건수"
+            value={`${formatNumber(overviewData?.totalProcessedCount || 0)}건`}
+            variant="default"
+            helpMessage="정상 처리된 운송장 수입니다."
+          />
+          <Stat.Card
+            icon={AlertTriangle}
+            title="총 사고 건수"
+            value={`${formatNumber(overviewData?.totalAccidentCount || 0)}건`}
+            variant="red"
+            helpMessage="사고 발생 운송장 수입니다."
+          />
+          <Stat.Card
+            icon={AlertTriangle}
+            title="사고 손실률"
+            value={`${overviewData?.accidentLossRate || 0}%`}
+            variant="red"
+            helpMessage="총 매출 대비 사고로 인한 손실 비율입니다."
+          />
+          <Stat.Card
+            icon={
+              overviewData?.monthlyGrowthRate &&
+              overviewData.monthlyGrowthRate > 0
+                ? TrendingUp
+                : TrendingDown
+            }
+            title="월별 성장률"
+            value={`${overviewData?.monthlyGrowthRate || 0}%`}
+            variant={
+              overviewData?.monthlyGrowthRate &&
+              overviewData.monthlyGrowthRate > 0
+                ? "green"
+                : "red"
+            }
+            helpMessage="지난달 대비 매출 성장률입니다."
+          />
+        </Stat.Grid>
+      </Stat.Container>
       {/* 지역별 매출 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              지역별 매출 현황
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Stat.Container>
+          <Stat.Header className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            지역별 매출 현황
+          </Stat.Header>
+          <CardContent className="p-0">
             {locationData.length > 0 ? (
               <>
                 <div className="space-y-4">
@@ -279,12 +257,13 @@ ${locationData
               </div>
             )}
           </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>빠른 액션</CardTitle>
-          </CardHeader>
-          <CardContent>
+        </Stat.Container>
+        <Stat.Container>
+          <Stat.Header className="flex items-center gap-2">
+            <ExternalLink className="mr-2 h-4 w-4" />
+            빠른 액션
+          </Stat.Header>
+          <CardContent className="p-0">
             <div className="space-y-3">
               <Button
                 className="w-full justify-start"
@@ -320,58 +299,39 @@ ${locationData
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </Stat.Container>
       </div>
       {/* 지역별 매출 상세 테이블 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>지역별 매출 상세</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Stat.Container>
+        <Stat.Header>지역별 매출 상세</Stat.Header>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    순위
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    지역명
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    매출
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    처리건수
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    사고건수
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    평균 운송가액
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>순위</TableHead>
+                  <TableHead>지역명</TableHead>
+                  <TableHead className="text-right">매출</TableHead>
+                  <TableHead className="text-right">처리건수</TableHead>
+                  <TableHead className="text-right">사고건수</TableHead>
+                  <TableHead className="text-right">평균 운송가액</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {locationData.map((location, index) => (
-                  <tr
+                  <TableRow
                     key={location.locationName}
-                    className="hover:bg-gray-50 cursor-pointer"
                     onClick={() => handleLocationClick(location.locationName)}
                   >
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {index + 1}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {location.locationName}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{location.locationName}</TableCell>
+                    <TableCell className="text-right">
                       {formatCurrency(location.revenue)}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    </TableCell>
+                    <TableCell className="text-right text-gray-500">
                       {formatNumber(location.processedCount)}건
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    </TableCell>
+                    <TableCell className="text-right text-gray-500">
                       <span
                         className={
                           location.accidentCount > 0 ? "text-red-600" : ""
@@ -379,21 +339,21 @@ ${locationData
                       >
                         {formatNumber(location.accidentCount)}건
                       </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    </TableCell>
+                    <TableCell className="text-right text-gray-500">
                       {formatCurrency(
                         location.processedCount > 0
                           ? location.revenue / location.processedCount
                           : 0
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
+              </TableBody>
             </Table>
           </div>
         </CardContent>
-      </Card>
+      </Stat.Container>
     </>
   );
 }
