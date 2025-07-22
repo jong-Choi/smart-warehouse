@@ -1,102 +1,35 @@
-import { Suspense, useMemo } from "react";
-import {
-  useSalesOverviewSuspense,
-  useLocationSalesSuspense,
-} from "@hooks/useSales";
+import { Suspense } from "react";
 import { CardContent } from "@components/ui/card";
 import { Button } from "@components/ui/button";
-
-import { useChatbotStore } from "@stores/chatbotStore";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Stat from "@components/ui/stat";
 import {
   DashboardSalesOverviewStats,
   DashboardSalesOverviewTable,
 } from "@components/dashboard/sales/overview";
+import { useSalesContextMessage } from "@components/dashboard/sales/overview/hooks/useSalesContextMessage";
 
 function OverviewContent({ currentYear }: { currentYear: number }) {
-  const { data: overviewRes } = useSalesOverviewSuspense(currentYear);
-  const { data: locationRes } = useLocationSalesSuspense(currentYear);
-  const overviewData = overviewRes?.data;
-  const locationData = useMemo(() => locationRes?.data || [], [locationRes]);
-
-  // 챗봇 관련 훅
-  const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore([
-      "setSystemContext",
-      "isCollecting",
-      "setIsMessagePending",
-    ]);
-
-  useEffect(() => {
-    if (overviewData && locationData && isCollecting) {
-      const context = `현재 페이지: 매출 개요 (/dashboard/sales/overview)
-⦁ 시간: ${new Date().toLocaleString()}
-
-⦁ 조회 기간:
-- ${currentYear}년
-
-⦁ 전체 매출 현황:
-- 총 매출: ${overviewData.totalRevenue?.toLocaleString() || 0}원
-- 평균 운송가액: ${overviewData.avgShippingValue?.toLocaleString() || 0}원
-- 사고 손실률: ${overviewData.accidentLossRate || 0}%
-- 월별 성장률: ${overviewData.monthlyGrowthRate || 0}%
-
-⦁ 처리 현황:
-- 총 처리 건수: ${overviewData.totalProcessedCount?.toLocaleString() || 0}건
-- 총 사고 건수: ${overviewData.totalAccidentCount?.toLocaleString() || 0}건
-- 이번 달 매출: ${overviewData.currentMonthRevenue?.toLocaleString() || 0}원
-
-⦁ 지역별 매출 테이블:
-
-| 지역명 | 매출 | 처리 건수 | 사고 건수 | 사고율 |
-|--------|------|-----------|-----------|--------|
-${locationData
-  .filter((data) => data.revenue > 0)
-  .map((data) => {
-    const accidentRate =
-      data.processedCount > 0
-        ? ((data.accidentCount / data.processedCount) * 100).toFixed(1)
-        : "0.0";
-    return `| ${data.locationName} | ${
-      data.revenue?.toLocaleString() || 0
-    }원 | ${data.processedCount || 0}건 | ${
-      data.accidentCount || 0
-    }건 | ${accidentRate}% |`;
-  })
-  .join("\n")}
-
-⦁ 사용자가 현재 보고 있는 정보:
-- ${currentYear}년의 전체 매출 현황과 핵심 지표
-- 총 매출, 평균 운송가액, 사고 손실률, 월별 성장률 등 주요 지표 확인 가능
-- 지역별 매출 현황과 처리 건수 확인 가능
-- 지역 클릭 시 해당 지역의 운송장 목록으로 이동 가능
-- 연도별 이동 버튼으로 다른 연도의 데이터 조회 가능`;
-      setSystemContext(context);
-      setIsMessagePending(false);
-    }
-  }, [
-    overviewData,
-    locationData,
-    currentYear,
-    setSystemContext,
-    isCollecting,
-    setIsMessagePending,
-  ]);
+  const { setStatsMessage, setTableMessage, isCollecting } =
+    useSalesContextMessage(currentYear);
 
   return (
     <>
       <DashboardSalesOverviewStats
-        overviewData={overviewData}
-        locationData={locationData}
         currentYear={currentYear}
+        isCollecting={isCollecting}
+        setStatsMessage={setStatsMessage}
       />
       {/* 지역별 매출 상세 테이블 */}
       <Stat.Container>
         <Stat.Head>지역별 매출 상세</Stat.Head>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <DashboardSalesOverviewTable locationData={locationData} />
+            <DashboardSalesOverviewTable
+              currentYear={currentYear}
+              isCollecting={isCollecting}
+              setTableMessage={setTableMessage}
+            />
           </div>
         </CardContent>
       </Stat.Container>

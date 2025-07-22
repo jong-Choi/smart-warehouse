@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/ui/table";
 
@@ -12,13 +12,21 @@ import {
 } from "@tanstack/react-table";
 import { SortableHeader } from "@/ui/table";
 import { formatCurrency, formatNumber } from "@utils/formatString";
-import type { LocationSalesData } from "@/api/salesApi";
+import { useLocationSalesSuspense } from "@hooks/useSales";
+import { generateMarkdownTable } from "@utils/tableToMarkdown";
 
 export function DashboardSalesOverviewTable({
-  locationData,
+  currentYear,
+  isCollecting,
+  setTableMessage,
 }: {
-  locationData: LocationSalesData[];
+  currentYear: number;
+  isCollecting: boolean;
+  setTableMessage: (message: string) => void;
 }) {
+  const { data: locationRes } = useLocationSalesSuspense(currentYear);
+  const locationData = locationRes.data;
+
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const navigate = useNavigate();
@@ -96,6 +104,12 @@ export function DashboardSalesOverviewTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
+
+  useEffect(() => {
+    if (isCollecting) {
+      setTableMessage(generateMarkdownTable(table));
+    }
+  }, [isCollecting, setTableMessage, table]);
 
   // 정렬 핸들러
   const handleSort = useCallback((columnId: string) => {

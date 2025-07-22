@@ -1,5 +1,5 @@
 import type { StoreApi, UseBoundStore } from "zustand";
-import { useShallow } from "zustand/react/shallow";
+import { useShallow } from "zustand/shallow";
 
 export const createStoreWithSelectors = <T>(
   store: UseBoundStore<StoreApi<T>>

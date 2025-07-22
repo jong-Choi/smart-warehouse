@@ -13,17 +13,26 @@ import {
 } from "lucide-react";
 import Stat from "@/components/ui/stat";
 import { formatCurrency, formatNumber } from "@utils/formatString";
-import type { LocationSalesData, SalesOverviewData } from "@/api/salesApi";
+import {
+  useLocationSalesSuspense,
+  useSalesOverviewSuspense,
+} from "@hooks/useSales";
+import { useEffect } from "react";
 
 export function DashboardSalesOverviewStats({
-  overviewData,
-  locationData,
   currentYear,
+  setStatsMessage,
+  isCollecting,
 }: {
-  overviewData: SalesOverviewData;
-  locationData: LocationSalesData[];
   currentYear: number;
+  setStatsMessage: (message: string) => void;
+  isCollecting: boolean;
 }) {
+  const { data: overviewRes } = useSalesOverviewSuspense(currentYear);
+  const overviewData = overviewRes.data;
+  const { data: locationRes } = useLocationSalesSuspense(currentYear);
+  const locationData = locationRes.data;
+
   const navigate = useNavigate();
   const handleLocationClick = (locationName: string) => {
     navigate(
@@ -32,6 +41,21 @@ export function DashboardSalesOverviewStats({
       )}`
     );
   };
+
+  useEffect(() => {
+    if (isCollecting) {
+      setStatsMessage(`⦁ 전체 매출 현황:
+- 총 매출: ${overviewData.totalRevenue?.toLocaleString() || 0}원
+- 평균 운송가액: ${overviewData.avgShippingValue?.toLocaleString() || 0}원
+- 사고 손실률: ${overviewData.accidentLossRate || 0}%
+- 월별 성장률: ${overviewData.monthlyGrowthRate || 0}%
+
+⦁ 처리 현황:
+- 총 처리 건수: ${overviewData.totalProcessedCount?.toLocaleString() || 0}건
+- 총 사고 건수: ${overviewData.totalAccidentCount?.toLocaleString() || 0}건
+- 이번 달 매출: ${overviewData.currentMonthRevenue?.toLocaleString() || 0}원`);
+    }
+  }, [isCollecting, setStatsMessage, overviewData]);
   return (
     <>
       {/* 매출 요약 + 추가 통계 카드들 */}
