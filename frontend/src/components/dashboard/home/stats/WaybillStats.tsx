@@ -17,7 +17,7 @@ function WaybillStats() {
   // 도넛 차트 데이터 - 실제 데이터 기반
   const chartData = [
     { name: "미하차", value: pendingUnloadCount, color: "#6B7280" }, // gray-500
-    { name: "하처리", value: unloadedCount, color: "#3B82F6" }, // blue-500
+    { name: "미처리", value: unloadedCount, color: "#F59E42" }, // yellow-500
     { name: "정상처리", value: normalCount, color: "#10B981" }, // green-500
     { name: "사고처리", value: accidentCount, color: "#EF4444" }, // red-500
   ];

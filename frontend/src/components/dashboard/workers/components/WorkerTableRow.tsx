@@ -6,25 +6,14 @@ import {
   calculateUtilization,
   calculateAccidentRate,
 } from "@/components/dashboard/workers/utils/calculations";
-import type {
-  Worker,
-  WorkerStatus,
-} from "@/components/dashboard/workers/types";
+import type { Worker } from "@/components/dashboard/workers/types";
 import { Link } from "react-router-dom";
 import { StatusBadge } from "@ui/status-badge";
+import { STATUS_MAP } from "@utils/stautsMap";
 
 interface WorkerTableRowProps {
   worker: Worker;
 }
-
-const statusMap: Record<
-  WorkerStatus,
-  { text: string; color: "yellow" | "blue" | "green" | "red" | "gray" }
-> = {
-  IDLE: { text: "대기중", color: "gray" },
-  WORKING: { text: "작업중", color: "green" },
-  BROKEN: { text: "고장", color: "red" },
-};
 
 /**
  * 개별 작업자 정보를 표시하는 테이블 행 컴포넌트
@@ -62,8 +51,8 @@ export const WorkerTableRow = React.memo<WorkerTableRowProps>(({ worker }) => {
       </TableCell>
       <TableCell>{worker.name}</TableCell>
       <TableCell>
-        <StatusBadge color={statusMap[worker.status].color}>
-          {statusMap[worker.status].text}
+        <StatusBadge color={STATUS_MAP[worker.status].color}>
+          {STATUS_MAP[worker.status].text}
         </StatusBadge>
       </TableCell>
       <TableCell>{worker.processedCount}</TableCell>

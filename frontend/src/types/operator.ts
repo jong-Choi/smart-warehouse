@@ -78,6 +78,7 @@ export interface OperatorWork {
 export interface OperatorParcel {
   id: number;
   waybillId: number;
+  number?: string;
   operatorId: number;
   locationId: number;
   status: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";

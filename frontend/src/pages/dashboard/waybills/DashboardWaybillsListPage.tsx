@@ -24,20 +24,11 @@ import type { Waybill, WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
+import { STATUS_MAP } from "@utils/stautsMap";
 
 interface WaybillsListPageProps {
   onWaybillSelect?: (waybill: Waybill) => void;
 }
-
-const statusMap: Record<
-  WaybillStatus,
-  { text: string; color: "yellow" | "blue" | "green" | "red" | "gray" }
-> = {
-  PENDING_UNLOAD: { text: "하차 예정", color: "yellow" },
-  UNLOADED: { text: "하차 완료", color: "blue" },
-  NORMAL: { text: "정상 처리", color: "green" },
-  ACCIDENT: { text: "사고", color: "red" },
-};
 
 function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
   const navigate = useNavigate();
@@ -185,7 +176,6 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
                   onSelect={(range: DateRange | undefined) => {
                     setTempDateRange(range);
                   }}
-                  initialFocus
                   className="rounded-lg border shadow-sm [--cell-size:--spacing(11)] md:[--cell-size:--spacing(13)]"
                   classNames={{
                     day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
@@ -245,7 +235,6 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
                 <th className="text-left p-4 font-medium">작업자</th>
                 <th className="text-left p-4 font-medium">배송지</th>
                 <th className="text-left p-4 font-medium">물건 가격</th>
-                <th className="text-left p-4 font-medium">사고 여부</th>
                 <th className="text-left p-4 font-medium">작업</th>
               </tr>
             </thead>
@@ -258,8 +247,8 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
                 >
                   <td className="p-4 font-medium">{waybill.number}</td>
                   <td className="p-4">
-                    <StatusBadge color={statusMap[waybill.status].color}>
-                      {statusMap[waybill.status].text}
+                    <StatusBadge color={STATUS_MAP[waybill.status].color}>
+                      {STATUS_MAP[waybill.status].text}
                     </StatusBadge>
                   </td>
                   <td className="p-4">
@@ -282,18 +271,6 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
                     {waybill.parcel?.declaredValue
                       ? `${waybill.parcel.declaredValue.toLocaleString()}원`
                       : "-"}
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={cn(
-                        "px-2 py-1 rounded-full text-xs font-medium",
-                        waybill.isAccident
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
-                      )}
-                    >
-                      {waybill.isAccident ? "사고" : "정상"}
-                    </span>
                   </td>
                   <td className="p-4">
                     <Button

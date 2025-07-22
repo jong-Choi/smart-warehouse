@@ -22,9 +22,10 @@ import { cn } from "@/lib/utils";
 import { useWaybillsByLocationSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
+import { STATUS_MAP } from "@utils/stautsMap";
+import { StatusBadge } from "@ui/status-badge";
 
 function LocationWaybillDetailContent() {
   const { locationId } = useParams<{ locationId: string }>();
@@ -77,36 +78,7 @@ function LocationWaybillDetailContent() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
-  // 상태별 색상 가져오기
-  const getStatusColor = (status: WaybillStatus) => {
-    switch (status) {
-      case "PENDING_UNLOAD":
-        return "bg-yellow-100 text-yellow-800";
-      case "UNLOADED":
-        return "bg-blue-100 text-blue-800";
-      case "NORMAL":
-        return "bg-green-100 text-green-800";
-      case "ACCIDENT":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-  // 상태 한글 변환
-  const getStatusLabel = (status: WaybillStatus) => {
-    switch (status) {
-      case "PENDING_UNLOAD":
-        return "하차 예정";
-      case "UNLOADED":
-        return "하차 완료";
-      case "NORMAL":
-        return "정상 처리";
-      case "ACCIDENT":
-        return "사고";
-      default:
-        return status;
-    }
-  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -213,7 +185,6 @@ function LocationWaybillDetailContent() {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                    initialFocus
                     mode="range"
                     defaultMonth={tempDateRange?.from}
                     selected={tempDateRange}
@@ -280,9 +251,9 @@ function LocationWaybillDetailContent() {
                         <div className="font-medium">{waybill.number}</div>
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-center">
-                        <Badge className={getStatusColor(waybill.status)}>
-                          {getStatusLabel(waybill.status)}
-                        </Badge>
+                        <StatusBadge color={STATUS_MAP[waybill.status].color}>
+                          {STATUS_MAP[waybill.status].text}
+                        </StatusBadge>
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-center">
                         {format(new Date(waybill.unloadDate), "yyyy-MM-dd", {

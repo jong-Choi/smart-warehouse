@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableRow } from "@/ui/table";
-import { Button } from "@/ui/button";
 import type { OperatorParcel } from "@/types/operator";
+import { STATUS_MAP } from "@utils/stautsMap";
+import { StatusBadge } from "@ui/status-badge";
 
 // 금액 포맷팅 유틸리티 함수
 const formatCurrency = (amount: number): string => {
@@ -13,36 +14,6 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "NORMAL":
-      return "정상";
-    case "ACCIDENT":
-      return "사고";
-    case "UNLOADED":
-      return "하차완료";
-    case "PENDING_UNLOAD":
-      return "하차대기";
-    default:
-      return status;
-  }
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "NORMAL":
-      return "bg-green-100 text-green-800";
-    case "ACCIDENT":
-      return "bg-red-100 text-red-800";
-    case "UNLOADED":
-      return "bg-blue-100 text-blue-800";
-    case "PENDING_UNLOAD":
-      return "bg-yellow-100 text-yellow-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
-
 interface ParcelTableProps {
   parcels: OperatorParcel[];
   total: number;
@@ -50,8 +21,9 @@ interface ParcelTableProps {
 
 export function ParcelTable({ parcels, total }: ParcelTableProps) {
   const navigate = useNavigate();
-
-  console.log("[ParcelTable] parcels:", parcels);
+  const onRowClick = (parcel: OperatorParcel) => {
+    navigate(`/dashboard/waybills/${parcel.id}`);
+  };
 
   return (
     <div className="bg-card rounded-lg border">
@@ -76,36 +48,21 @@ export function ParcelTable({ parcels, total }: ParcelTableProps) {
             </thead>
             <TableBody>
               {parcels.map((parcel) => {
-                console.log(
-                  "[ParcelTable] parcel.declaredValue:",
-                  parcel.declaredValue
-                );
                 return (
-                  <TableRow key={parcel.id}>
+                  <TableRow
+                    key={parcel.id}
+                    onClick={() => onRowClick(parcel)}
+                    className="cursor-pointer"
+                  >
                     <TableCell className="font-medium">
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto font-medium"
-                        onClick={() =>
-                          parcel.waybill
-                            ? navigate(
-                                `/dashboard/waybills/${parcel.waybill.id}`
-                              )
-                            : undefined
-                        }
-                        disabled={!parcel.waybill}
-                      >
-                        {parcel.waybill ? parcel.waybill.number : "-"}
-                      </Button>
+                      <Link to={`/dashboard/waybills/${parcel.id}`}>
+                        {parcel.number ?? parcel.id ?? "-"}
+                      </Link>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
-                          parcel.status
-                        )}`}
-                      >
-                        {getStatusLabel(parcel.status)}
-                      </span>
+                      <StatusBadge color={STATUS_MAP[parcel.status].color}>
+                        {STATUS_MAP[parcel.status].text}
+                      </StatusBadge>
                     </TableCell>
                     <TableCell>{parcel.location.name}</TableCell>
                     <TableCell>

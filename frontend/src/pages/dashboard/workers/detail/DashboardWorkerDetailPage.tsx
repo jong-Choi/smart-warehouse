@@ -43,7 +43,7 @@ function WorkerDetailContent() {
       `작업자 상세 정보 (/dashboard/workers/detail/${operator.code})\n\n` +
       `⦁ 이름: ${operator.name}\n` +
       `⦁ 코드: ${operator.code}\n` +
-      `⦁ 타입: ${operator.type === "HUMAN" ? "사람" : "기계"}\n` +
+      `⦁ 타입: ${operator.type === "HUMAN" ? "사람" : "로봇"}\n` +
       `⦁ 등록일: ${new Date(operator.createdAt).toLocaleDateString(
         "ko-KR"
       )}\n` +

@@ -16,6 +16,8 @@ import {
   getAccidentParcelCount,
 } from "@/utils/operatorUtils";
 import type { Operator } from "@/types/operator";
+import { StatusBadge } from "@ui/status-badge";
+import { STATUS_MAP } from "@utils/stautsMap";
 
 interface WorkersTableProps {
   operators: Operator[];
@@ -27,19 +29,6 @@ interface WorkersTableProps {
   sorting: Array<{ id: string; desc: boolean }>;
   onSort: (columnId: string) => void;
 }
-
-const getTypeLabel = (type: string) => {
-  switch (type) {
-    case "LOADER":
-      return "로더";
-    case "UNLOADER":
-      return "언로더";
-    case "SORTER":
-      return "분류자";
-    default:
-      return type;
-  }
-};
 
 export const WorkersTable = memo<WorkersTableProps>(
   ({
@@ -77,7 +66,7 @@ export const WorkersTable = memo<WorkersTableProps>(
                   이름
                 </SortableHeader>
                 <TableHead>타입</TableHead>
-                <TableHead>상태</TableHead>
+
                 <TableHead>근무일수</TableHead>
                 <SortableHeader
                   columnId="normalParcels"
@@ -114,15 +103,11 @@ export const WorkersTable = memo<WorkersTableProps>(
                   <TableCell className="font-mono">{operator.code}</TableCell>
                   <TableCell className="font-medium">{operator.name}</TableCell>
                   <TableCell>
-                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                      {getTypeLabel(operator.type)}
-                    </span>
+                    <StatusBadge color={STATUS_MAP[operator.type].color}>
+                      {STATUS_MAP[operator.type].text}
+                    </StatusBadge>
                   </TableCell>
-                  <TableCell>
-                    <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
-                      활성
-                    </span>
-                  </TableCell>
+
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4 text-gray-500" />

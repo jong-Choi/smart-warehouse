@@ -4,28 +4,18 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { ArrowLeft, Package, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useWaybillDetailSuspense } from "@/hooks/useWaybills";
-import type { Waybill, WaybillStatus } from "@/types";
+import type { Waybill } from "@/types";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
+import { STATUS_MAP } from "@utils/stautsMap";
 
 interface DashboardWaybillDetailPageProps {
   waybill?: Waybill;
   onBack?: () => void;
 }
-
-const statusMap: Record<
-  WaybillStatus,
-  { text: string; color: "yellow" | "blue" | "green" | "red" | "gray" }
-> = {
-  PENDING_UNLOAD: { text: "하차 예정", color: "yellow" },
-  UNLOADED: { text: "하차 완료", color: "blue" },
-  NORMAL: { text: "정상 처리", color: "green" },
-  ACCIDENT: { text: "사고", color: "red" },
-};
 
 function WaybillDetailContent({
   waybill,
@@ -106,8 +96,8 @@ function WaybillDetailContent({
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">상태</span>
-              <StatusBadge color={statusMap[waybillData.status].color}>
-                {statusMap[waybillData.status].text}
+              <StatusBadge color={STATUS_MAP[waybillData.status].color}>
+                {STATUS_MAP[waybillData.status].text}
               </StatusBadge>
             </div>
             <Separator />
@@ -153,11 +143,9 @@ function WaybillDetailContent({
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">사고 여부</span>
-              <Badge
-                variant={waybillData.isAccident ? "destructive" : "secondary"}
-              >
+              <StatusBadge color={waybillData.isAccident ? "red" : "green"}>
                 {waybillData.isAccident ? "사고" : "정상"}
-              </Badge>
+              </StatusBadge>
             </div>
           </CardContent>
         </Card>

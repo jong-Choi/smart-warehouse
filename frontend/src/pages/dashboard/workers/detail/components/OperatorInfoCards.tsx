@@ -12,7 +12,7 @@ export function OperatorInfoCards({ operator }: OperatorInfoCardsProps) {
           작업자 타입
         </h3>
         <p className="text-lg font-medium">
-          {operator.type === "HUMAN" ? "사람" : "기계"}
+          {operator.type === "HUMAN" ? "사람" : "로봇"}
         </p>
       </div>
       <div className="bg-card rounded-lg border p-4">

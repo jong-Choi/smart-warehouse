@@ -64,7 +64,7 @@ export {
 export { Slider } from "./slider";
 export { DonutChart } from "./donut-chart";
 export { Calendar } from "./calendar";
-export { Badge } from "./badge";
+
 export {
   Card,
   CardHeader,
