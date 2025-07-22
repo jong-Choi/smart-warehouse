@@ -9,8 +9,15 @@ import {
   Package,
 } from "lucide-react";
 import Stat from "@/components/ui/stat";
+import { useEffect } from "react";
 
-function DashboardStats() {
+function DashboardStats({
+  isCollecting,
+  setDashaboardStatsMessage,
+}: {
+  isCollecting: boolean;
+  setDashaboardStatsMessage: (message: string) => void;
+}) {
   const { parcels } = useUnloadingParcelsStore();
   const { workers } = useWorkersStore();
 
@@ -99,6 +106,31 @@ function DashboardStats() {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  useEffect(() => {
+    if (!isCollecting) return;
+    setDashaboardStatsMessage(
+      `작업 진척도: ${progressRate}%, 
+처리율: ${processingRate}%, 
+누적 매출: ${formatCurrency(totalRevenue)}원, 
+사고 금액: ${formatCurrency(accidentAmount)}원, 
+평균 처리시간: ${avgProcessingTime}초, 
+미처리 운송장: ${unprocessedParcels}건, 
+분당 처리량: ${minuteProcessingRate}건/분, 
+사고 손실률: ${accidentLossRate}%`
+    );
+  }, [
+    progressRate,
+    processingRate,
+    totalRevenue,
+    accidentAmount,
+    avgProcessingTime,
+    unprocessedParcels,
+    minuteProcessingRate,
+    accidentLossRate,
+    setDashaboardStatsMessage,
+    isCollecting,
+  ]);
 
   return (
     <Stat.Container>

@@ -1,35 +1,50 @@
 import { useWorkersStore } from "@/stores/workersStore";
 import { Users, Clock, TrendingUp } from "lucide-react";
 import Stat from "@/components/ui/stat";
+import { useEffect, useMemo } from "react";
 
-function WorkerStats() {
+function WorkerStats({
+  isCollecting,
+  setWorkerStatsMessage,
+  setWorkerTableMessage,
+}: {
+  isCollecting: boolean;
+  setWorkerStatsMessage: (message: string) => void;
+  setWorkerTableMessage: (message: string) => void;
+}) {
   const { workers } = useWorkersStore();
 
   // 작업 시작 시간이 있는 작업자들만 필터링
   const activeWorkers = workers.filter((worker) => worker.workStartedAt);
 
   // 각 작업자의 통계 계산
-  const workerStats = activeWorkers.map((worker) => {
-    const totalProcessed = worker.processedCount + worker.accidentCount;
-    const accidentRate =
-      totalProcessed > 0 ? (worker.accidentCount / totalProcessed) * 100 : 0;
+  const workerStats = useMemo(
+    () =>
+      activeWorkers.map((worker) => {
+        const totalProcessed = worker.processedCount + worker.accidentCount;
+        const accidentRate =
+          totalProcessed > 0
+            ? (worker.accidentCount / totalProcessed) * 100
+            : 0;
 
-    // 가동률 계산 (작업시간 / 전체시간)
-    const now = Date.now();
-    const workStartTime = worker.workStartedAt
-      ? new Date(worker.workStartedAt).getTime()
-      : now;
-    const totalTime = now - workStartTime;
-    const utilizationRate =
-      totalTime > 0 ? (worker.totalWorkTime / totalTime) * 100 : 0;
+        // 가동률 계산 (작업시간 / 전체시간)
+        const now = Date.now();
+        const workStartTime = worker.workStartedAt
+          ? new Date(worker.workStartedAt).getTime()
+          : now;
+        const totalTime = now - workStartTime;
+        const utilizationRate =
+          totalTime > 0 ? (worker.totalWorkTime / totalTime) * 100 : 0;
 
-    return {
-      ...worker,
-      totalProcessed,
-      accidentRate: Math.round(accidentRate * 100) / 100, // 소수점 2자리
-      utilizationRate: Math.round(utilizationRate * 100) / 100, // 소수점 2자리
-    };
-  });
+        return {
+          ...worker,
+          totalProcessed,
+          accidentRate: Math.round(accidentRate * 100) / 100, // 소수점 2자리
+          utilizationRate: Math.round(utilizationRate * 100) / 100, // 소수점 2자리
+        };
+      }),
+    [activeWorkers]
+  );
 
   // 전체 통계
   const totalActiveWorkers = activeWorkers.length;
@@ -37,6 +52,13 @@ function WorkerStats() {
     (sum, w) => sum + w.totalProcessed,
     0
   );
+  const avgAccidentCount =
+    workerStats.length > 0
+      ? Math.round(
+          workerStats.reduce((sum, w) => sum + w.accidentCount, 0) /
+            workerStats.length
+        )
+      : 0;
   const avgAccidentRate =
     workerStats.length > 0
       ? Math.round(
@@ -53,6 +75,34 @@ function WorkerStats() {
             100
         ) / 100
       : 0;
+
+  useEffect(() => {
+    if (!isCollecting) return;
+    setWorkerStatsMessage(
+      `활성 작업자: ${totalActiveWorkers}명
+총 처리건수: ${totalProcessed}건`
+    );
+  }, [totalActiveWorkers, totalProcessed, setWorkerStatsMessage, isCollecting]);
+
+  useEffect(() => {
+    if (!isCollecting) return;
+    setWorkerTableMessage(
+      `| 작업자ID | 처리건수 | 사고 건수 | 사고율(%) | 가동률(%) |
+|----------|----------|-----------|-----------|-----------|
+${workerStats
+  .map(
+    (worker) =>
+      `| ${worker.id} | ${worker.totalProcessed} | ${worker.accidentCount} | ${worker.accidentRate}% | ${worker.utilizationRate}% |`
+  )
+  .join("\n")}`
+    );
+  }, [
+    totalActiveWorkers,
+    totalProcessed,
+    setWorkerTableMessage,
+    workerStats,
+    isCollecting,
+  ]);
 
   return (
     <div className="w-full lg:w-1/2">
@@ -89,54 +139,54 @@ function WorkerStats() {
                 </tr>
               </thead>
               <tbody>
-                {workerStats.map((worker) => (
-                  <tr key={worker.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2 font-medium">{worker.id}</td>
-                    <td className="p-2 text-right">{worker.totalProcessed}</td>
-                    <td className="p-2 text-right">{worker.accidentCount}</td>
-                    <td className="p-2 text-right">
-                      <span
-                        className={`font-medium ${
-                          worker.accidentRate > 5
-                            ? "text-red-600"
-                            : worker.accidentRate > 2
-                            ? "text-yellow-600"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {worker.accidentRate}%
-                      </span>
-                    </td>
-                    <td className="p-2 text-right">
-                      <span
-                        className={`font-medium ${
-                          worker.utilizationRate > 80
-                            ? "text-green-600"
-                            : worker.utilizationRate > 60
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {worker.utilizationRate}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {workerStats.map((worker) => {
+                  const {
+                    id,
+                    totalProcessed,
+                    accidentCount,
+                    accidentRate,
+                    utilizationRate,
+                  } = worker;
+                  return (
+                    <tr key={id} className="border-b hover:bg-gray-50">
+                      <td className="p-2 font-medium">{id}</td>
+                      <td className="p-2 text-right">{totalProcessed}</td>
+                      <td className="p-2 text-right">{accidentCount}</td>
+                      <td className="p-2 text-right">
+                        <span
+                          className={`font-medium ${
+                            accidentRate > 5
+                              ? "text-red-600"
+                              : accidentRate > 2
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {accidentRate}%
+                        </span>
+                      </td>
+                      <td className="p-2 text-right">
+                        <span
+                          className={`font-medium ${
+                            utilizationRate > 80
+                              ? "text-green-600"
+                              : utilizationRate > 60
+                              ? "text-yellow-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {utilizationRate}%
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot className="sticky bottom-0 bg-gray-50 z-10">
                 <tr className="bg-gray-50 font-semibold">
                   <td className="p-2">평균</td>
                   <td className="p-2 text-right">-</td>
-                  <td className="p-2 text-right">
-                    {workerStats.length > 0
-                      ? Math.round(
-                          workerStats.reduce(
-                            (sum, w) => sum + w.accidentCount,
-                            0
-                          ) / workerStats.length
-                        )
-                      : 0}
-                  </td>
+                  <td className="p-2 text-right">{avgAccidentCount}</td>
                   <td className="p-2 text-right">
                     <span
                       className={`${

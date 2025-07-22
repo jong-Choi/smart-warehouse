@@ -2,8 +2,15 @@ import { DonutChart } from "@/components/ui/donut-chart";
 import { Package, Truck, CheckCircle, AlertTriangle } from "lucide-react";
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
 import Stat from "@/components/ui/stat";
+import { useEffect } from "react";
 
-function WaybillStats() {
+function WaybillStats({
+  isCollecting,
+  setWaybillStatsMessage,
+}: {
+  isCollecting: boolean;
+  setWaybillStatsMessage: (message: string) => void;
+}) {
   const { parcels } = useUnloadingParcelsStore();
 
   // 각 상태별 카운트 계산
@@ -23,6 +30,23 @@ function WaybillStats() {
   ];
 
   const totalCount = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  useEffect(() => {
+    if (!isCollecting) return;
+    setWaybillStatsMessage(
+      `미하차: ${pendingUnloadCount}건
+미처리: ${unloadedCount}건
+정상처리: ${normalCount}건
+사고처리: ${accidentCount}건`
+    );
+  }, [
+    pendingUnloadCount,
+    unloadedCount,
+    normalCount,
+    accidentCount,
+    setWaybillStatsMessage,
+    isCollecting,
+  ]);
 
   return (
     <div className="w-full lg:w-1/2">
