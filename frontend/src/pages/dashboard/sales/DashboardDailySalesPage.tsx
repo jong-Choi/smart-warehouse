@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { useState, useEffect, useMemo } from "react";
 import type { SalesData } from "@/types/sales";
+import { formatCurrency } from "@utils/formatString";
 
 function DailySalesContent({
   currentYear,
@@ -126,14 +127,6 @@ ${salesData
     setIsMessagePending,
     setSystemContext,
   ]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("ko-KR", {
-      style: "currency",
-      currency: "KRW",
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
 
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat("ko-KR").format(value);

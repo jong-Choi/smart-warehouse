@@ -1,18 +1,12 @@
 import React from "react";
 import { TableCell, TableRow } from "@ui/table";
-import { OptimizedStatusCell } from "@/components/dashboard/unloading/components/OptimizedStatusCell";
-import { OptimizedDateCell } from "@/components/dashboard/unloading/components/OptimizedDateCell";
-import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
-// 금액 포맷팅 유틸리티 함수
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";
+import {
+  OptimizedDateCell,
+  OptimizedStatusCell,
+} from "@components/dashboard/home/waybills/table/components";
+import { formatCurrency } from "@utils/formatString";
 
 interface OptimizedTableRowProps {
   parcel: UnloadingParcel;

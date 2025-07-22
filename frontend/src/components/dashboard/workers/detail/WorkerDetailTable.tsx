@@ -19,16 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useOperatorParcels } from "@/hooks/useOperator";
 import type { SortingState } from "@tanstack/react-table";
-
-// 금액 포맷팅 유틸리티 함수
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import { formatCurrency } from "@utils/formatString";
 
 interface WorkerDetailTableProps {
   operatorId: string;

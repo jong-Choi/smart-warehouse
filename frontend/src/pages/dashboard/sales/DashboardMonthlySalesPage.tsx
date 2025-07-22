@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, ExternalLink, Package } from "lucide-react";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { useState, useEffect, useMemo } from "react";
 import type { SalesData } from "@/types/sales";
+import { formatCurrency, formatNumber } from "@utils/formatString";
 
 function MonthlySalesContent({ currentYear }: { currentYear: number }) {
   const navigate = useNavigate();
@@ -107,18 +108,6 @@ ${salesData
     isCollecting,
     setIsMessagePending,
   ]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("ko-KR", {
-      style: "currency",
-      currency: "KRW",
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat("ko-KR").format(value);
-  };
 
   const handleMonthClick = (period: string) => {
     const month = parseInt(period.split(".")[1]);

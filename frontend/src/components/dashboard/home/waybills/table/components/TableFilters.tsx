@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { UnloadingStatusFilter } from "@/components/dashboard/unloading/types";
+import type { UnloadingStatusFilter } from "@components/dashboard/home/waybills/types";
 
 interface TableFiltersProps {
   globalFilter: string;

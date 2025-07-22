@@ -3,16 +3,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/ui/table";
 import type { OperatorParcel } from "@/types/operator";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { StatusBadge } from "@ui/status-badge";
-
-// 금액 포맷팅 유틸리티 함수
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import { formatCurrency } from "@utils/formatString";
 
 interface ParcelTableProps {
   parcels: OperatorParcel[];

@@ -11,6 +11,7 @@ import type { Waybill } from "@/types";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
+import { formatCurrency } from "@utils/formatString";
 
 interface DashboardWaybillDetailPageProps {
   waybill?: Waybill;
@@ -32,16 +33,6 @@ function WaybillDetailContent({
     : id
     ? suspenseWaybill ?? null
     : null;
-
-  // 금액 포맷팅
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("ko-KR", {
-      style: "currency",
-      currency: "KRW",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   if (!waybillData) {
     return (

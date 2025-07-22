@@ -36,6 +36,7 @@ const createInitialWorkers = (): Worker[] => {
 
 interface WorkersState {
   workers: Worker[];
+  activeWorkers: Worker[];
   stats: WorkerStats;
 
   // 액션들
@@ -46,6 +47,9 @@ interface WorkersState {
 
 export const useWorkersStore = create<WorkersState>((set, get) => ({
   workers: createInitialWorkers(),
+  activeWorkers: createInitialWorkers().filter(
+    (worker) => worker.workStartedAt
+  ),
   stats: {
     totalWorkers: 20,
     workingWorkers: 0,
@@ -59,7 +63,10 @@ export const useWorkersStore = create<WorkersState>((set, get) => ({
         worker.id === workerId ? { ...worker, ...updates } : worker
       );
 
-      return { workers: updatedWorkers };
+      return {
+        workers: updatedWorkers,
+        activeWorkers: updatedWorkers.filter((worker) => worker.workStartedAt),
+      };
     });
 
     // 통계 재계산

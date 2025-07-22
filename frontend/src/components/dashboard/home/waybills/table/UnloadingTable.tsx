@@ -14,58 +14,21 @@ import { useUnloadingTableStore } from "@/stores/unloadingTableStore";
 import type {
   UnloadingParcel,
   UnloadingStatusFilter,
-} from "@/components/dashboard/unloading/types";
+} from "@components/dashboard/home/waybills/types";
 import {
   OptimizedTableRow,
   UnloadingTableHeader,
   TableFilters,
   TablePagination,
-} from "@/components/dashboard/unloading/components";
+  DummyRow,
+} from "@components/dashboard/home/waybills/table/components";
 import { Stat } from "@components/ui";
-
-// 금액 포맷팅 유틸리티 함수
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+import { formatCurrency } from "@utils/formatString";
 
 interface UnloadingTableProps {
   parcels: UnloadingParcel[];
   onRefresh: () => void;
 }
-
-// 더미 row 컴포넌트를 별도로 분리하여 메모이제이션
-const DummyRow = React.memo(() => (
-  <TableRow className="opacity-0">
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-    <TableCell>
-      <div className="invisible">-</div>
-    </TableCell>
-  </TableRow>
-));
-
-DummyRow.displayName = "DummyRow";
 
 export const UnloadingTable: React.FC<UnloadingTableProps> = ({
   parcels,

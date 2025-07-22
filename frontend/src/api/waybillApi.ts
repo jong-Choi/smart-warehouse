@@ -4,7 +4,7 @@ import type {
   WaybillStatus,
   WaybillFilters,
 } from "@/types";
-import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
+import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3050";

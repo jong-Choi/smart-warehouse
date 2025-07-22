@@ -2,7 +2,7 @@ import { useEffect, useMemo, useCallback } from "react";
 import { createChannelInterface } from "@utils/broadcastChannel";
 import type { BroadcastMessage } from "@/types/broadcast";
 import type { WaybillStatus } from "@/types/waybill";
-import type { UnloadingParcel } from "@components/dashboard/unloading/types";
+import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";
 import { useUnloadingParcelsStore } from "@stores/unloadingParcelsStore";
 
 export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {

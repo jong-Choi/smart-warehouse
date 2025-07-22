@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { UnloadingStatusFilter } from "@/components/dashboard/unloading/types";
+import type { UnloadingStatusFilter } from "@components/dashboard/home/waybills/types";
 import { createStoreWithSelectors } from "@utils/zustandCreate";
 
 interface UnloadingTableState {

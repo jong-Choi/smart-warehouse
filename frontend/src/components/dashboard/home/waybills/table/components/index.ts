@@ -4,3 +4,4 @@ export { OptimizedTableRow } from "./OptimizedTableRow";
 export { UnloadingTableHeader } from "./TableHeader";
 export { TableFilters } from "./TableFilters";
 export { TablePagination } from "./TablePagination";
+export { DummyRow } from "./DummyRow";

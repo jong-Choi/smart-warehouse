@@ -2,6 +2,7 @@ import { useWorkersStore } from "@/stores/workersStore";
 import { Users, Clock, TrendingUp } from "lucide-react";
 import Stat from "@/components/ui/stat";
 import { useEffect, useMemo } from "react";
+import { useShallow } from "zustand/shallow";
 
 function WorkerStats({
   isCollecting,
@@ -12,10 +13,11 @@ function WorkerStats({
   setWorkerStatsMessage: (message: string) => void;
   setWorkerTableMessage: (message: string) => void;
 }) {
-  const { workers } = useWorkersStore();
-
-  // 작업 시작 시간이 있는 작업자들만 필터링
-  const activeWorkers = workers.filter((worker) => worker.workStartedAt);
+  const { activeWorkers } = useWorkersStore(
+    useShallow((state) => ({
+      activeWorkers: state.activeWorkers,
+    }))
+  );
 
   // 각 작업자의 통계 계산
   const workerStats = useMemo(
