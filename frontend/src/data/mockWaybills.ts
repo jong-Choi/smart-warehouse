@@ -150,9 +150,20 @@ function generateParcel(waybillId: number): MockParcel {
   } else {
     status = "ACCIDENT";
   }
+
+  const waybillCode = (() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const datePrefix = `${yyyy}${mm}${dd}`;
+    const paddedId = String(waybillId).padStart(5, "0");
+    return `${datePrefix}${paddedId}`;
+  })();
+
   return {
     id: waybillId, // 소포 ID = 운송장 ID (1:1 관계)
-    waybillId: `WB${Date.now()}${String(waybillId).padStart(5, "0")}`,
+    waybillId: `WB${waybillCode}`,
     operatorId: operator?.id,
     locationId: location.id,
     status,

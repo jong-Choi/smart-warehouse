@@ -141,11 +141,46 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
 
   useEffect(() => {
     if (isCollecting) {
+      const getStatusLabel = (status: string) => {
+        switch (status) {
+          case "PENDING_UNLOAD":
+            return "하차 예정";
+          case "UNLOADED":
+            return "하차 완료";
+          case "NORMAL":
+            return "정상 처리";
+          case "ACCIDENT":
+            return "사고";
+          default:
+            return status;
+        }
+      };
+
       const markdownTable = generateMarkdownTable(table);
-      const totalMessage = `총 ${parcels.length}개의 운송장이 있습니다.`;
-      setTableContextMessage(markdownTable + "\n" + totalMessage);
+      const message = `⦁ 필터 조건:
+- 검색어: ${globalFilter || "없음"}
+- 상태 필터: ${statusFilter === "all" ? "전체" : getStatusLabel(statusFilter)}
+- 현재 페이지: ${pageIndex + 1}
+- 페이지당 표시: ${pageSize}개
+
+⦁ 운송장 현황 테이블:
+${markdownTable}
+
+⦁ 총 ${parcels.length}개의 운송장이 있습니다.
+`;
+
+      setTableContextMessage(message);
     }
-  }, [table, isCollecting, setTableContextMessage, parcels.length]);
+  }, [
+    table,
+    isCollecting,
+    setTableContextMessage,
+    parcels.length,
+    globalFilter,
+    statusFilter,
+    pageIndex,
+    pageSize,
+  ]);
 
   const statusColumn = useMemo(() => table.getColumn("status"), [table]);
   // 상태 필터 변경 시 테이블에 반영 (table 객체 의존성 제거)
