@@ -23,16 +23,20 @@ export default function Warehouse2D() {
     useWarehouse2D();
 
   // Worker 컴포넌트들
-  const workerComponents = Array.from({ length: workerCount }).map((_, i) => (
-    <Worker
-      key={i}
-      index={i}
-      position={RECEIVE_WORKERS[i]}
-      catchTimes={workerCatchTimes[i]}
-      brokenUntil={workerBrokenUntil[i]}
-      workerCooldown={workerCooldown}
-    />
-  ));
+  const workerComponents = useMemo(
+    () =>
+      Array.from({ length: workerCount }).map((_, i) => (
+        <Worker
+          key={i}
+          index={i}
+          position={RECEIVE_WORKERS[i]}
+          catchTimes={workerCatchTimes[i]}
+          brokenUntil={workerBrokenUntil[i]}
+          workerCooldown={workerCooldown}
+        />
+      )),
+    [workerCount, workerCatchTimes, workerBrokenUntil, workerCooldown]
+  );
 
   // MovingBox 컴포넌트들을 메모이제이션
   const movingBoxComponents = useMemo(() => {

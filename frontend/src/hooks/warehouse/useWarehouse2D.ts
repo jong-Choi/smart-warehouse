@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { createChannelInterface } from "@/utils";
 import { useWarehouseStore } from "@/stores/warehouseStore";
 import {
@@ -161,13 +162,14 @@ export function useWarehouse2D() {
   useEffect(() => {
     if (!running) return;
     const animate = () => {
-      setLoadedParcels((prev) =>
-        prev.map((c) => {
+      setLoadedParcels((prev) => {
+        const newParcels = prev.map((c) => {
           let next = c.progress + speed;
           if (next >= 1) next = 0;
           return { progress: next, id: c.id };
-        })
-      );
+        });
+        return shallow(prev, newParcels) ? prev : newParcels;
+      });
       requestRef.current = requestAnimationFrame(animate);
     };
     requestRef.current = requestAnimationFrame(animate);
@@ -177,6 +179,12 @@ export function useWarehouse2D() {
       }
     };
   }, [speed, running]); // running 추가
+
+  useEffect(() => {
+    if (paused && !loadedParcels.length && requestRef.current) {
+      cancelAnimationFrame(requestRef.current);
+    }
+  }, [paused, loadedParcels]);
 
   // 동그라미가 작업자 위치에 오면 즉시 사라지게 (running일 때만 동작)
   useEffect(() => {
@@ -232,11 +240,6 @@ export function useWarehouse2D() {
               brokenUntil: newBrokenUntil[workerIdx],
             });
           } else {
-            removeIdxs.push(cIdx);
-            caughtCircleSet.add(cIdx);
-            newCatchTimes[workerIdx].push(now);
-            caught = true;
-
             // --- 여기서 브로드캐스트 채널로 송출 ---
             channel?.send({
               ts: now,
@@ -255,6 +258,10 @@ export function useWarehouse2D() {
                   : `작업자B${workerIdx - 9}`, // 작업자 이름 추가
             });
           }
+          removeIdxs.push(cIdx);
+          caughtCircleSet.add(cIdx);
+          newCatchTimes[workerIdx].push(now);
+          caught = true;
         }
       });
     }

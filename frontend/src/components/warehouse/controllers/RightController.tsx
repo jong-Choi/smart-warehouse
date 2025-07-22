@@ -4,6 +4,7 @@ import {
   RealTimeStats,
   SystemInfoPanel,
 } from "@/components/warehouse/controllers/components";
+import React from "react";
 
 const RightController: React.FC = () => {
   return (
@@ -15,4 +16,4 @@ const RightController: React.FC = () => {
   );
 };
 
-export default RightController;
+export default React.memo(RightController);
