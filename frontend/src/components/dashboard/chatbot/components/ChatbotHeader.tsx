@@ -16,7 +16,7 @@ export const ChatbotHeader: React.FC<ChatbotHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className="flex items-center justify-between p-4 border-b border-sidebar-border bg-sidebar-accent/50 rounded-t-lg min-h-[60px]">
+    <div className="flex items-center justify-between p-4 border-b border-sidebar-border bg-sidebar-accent/20 rounded-t-lg min-h-[60px]">
       {isOpen ? (
         <>
           <div className="flex items-center gap-2">

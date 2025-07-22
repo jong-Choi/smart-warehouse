@@ -9,6 +9,7 @@ import {
   ChatbotStatusBar,
   ChatbotInput,
 } from "@/components/dashboard/chatbot/components";
+import { useEffect } from "react";
 
 export function ChatbotPanel() {
   const location = useLocation();
@@ -17,12 +18,8 @@ export function ChatbotPanel() {
   const { isOpen, setIsOpen, useContext, setUseContext } = useChatbotStore();
   const {
     messages,
-    inputValue,
     isConnected,
-    isLoading,
     connectionFailed,
-    setInputValue,
-    sendMessage,
     clearConversation,
     retryConnection,
   } = useChatbot();
@@ -31,12 +28,18 @@ export function ChatbotPanel() {
     setUseContext(!useContext);
   };
 
+  useEffect(() => {
+    if (!isConnected) {
+      clearConversation();
+    }
+  }, [clearConversation, isConnected]);
+
   return (
     <div className="flex flex-col h-full p-2">
       {/* 챗봇 패널 */}
       <div
         className={cn(
-          "flex flex-col h-full bg-sidebar border border-sidebar-border rounded-lg transition-all duration-300 ease-in-out",
+          "flex flex-col h-full bg-sidebar/10 border border-sidebar-border rounded-lg transition-all duration-300 ease-in-out",
           isOpen ? "w-80" : "w-12 cursor-pointer"
         )}
         style={{
@@ -77,12 +80,7 @@ export function ChatbotPanel() {
             />
 
             {/* 입력 영역 */}
-            <ChatbotInput
-              inputValue={inputValue}
-              isLoading={isLoading}
-              onInputChange={setInputValue}
-              onSendMessage={sendMessage}
-            />
+            <ChatbotInput />
           </>
         )}
       </div>

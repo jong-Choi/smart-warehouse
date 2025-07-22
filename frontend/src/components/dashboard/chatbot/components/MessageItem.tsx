@@ -76,8 +76,8 @@ export const MessageItem = React.memo<MessageItemProps>(
           className={cn(
             "max-w-[200px] px-3 py-2 rounded-lg shadow-sm",
             message.isUser
-              ? "bg-sidebar-primary text-sidebar-primary-foreground"
-              : "bg-sidebar-accent text-sidebar-foreground border border-sidebar-border"
+              ? "bg-sidebar-accent text-sidebar-foreground"
+              : "bg-white/90 text-sidebar-foreground"
           )}
         >
           <p className="text-xs whitespace-pre-wrap">

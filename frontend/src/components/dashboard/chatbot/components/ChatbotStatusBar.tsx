@@ -24,7 +24,7 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
   onToggleContext,
 }) => {
   return (
-    <div className="px-4 py-2 border-t border-sidebar-border bg-sidebar-accent/20">
+    <div className="px-4 py-2 border-t border-sidebar-border bg-sidebar-secondary/5">
       {/* 첫 번째 줄: 화면 기반 대화 체크박스 (연결된 경우에만 표시) */}
       {isConnected && (
         <div className="flex items-center gap-2 mb-2 border-b border-sidebar-border pb-2">
@@ -68,7 +68,7 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = ({
                 : "bg-yellow-500"
             )}
           ></div>
-          <span className="text-xs font-medium text-sidebar-foreground/80 py-1">
+          <span className="text-xs font-medium text-sidebar-foreground/80 py-1 select-none">
             {connectionFailed
               ? "연결 실패"
               : !isConnected
