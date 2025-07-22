@@ -162,6 +162,7 @@ export function useWarehouse2D() {
   useEffect(() => {
     if (!running) return;
     const animate = () => {
+      if (paused && !loadedParcels.length) return;
       setLoadedParcels((prev) => {
         const newParcels = prev.map((c) => {
           let next = c.progress + speed;
@@ -178,13 +179,7 @@ export function useWarehouse2D() {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [speed, running]); // running 추가
-
-  useEffect(() => {
-    if (paused && !loadedParcels.length && requestRef.current) {
-      cancelAnimationFrame(requestRef.current);
-    }
-  }, [paused, loadedParcels]);
+  }, [speed, running, paused, loadedParcels.length]); // running 추가
 
   // 동그라미가 작업자 위치에 오면 즉시 사라지게 (running일 때만 동작)
   useEffect(() => {
@@ -194,6 +189,7 @@ export function useWarehouse2D() {
     const newCatchTimes = workerCatchTimes.map((times) => [...times]);
     const caughtCircleSet = new Set<number>();
     const newBrokenUntil = [...workerBrokenUntil];
+
     for (let workerIdx = 0; workerIdx < workerCount; workerIdx++) {
       const w = RECEIVE_WORKERS[workerIdx];
       const last =
@@ -207,8 +203,8 @@ export function useWarehouse2D() {
       if (workerBrokenUntil[workerIdx] > now) continue;
       if (now - last < workerCooldownWithScale) continue;
       let caught = false;
-      loadedParcels.forEach((circle, cIdx) => {
-        if (caughtCircleSet.has(cIdx) || caught) return;
+      loadedParcels.forEach((circle, idx) => {
+        if (caughtCircleSet.has(circle.id) || caught) return;
 
         // 최적화된 위치 계산 사용
         const movingCircle = calculatePositionOnBelt(circle.progress);
@@ -258,8 +254,8 @@ export function useWarehouse2D() {
                   : `작업자B${workerIdx - 9}`, // 작업자 이름 추가
             });
           }
-          removeIdxs.push(cIdx);
-          caughtCircleSet.add(cIdx);
+          removeIdxs.push(idx);
+          caughtCircleSet.add(circle.id);
           newCatchTimes[workerIdx].push(now);
           caught = true;
         }
@@ -278,14 +274,14 @@ export function useWarehouse2D() {
         setWorkerBrokenUntil(newBrokenUntil);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     loadedParcels,
     workerCatchTimes,
     workerCooldown,
     workerCount,
-    running, // running 추가
+    running,
     workerBrokenUntil,
+    channel,
   ]);
 
   // 벨트 끝까지 도달한 동그라미를 실패로 처리 (running일 때만 동작)

@@ -1,6 +1,7 @@
 import { DonutChart } from "@/components/ui/donut-chart";
 import { Package, Truck, CheckCircle, AlertTriangle } from "lucide-react";
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
+import { StatCard } from "@/components/ui/stat-card";
 
 function WaybillStats() {
   const { parcels } = useUnloadingParcelsStore();
@@ -16,7 +17,7 @@ function WaybillStats() {
   // 도넛 차트 데이터 - 실제 데이터 기반
   const chartData = [
     { name: "미하차", value: pendingUnloadCount, color: "#6B7280" }, // gray-500
-    { name: "하차됨", value: unloadedCount, color: "#3B82F6" }, // blue-500
+    { name: "하처리", value: unloadedCount, color: "#3B82F6" }, // blue-500
     { name: "정상처리", value: normalCount, color: "#10B981" }, // green-500
     { name: "사고처리", value: accidentCount, color: "#EF4444" }, // red-500
   ];
@@ -37,45 +38,33 @@ function WaybillStats() {
             {/* 상세 통계 */}
             <div className="flex-1 w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-5 w-5 text-gray-600" />
-                    <span className="font-medium">미하차</span>
-                  </div>
-                  <span className="text-xl font-bold text-gray-700">
-                    {pendingUnloadCount}
-                  </span>
-                </div>
+                <StatCard
+                  icon={Package}
+                  title="미하차"
+                  value={pendingUnloadCount}
+                  variant="default"
+                />
 
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Truck className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">하차됨</span>
-                  </div>
-                  <span className="text-xl font-bold text-blue-700">
-                    {unloadedCount}
-                  </span>
-                </div>
+                <StatCard
+                  icon={Truck}
+                  title="미처리"
+                  value={unloadedCount}
+                  variant="yellow"
+                />
 
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">정상처리</span>
-                  </div>
-                  <span className="text-xl font-bold text-green-700">
-                    {normalCount}
-                  </span>
-                </div>
+                <StatCard
+                  icon={CheckCircle}
+                  title="정상처리"
+                  value={normalCount}
+                  variant="green"
+                />
 
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                    <span className="font-medium">사고처리</span>
-                  </div>
-                  <span className="text-xl font-bold text-red-700">
-                    {accidentCount}
-                  </span>
-                </div>
+                <StatCard
+                  icon={AlertTriangle}
+                  title="사고처리"
+                  value={accidentCount}
+                  variant="red"
+                />
               </div>
 
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">

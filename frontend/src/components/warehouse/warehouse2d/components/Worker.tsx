@@ -39,8 +39,6 @@ const CooldownTimer = React.memo<{
     setIsBroken,
   }) => {
     const [currentTime, setCurrentTime] = useState(Date.now());
-    const [hasSentCooldownEndMessage, setHasSentCooldownEndMessage] =
-      useState(false);
     const channelRef = useRef(createChannelInterface("warehouse-events"));
 
     useEffect(() => {
@@ -77,46 +75,28 @@ const CooldownTimer = React.memo<{
     const isBroken = brokenUntil > now;
     const isWorking = cooldownLeft > 0 && !isBroken;
 
-    // 쿨다운이 끝나는 순간 메시지 전송
-    useEffect(() => {
-      if (
-        cooldownLeft === 0 &&
-        !hasSentCooldownEndMessage &&
-        catchTimes.length > 0
-      ) {
-        // 쿨다운이 끝났으므로 작업 종료 메시지 전송
-        channelRef.current?.send({
-          ts: now,
-          msg: "작업 종료",
-          category: "STATUS",
-          severity: "INFO",
-          asset: "WORKER",
-          workerId: index < 10 ? `A${index + 1}` : `B${index - 9}`,
-          operatorId: index + 1,
-          operatorName:
-            index < 10 ? `작업자A${index + 1}` : `작업자B${index - 9}`,
-        });
-        setHasSentCooldownEndMessage(true);
-      } else if (cooldownLeft > 0) {
-        // 쿨다운이 다시 시작되면 플래그 리셋
-        setHasSentCooldownEndMessage(false);
-      }
-    }, [
-      cooldownLeft,
-      hasSentCooldownEndMessage,
-      catchTimes.length,
-      now,
-      index,
-    ]);
-
     const previousBroken = useRef(isBroken);
-    // 고장 상태 변화 감지를 위한 useEffect 추가
+    const previousCooldownLeft = useRef(cooldownLeft);
+
+    // 작업 종료 메시지 전송을 위한 통합 useEffect
     useEffect(() => {
-      // 고장에서 복구된 순간
-      if (previousBroken.current && !isBroken) {
+      // 작업 종료 조건: 쿨다운이 끝나거나 고장에서 복구된 경우
+      const shouldSendWorkEndMessage =
+        (cooldownLeft === 0 &&
+          previousCooldownLeft.current > 0 &&
+          catchTimes.length > 0) || // 쿨다운 종료
+        (previousBroken.current && !isBroken && catchTimes.length > 0); // 고장 복구
+
+      if (shouldSendWorkEndMessage && !isBroken) {
+        // 마지막 작업의 총 시간 계산
+        const lastCatchTime = catchTimes[catchTimes.length - 1];
+        const totalWorkTime = now - lastCatchTime;
+        const totalWorkTimeSeconds = Math.round(totalWorkTime / 1000);
+
+        // 작업 종료 메시지 전송
         channelRef.current?.send({
           ts: now,
-          msg: "작업 종료",
+          msg: `작업 종료 (총 작업시간: ${totalWorkTimeSeconds}초)`,
           category: "STATUS",
           severity: "INFO",
           asset: "WORKER",
@@ -124,11 +104,14 @@ const CooldownTimer = React.memo<{
           operatorId: index + 1,
           operatorName:
             index < 10 ? `작업자A${index + 1}` : `작업자B${index - 9}`,
+          workTime: totalWorkTimeSeconds, // 총 작업시간을 초 단위로 추가
         });
       }
 
+      // 상태 업데이트
       previousBroken.current = isBroken;
-    }, [isBroken, now, index]);
+      previousCooldownLeft.current = cooldownLeft;
+    }, [cooldownLeft, isBroken, catchTimes, now, index]);
 
     // 상태 업데이트
     useEffect(() => {

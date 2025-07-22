@@ -15,6 +15,7 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
   const handleMessage = useCallback(
     (data: BroadcastMessage) => {
       const { msg, category, severity } = data;
+      console.log(data);
       const waybillId = data.waybillId as number;
       const operatorId = data.operatorId as number;
       const operatorName = data.operatorName as string;
@@ -37,9 +38,7 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
         // 작업자 고장으로 인한 파손 처리
         if (msg.includes("작업자 고장")) {
           // 가장 오래된 운송장을 파손 처리 (실제로는 더 정교한 로직 필요)
-          const oldestParcel = parcels.find(
-            (p) => p.status === "PENDING_UNLOAD"
-          );
+          const oldestParcel = parcels.find((p) => p.status === "UNLOADED");
           if (oldestParcel) {
             updateParcel(oldestParcel.waybillId, {
               status: "ACCIDENT" as WaybillStatus,

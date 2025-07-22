@@ -7,13 +7,8 @@ import {
   AlertTriangle,
   Clock,
   Package,
-  HelpCircle,
 } from "lucide-react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { StatCard } from "@/components/ui/stat-card";
 
 function DashboardStats() {
   const { parcels } = useUnloadingParcelsStore();
@@ -111,220 +106,76 @@ function DashboardStats() {
         <h3 className="text-lg font-semibold mb-6">실시간 통계</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 작업 진척도 */}
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              <span className="font-medium">작업 진척도</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">작업 진척도</h4>
-                    <p className="text-sm text-gray-600">
-                      전체 운송장 중 하차가 완료된 비율입니다. (전체수량 -
-                      미하차) / 전체수량
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-blue-700">
-              {progressRate}%
-            </span>
-          </div>
+          <StatCard
+            icon={TrendingUp}
+            title="작업 진척도"
+            value={`${progressRate}%`}
+            variant="default"
+            helpMessage="전체 운송장 중 하차가 완료된 비율입니다. (전체수량 - 미하차) / 전체수량"
+          />
 
           {/* 처리율 */}
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Percent className="h-5 w-5 text-green-600" />
-              <span className="font-medium">처리율</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">처리율</h4>
-                    <p className="text-sm text-gray-600">
-                      하차된 운송장 중 실제로 처리된 비율입니다. (정상처리 +
-                      사고처리) / (전체수량 - 미하차)
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-green-700">
-              {processingRate}%
-            </span>
-          </div>
+          <StatCard
+            icon={Percent}
+            title="처리율"
+            value={`${processingRate}%`}
+            variant="green"
+            helpMessage="하차된 운송장 중 실제로 처리된 비율입니다. (정상처리 + 사고처리) / (전체수량 - 미하차)"
+          />
 
           {/* 누적 매출 */}
-          <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-5 w-5 text-purple-600" />
-              <span className="font-medium">누적 매출</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">누적 매출</h4>
-                    <p className="text-sm text-gray-600">
-                      처리된 모든 운송장의 총 운송가액입니다. (정상처리 +
-                      사고처리) × 각 운송가액
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-purple-700">
-              {formatCurrency(totalRevenue)}
-            </span>
-          </div>
+          <StatCard
+            icon={DollarSign}
+            title="누적 매출"
+            value={formatCurrency(totalRevenue)}
+            variant="purple"
+            helpMessage="처리된 모든 운송장의 총 운송가액입니다. (정상처리 + 사고처리) × 각 운송가액"
+          />
 
           {/* 사고 금액 */}
-          <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <span className="font-medium">사고 금액</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">사고 금액</h4>
-                    <p className="text-sm text-gray-600">
-                      사고로 처리된 운송장들의 총 운송가액입니다. 사고처리 × 각
-                      운송가액
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-red-700">
-              {formatCurrency(accidentAmount)}
-            </span>
-          </div>
+          <StatCard
+            icon={AlertTriangle}
+            title="사고 금액"
+            value={formatCurrency(accidentAmount)}
+            variant="red"
+            helpMessage="사고로 처리된 운송장들의 총 운송가액입니다. 사고처리 × 각 운송가액"
+          />
 
           {/* 평균 처리시간 */}
-          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-orange-600" />
-              <span className="font-medium">평균 처리시간</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">평균 처리시간</h4>
-                    <p className="text-sm text-gray-600">
-                      활성 작업자들이 한 건을 처리하는데 걸리는 평균 시간입니다.
-                      총 작업시간 / 처리건수
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-orange-700">
-              {avgProcessingTime}초
-            </span>
-          </div>
+          <StatCard
+            icon={Clock}
+            title="평균 처리시간"
+            value={`${avgProcessingTime}초`}
+            variant="orange"
+            helpMessage="활성 작업자들이 한 건을 처리하는데 걸리는 평균 시간입니다. 총 작업시간 / 처리건수"
+          />
 
           {/* 미처리 운송장 */}
-          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Package className="h-5 w-5 text-yellow-600" />
-              <span className="font-medium">미처리 운송장</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">미처리 운송장</h4>
-                    <p className="text-sm text-gray-600">
-                      하차는 완료되었지만 아직 정상처리나 사고처리가 되지 않은
-                      운송장 수입니다.
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-yellow-700">
-              {unprocessedParcels}
-            </span>
-          </div>
+          <StatCard
+            icon={Package}
+            title="미처리 운송장"
+            value={unprocessedParcels}
+            variant="yellow"
+            helpMessage="하차는 완료되었지만 아직 정상처리나 사고처리가 되지 않은 운송장 수입니다."
+          />
 
           {/* 분당 처리량 */}
-          <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-indigo-600" />
-              <span className="font-medium">분당 처리량</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">분당 처리량</h4>
-                    <p className="text-sm text-gray-600">
-                      실제 처리된 운송장을 총 작업시간으로 나눈 분당 평균
-                      처리량입니다.
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-indigo-700">
-              {minuteProcessingRate}건
-            </span>
-          </div>
+          <StatCard
+            icon={TrendingUp}
+            title="분당 처리량"
+            value={`${minuteProcessingRate}건`}
+            variant="indigo"
+            helpMessage="실제 처리된 운송장을 총 작업시간으로 나눈 분당 평균 처리량입니다."
+          />
 
           {/* 사고 손실률 */}
-          <div className="flex items-center justify-between p-3 bg-pink-50 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-pink-600" />
-              <span className="font-medium">사고 손실률</span>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">사고 손실률</h4>
-                    <p className="text-sm text-gray-600">
-                      사고 금액이 총 매출에서 차지하는 비율입니다. 사고 금액 /
-                      총 매출
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-            <span className="text-xl font-bold text-pink-700">
-              {accidentLossRate}%
-            </span>
-          </div>
+          <StatCard
+            icon={AlertTriangle}
+            title="사고 손실률"
+            value={`${accidentLossRate}%`}
+            variant="pink"
+            helpMessage="사고 금액이 총 매출에서 차지하는 비율입니다. 사고 금액 / 총 매출"
+          />
         </div>
       </div>
     </div>

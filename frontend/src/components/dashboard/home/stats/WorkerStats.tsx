@@ -1,5 +1,6 @@
 import { useWorkersStore } from "@/stores/workersStore";
 import { Users, Clock, TrendingUp } from "lucide-react";
+import { StatCard } from "@/components/ui/stat-card";
 
 function WorkerStats() {
   const { workers } = useWorkersStore();
@@ -61,25 +62,19 @@ function WorkerStats() {
 
           {/* 요약 통계 */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-blue-600" />
-                <span className="font-medium">활성 작업자</span>
-              </div>
-              <span className="text-xl font-bold text-blue-700">
-                {totalActiveWorkers}
-              </span>
-            </div>
+            <StatCard
+              icon={Users}
+              title="활성 작업자"
+              value={totalActiveWorkers}
+              variant="blue"
+            />
 
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <span className="font-medium">총 처리건수</span>
-              </div>
-              <span className="text-xl font-bold text-green-700">
-                {totalProcessed}
-              </span>
-            </div>
+            <StatCard
+              icon={TrendingUp}
+              title="총 처리건수"
+              value={totalProcessed}
+              variant="green"
+            />
           </div>
 
           {/* 작업자 테이블 */}
