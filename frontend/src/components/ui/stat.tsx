@@ -21,9 +21,64 @@ export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
     | "orange"
     | "yellow"
     | "indigo"
-    | "pink";
+    | "pink"
+    | "summary";
   helpMessage?: string;
 }
+
+export interface StatGridProps extends React.HTMLAttributes<HTMLDivElement> {
+  cols?: 1 | 2 | 3 | 4 | 6;
+}
+
+const StatContainer = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "p-6 rounded-lg border bg-card text-card-foreground shadow-sm",
+      className
+    )}
+    {...props}
+  />
+));
+StatContainer.displayName = "StatContainer";
+
+const StatHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, children, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn("text-lg font-semibold mb-6", className)}
+    {...props}
+  >
+    {children}
+  </h3>
+));
+StatHeader.displayName = "StatHeader";
+
+const StatGrid = React.forwardRef<HTMLDivElement, StatGridProps>(
+  ({ className, cols = 4, ...props }, ref) => {
+    const gridCols = {
+      1: "grid-cols-1",
+      2: "grid-cols-1 sm:grid-cols-2",
+      3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+      4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+      6: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={cn("grid gap-4", gridCols[cols], className)}
+        {...props}
+      />
+    );
+  }
+);
+StatGrid.displayName = "StatGrid";
 
 const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   (
@@ -39,8 +94,23 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     },
     ref
   ) => {
+    if (variant === "summary") {
+      return (
+        <div
+          ref={ref}
+          className={cn(
+            "flex items-center justify-between p-4 rounded-lg bg-gray-50",
+            className
+          )}
+          {...props}
+        >
+          <span className="font-semibold text-lg">{title}</span>
+          <span className="text-2xl font-bold text-gray-900">{value}</span>
+        </div>
+      );
+    }
     const variantStyles = {
-      default: "bg-gray-100 text-gray-700",
+      default: "bg-gray-50 text-gray-700",
       blue: "bg-blue-50 text-blue-700",
       green: "bg-green-50 text-green-700",
       purple: "bg-purple-50 text-purple-700",
@@ -100,7 +170,15 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     );
   }
 );
-
 StatCard.displayName = "StatCard";
 
-export { StatCard };
+const Stat = Object.assign(StatContainer, {
+  Container: StatContainer,
+  Header: StatHeader,
+  Card: StatCard,
+  Grid: StatGrid,
+});
+
+export { Stat, StatContainer, StatHeader, StatGrid, StatCard };
+
+export default Stat;

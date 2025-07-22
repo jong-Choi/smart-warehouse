@@ -8,7 +8,7 @@ import {
   Clock,
   Package,
 } from "lucide-react";
-import { StatCard } from "@/components/ui/stat-card";
+import Stat from "@/components/ui/stat";
 
 function DashboardStats() {
   const { parcels } = useUnloadingParcelsStore();
@@ -101,84 +101,77 @@ function DashboardStats() {
   };
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="p-6">
+    <Stat.Container>
+      <Stat.Header>
         <h3 className="text-lg font-semibold mb-6">실시간 통계</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* 작업 진척도 */}
-          <StatCard
-            icon={TrendingUp}
-            title="작업 진척도"
-            value={`${progressRate}%`}
-            variant="default"
-            helpMessage="전체 운송장 중 하차가 완료된 비율입니다. (전체수량 - 미하차) / 전체수량"
-          />
-
-          {/* 처리율 */}
-          <StatCard
-            icon={Percent}
-            title="처리율"
-            value={`${processingRate}%`}
-            variant="green"
-            helpMessage="하차된 운송장 중 실제로 처리된 비율입니다. (정상처리 + 사고처리) / (전체수량 - 미하차)"
-          />
-
-          {/* 누적 매출 */}
-          <StatCard
-            icon={DollarSign}
-            title="누적 매출"
-            value={formatCurrency(totalRevenue)}
-            variant="purple"
-            helpMessage="처리된 모든 운송장의 총 운송가액입니다. (정상처리 + 사고처리) × 각 운송가액"
-          />
-
-          {/* 사고 금액 */}
-          <StatCard
-            icon={AlertTriangle}
-            title="사고 금액"
-            value={formatCurrency(accidentAmount)}
-            variant="red"
-            helpMessage="사고로 처리된 운송장들의 총 운송가액입니다. 사고처리 × 각 운송가액"
-          />
-
-          {/* 평균 처리시간 */}
-          <StatCard
-            icon={Clock}
-            title="평균 처리시간"
-            value={`${avgProcessingTime}초`}
-            variant="orange"
-            helpMessage="활성 작업자들이 한 건을 처리하는데 걸리는 평균 시간입니다. 총 작업시간 / 처리건수"
-          />
-
-          {/* 미처리 운송장 */}
-          <StatCard
-            icon={Package}
-            title="미처리 운송장"
-            value={unprocessedParcels}
-            variant="yellow"
-            helpMessage="하차는 완료되었지만 아직 정상처리나 사고처리가 되지 않은 운송장 수입니다."
-          />
-
-          {/* 분당 처리량 */}
-          <StatCard
-            icon={TrendingUp}
-            title="분당 처리량"
-            value={`${minuteProcessingRate}건`}
-            variant="indigo"
-            helpMessage="실제 처리된 운송장을 총 작업시간으로 나눈 분당 평균 처리량입니다."
-          />
-
-          {/* 사고 손실률 */}
-          <StatCard
-            icon={AlertTriangle}
-            title="사고 손실률"
-            value={`${accidentLossRate}%`}
-            variant="pink"
-            helpMessage="사고 금액이 총 매출에서 차지하는 비율입니다. 사고 금액 / 총 매출"
-          />
-        </div>
-      </div>
-    </div>
+      </Stat.Header>
+      <Stat.Grid cols={4}>
+        {/* 작업 진척도 */}
+        <Stat.Card
+          icon={TrendingUp}
+          title="작업 진척도"
+          value={`${progressRate}%`}
+          variant="default"
+          helpMessage="전체 운송장 중 하차가 완료된 비율입니다. (전체수량 - 미하차) / 전체수량"
+        />
+        {/* 처리율 */}
+        <Stat.Card
+          icon={Percent}
+          title="처리율"
+          value={`${processingRate}%`}
+          variant="green"
+          helpMessage="하차된 운송장 중 실제로 처리된 비율입니다. (정상처리 + 사고처리) / (전체수량 - 미하차)"
+        />
+        {/* 누적 매출 */}
+        <Stat.Card
+          icon={DollarSign}
+          title="누적 매출"
+          value={formatCurrency(totalRevenue)}
+          variant="purple"
+          helpMessage="처리된 모든 운송장의 총 운송가액입니다. (정상처리 + 사고처리) × 각 운송가액"
+        />
+        {/* 사고 금액 */}
+        <Stat.Card
+          icon={AlertTriangle}
+          title="사고 금액"
+          value={formatCurrency(accidentAmount)}
+          variant="red"
+          helpMessage="사고로 처리된 운송장들의 총 운송가액입니다. 사고처리 × 각 운송가액"
+        />
+        {/* 평균 처리시간 */}
+        <Stat.Card
+          icon={Clock}
+          title="평균 처리시간"
+          value={`${avgProcessingTime}초`}
+          variant="orange"
+          helpMessage="활성 작업자들이 한 건을 처리하는데 걸리는 평균 시간입니다. 총 작업시간 / 처리건수"
+        />
+        {/* 미처리 운송장 */}
+        <Stat.Card
+          icon={Package}
+          title="미처리 운송장"
+          value={unprocessedParcels}
+          variant="yellow"
+          helpMessage="하차는 완료되었지만 아직 정상처리나 사고처리가 되지 않은 운송장 수입니다."
+        />
+        {/* 분당 처리량 */}
+        <Stat.Card
+          icon={TrendingUp}
+          title="분당 처리량"
+          value={`${minuteProcessingRate}건`}
+          variant="indigo"
+          helpMessage="실제 처리된 운송장을 총 작업시간으로 나눈 분당 평균 처리량입니다."
+        />
+        {/* 사고 손실률 */}
+        <Stat.Card
+          icon={AlertTriangle}
+          title="사고 손실률"
+          value={`${accidentLossRate}%`}
+          variant="pink"
+          helpMessage="사고 금액이 총 매출에서 차지하는 비율입니다. 사고 금액 / 총 매출"
+        />
+      </Stat.Grid>
+    </Stat.Container>
   );
 }
 
