@@ -2,15 +2,17 @@ import { Suspense, useMemo } from "react";
 import {
   useSalesOverviewSuspense,
   useLocationSalesSuspense,
-} from "@/hooks/useSales";
-import { CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@hooks/useSales";
+import { CardContent } from "@components/ui/card";
+import { Button } from "@components/ui/button";
 
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatbotStore } from "@stores/chatbotStore";
 import { useState, useEffect } from "react";
-import Stat from "@/components/ui/stat";
-import DashboardSalesOverviewStats from "@components/sales/overview/DashboardSalesOverviewStats";
-import DashboardSalesOverviewTable from "@components/sales/overview/DashboardSalesOverviewTable";
+import Stat from "@components/ui/stat";
+import {
+  DashboardSalesOverviewStats,
+  DashboardSalesOverviewTable,
+} from "@components/dashboard/sales/overview";
 
 function OverviewContent({ currentYear }: { currentYear: number }) {
   const { data: overviewRes } = useSalesOverviewSuspense(currentYear);

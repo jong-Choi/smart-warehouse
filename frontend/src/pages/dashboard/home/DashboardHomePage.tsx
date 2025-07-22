@@ -7,7 +7,6 @@ import {
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
 import { useWorkersStore } from "@/stores/workersStore";
 import { useChatbotStore } from "@/stores/chatbotStore";
-import { useShallow } from "zustand/shallow";
 
 function DashboardHomePage() {
   // 챗봇 관련 훅

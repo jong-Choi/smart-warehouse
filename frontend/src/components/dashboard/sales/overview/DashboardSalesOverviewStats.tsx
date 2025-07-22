@@ -15,7 +15,7 @@ import Stat from "@/components/ui/stat";
 import { formatCurrency, formatNumber } from "@utils/formatString";
 import type { LocationSalesData, SalesOverviewData } from "@/api/salesApi";
 
-export default function DashboardSalesOverviewStats({
+export function DashboardSalesOverviewStats({
   overviewData,
   locationData,
   currentYear,

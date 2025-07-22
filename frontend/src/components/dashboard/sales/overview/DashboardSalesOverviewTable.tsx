@@ -14,7 +14,7 @@ import { SortableHeader } from "@/ui/table";
 import { formatCurrency, formatNumber } from "@utils/formatString";
 import type { LocationSalesData } from "@/api/salesApi";
 
-export default function DashboardSalesOverviewTable({
+export function DashboardSalesOverviewTable({
   locationData,
 }: {
   locationData: LocationSalesData[];
