@@ -102,9 +102,7 @@ function DashboardStats() {
 
   return (
     <Stat.Container>
-      <Stat.Header>
-        <h3 className="text-lg font-semibold mb-6">실시간 통계</h3>
-      </Stat.Header>
+      <Stat.Head>실시간 통계</Stat.Head>
       <Stat.Grid cols={4}>
         {/* 작업 진척도 */}
         <Stat.Card

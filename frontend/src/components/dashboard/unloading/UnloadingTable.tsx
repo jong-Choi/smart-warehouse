@@ -21,6 +21,7 @@ import {
   TableFilters,
   TablePagination,
 } from "@/components/dashboard/unloading/components";
+import { Stat } from "@components/ui";
 
 // 금액 포맷팅 유틸리티 함수
 const formatCurrency = (amount: number): string => {
@@ -218,103 +219,100 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
   );
 
   return (
-    <div className="bg-card rounded-lg border">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">운송장 목록</h2>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              총 {parcels.length}개
-            </span>
-            <Button
-              onClick={onRefresh}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              새로고침
-            </Button>
-          </div>
+    <Stat.Container>
+      <div className="flex items-center justify-between mb-4">
+        <Stat.Head className="mb-0">운송장 목록</Stat.Head>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            총 {parcels.length}개
+          </span>
+          <Button
+            onClick={onRefresh}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            새로고침
+          </Button>
         </div>
-
-        {/* 필터링 섹션 */}
-        <TableFilters
-          globalFilter={globalFilter}
-          statusFilter={statusFilter}
-          onGlobalFilterChange={handleGlobalFilterChange}
-          onStatusFilterChange={handleStatusFilterChange}
-        />
-
-        {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <UnloadingTableHeader />
-            <TableBody>
-              {currentPageRows.length ? (
-                <>
-                  {currentPageRows.map((row) => {
-                    const parcel = row.original;
-                    return (
-                      <OptimizedTableRow
-                        key={`${parcel.waybillId}-${parcel.status}-${
-                          parcel.unloadedAt ||
-                          parcel.workerProcessedAt ||
-                          parcel.createdAt
-                        }`}
-                        parcel={parcel}
-                        isSelected={row.getIsSelected()}
-                      />
-                    );
-                  })}
-                  {/* 레이아웃 시프트 방지를 위한 더미 row - 메모이제이션된 배열 사용 */}
-                  {dummyRows}
-                </>
-              ) : (
-                <>
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-12 text-center">
-                      {(() => {
-                        console.log("Current statusFilter:", statusFilter); // 디버깅용
-                        switch (statusFilter) {
-                          case "PENDING_UNLOAD":
-                            return "하차 대기 운송장이 없습니다.";
-                          case "UNLOADED":
-                            return "하차 완료 운송장이 없습니다.";
-                          case "NORMAL":
-                            return "정상 운송장이 없습니다.";
-                          case "ACCIDENT":
-                            return "사고 운송장이 없습니다.";
-                          case "all":
-                          default:
-                            return "하차 대기 중인 운송장이 없습니다.";
-                        }
-                      })()}
-                    </TableCell>
-                  </TableRow>
-                  {/* 빈 상태에서도 레이아웃 시프트 방지를 위한 더미 row (pageSize-1개) */}
-                  {Array.from({ length: pageSize - 1 }, (_, index) => (
-                    <DummyRow key={`dummy-empty-${index}`} />
-                  ))}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* 페이징 */}
-        <TablePagination
-          pageIndex={pageIndex}
-          pageSize={pageSize}
-          totalRows={parcels.length}
-          filteredRows={table.getFilteredRowModel().rows.length}
-          pageCount={table.getPageCount()}
-          canPreviousPage={table.getCanPreviousPage()}
-          canNextPage={table.getCanNextPage()}
-          onPageIndexChange={setPageIndex}
-          onPageSizeChange={handlePageSizeChange}
-        />
       </div>
-    </div>
+
+      {/* 필터링 섹션 */}
+      <TableFilters
+        globalFilter={globalFilter}
+        statusFilter={statusFilter}
+        onGlobalFilterChange={handleGlobalFilterChange}
+        onStatusFilterChange={handleStatusFilterChange}
+      />
+
+      {/* 테이블 */}
+      <div className="rounded-md border">
+        <Table>
+          <UnloadingTableHeader />
+          <TableBody>
+            {currentPageRows.length ? (
+              <>
+                {currentPageRows.map((row) => {
+                  const parcel = row.original;
+                  return (
+                    <OptimizedTableRow
+                      key={`${parcel.waybillId}-${parcel.status}-${
+                        parcel.unloadedAt ||
+                        parcel.workerProcessedAt ||
+                        parcel.createdAt
+                      }`}
+                      parcel={parcel}
+                      isSelected={row.getIsSelected()}
+                    />
+                  );
+                })}
+                {/* 레이아웃 시프트 방지를 위한 더미 row - 메모이제이션된 배열 사용 */}
+                {dummyRows}
+              </>
+            ) : (
+              <>
+                <TableRow>
+                  <TableCell colSpan={7} className="h-12 text-center">
+                    {(() => {
+                      switch (statusFilter) {
+                        case "PENDING_UNLOAD":
+                          return "하차 대기 운송장이 없습니다.";
+                        case "UNLOADED":
+                          return "하차 완료 운송장이 없습니다.";
+                        case "NORMAL":
+                          return "정상 운송장이 없습니다.";
+                        case "ACCIDENT":
+                          return "사고 운송장이 없습니다.";
+                        case "all":
+                        default:
+                          return "하차 대기 중인 운송장이 없습니다.";
+                      }
+                    })()}
+                  </TableCell>
+                </TableRow>
+                {/* 빈 상태에서도 레이아웃 시프트 방지를 위한 더미 row (pageSize-1개) */}
+                {Array.from({ length: pageSize - 1 }, (_, index) => (
+                  <DummyRow key={`dummy-empty-${index}`} />
+                ))}
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* 페이징 */}
+      <TablePagination
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        totalRows={parcels.length}
+        filteredRows={table.getFilteredRowModel().rows.length}
+        pageCount={table.getPageCount()}
+        canPreviousPage={table.getCanPreviousPage()}
+        canNextPage={table.getCanNextPage()}
+        onPageIndexChange={setPageIndex}
+        onPageSizeChange={handlePageSizeChange}
+      />
+    </Stat.Container>
   );
 };

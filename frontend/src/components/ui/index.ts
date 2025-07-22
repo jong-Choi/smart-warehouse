@@ -75,4 +75,4 @@ export {
 } from "./card";
 export { Popover, PopoverContent, PopoverTrigger } from "./popover";
 export { buttonVariants } from "./button-variants";
-export { Stat, StatContainer, StatHeader, StatGrid, StatCard } from "./stat";
+export { Stat, StatContainer, StatHead, StatGrid, StatCard } from "./stat";

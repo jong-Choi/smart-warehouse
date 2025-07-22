@@ -1,57 +1,28 @@
-import React, { useCallback } from "react";
+import React from "react";
 import type { WaybillStatus } from "@/types/waybill";
+import { StatusBadge } from "@/ui/status-badge";
 
 interface OptimizedStatusCellProps {
   status: WaybillStatus;
 }
 
-// 최적화된 상태 셀 컴포넌트
+// 상태별 텍스트와 색상 매핑
+const statusMap: Record<
+  WaybillStatus,
+  { text: string; color: "yellow" | "blue" | "green" | "red" | "gray" }
+> = {
+  PENDING_UNLOAD: { text: "하차 예정", color: "yellow" },
+  UNLOADED: { text: "하차 완료", color: "blue" },
+  NORMAL: { text: "정상 처리", color: "green" },
+  ACCIDENT: { text: "사고", color: "red" },
+};
+
 export const OptimizedStatusCell = React.memo<OptimizedStatusCellProps>(
   ({ status }) => {
-    const getStatusDisplay = useCallback((status: WaybillStatus) => {
-      switch (status) {
-        case "PENDING_UNLOAD":
-          return {
-            text: "하차 예정",
-            className:
-              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-          };
-        case "UNLOADED":
-          return {
-            text: "하차 완료",
-            className:
-              "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-          };
-        case "NORMAL":
-          return {
-            text: "정상 처리",
-            className:
-              "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-          };
-        case "ACCIDENT":
-          return {
-            text: "사고",
-            className:
-              "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-          };
-        default:
-          return {
-            text: status,
-            className:
-              "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-          };
-      }
-    }, []);
-
-    const statusInfo = getStatusDisplay(status);
-
+    const info = statusMap[status] || { text: status, color: "gray" };
     return (
       <div className="flex items-center">
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.className}`}
-        >
-          {statusInfo.text}
-        </span>
+        <StatusBadge color={info.color}>{info.text}</StatusBadge>
       </div>
     );
   }

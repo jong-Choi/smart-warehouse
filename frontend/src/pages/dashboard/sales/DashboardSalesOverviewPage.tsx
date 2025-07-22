@@ -119,13 +119,13 @@ ${locationData
     <>
       {/* 매출 요약 + 추가 통계 카드들 */}
       <Stat.Container>
-        <Stat.Header>
+        <Stat.Head>
           <h3 className="text-lg font-semibold mb-2">매출 요약 및 통계</h3>
           <p className="text-sm text-muted-foreground mb-4">
             올해 전체 매출, 주요 지표, 처리 건수 등 상세 통계를 한눈에
             확인하세요.
           </p>
-        </Stat.Header>
+        </Stat.Head>
         <Stat.Grid cols={3}>
           <Stat.Card
             icon={DollarSign}
@@ -194,10 +194,10 @@ ${locationData
       {/* 지역별 매출 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Stat.Container>
-          <Stat.Header className="flex items-center gap-2">
+          <Stat.Head className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             지역별 매출 현황
-          </Stat.Header>
+          </Stat.Head>
           <CardContent className="p-0">
             {locationData.length > 0 ? (
               <>
@@ -259,10 +259,10 @@ ${locationData
           </CardContent>
         </Stat.Container>
         <Stat.Container>
-          <Stat.Header className="flex items-center gap-2">
+          <Stat.Head className="flex items-center gap-2">
             <ExternalLink className="mr-2 h-4 w-4" />
             빠른 액션
-          </Stat.Header>
+          </Stat.Head>
           <CardContent className="p-0">
             <div className="space-y-3">
               <Button
@@ -303,7 +303,7 @@ ${locationData
       </div>
       {/* 지역별 매출 상세 테이블 */}
       <Stat.Container>
-        <Stat.Header>지역별 매출 상세</Stat.Header>
+        <Stat.Head>지역별 매출 상세</Stat.Head>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>

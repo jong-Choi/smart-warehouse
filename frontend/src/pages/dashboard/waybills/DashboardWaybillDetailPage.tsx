@@ -8,13 +8,24 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useWaybillDetailSuspense } from "@/hooks/useWaybills";
-import type { Waybill } from "@/types";
+import type { Waybill, WaybillStatus } from "@/types";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
+import { StatusBadge } from "@ui/status-badge";
 
 interface DashboardWaybillDetailPageProps {
   waybill?: Waybill;
   onBack?: () => void;
 }
+
+const statusMap: Record<
+  WaybillStatus,
+  { text: string; color: "yellow" | "blue" | "green" | "red" | "gray" }
+> = {
+  PENDING_UNLOAD: { text: "하차 예정", color: "yellow" },
+  UNLOADED: { text: "하차 완료", color: "blue" },
+  NORMAL: { text: "정상 처리", color: "green" },
+  ACCIDENT: { text: "사고", color: "red" },
+};
 
 function WaybillDetailContent({
   waybill,
@@ -31,38 +42,6 @@ function WaybillDetailContent({
     : id
     ? suspenseWaybill ?? null
     : null;
-
-  // 상태별 배지 색상
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "PENDING_UNLOAD":
-        return "bg-yellow-100 text-yellow-800";
-      case "UNLOADED":
-        return "bg-blue-100 text-blue-800";
-      case "NORMAL":
-        return "bg-green-100 text-green-800";
-      case "ACCIDENT":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  // 상태 텍스트 변환
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "PENDING_UNLOAD":
-        return "하차 예정";
-      case "UNLOADED":
-        return "하차 완료";
-      case "NORMAL":
-        return "정상 처리";
-      case "ACCIDENT":
-        return "사고";
-      default:
-        return status;
-    }
-  };
 
   // 금액 포맷팅
   const formatCurrency = (amount: number): string => {
@@ -127,9 +106,9 @@ function WaybillDetailContent({
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">상태</span>
-              <Badge className={getStatusBadgeClass(waybillData.status)}>
-                {getStatusText(waybillData.status)}
-              </Badge>
+              <StatusBadge color={statusMap[waybillData.status].color}>
+                {statusMap[waybillData.status].text}
+              </StatusBadge>
             </div>
             <Separator />
             <div className="flex justify-between items-center">

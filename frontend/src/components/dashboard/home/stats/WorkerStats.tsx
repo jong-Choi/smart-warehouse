@@ -57,7 +57,7 @@ function WorkerStats() {
   return (
     <div className="w-full lg:w-1/2">
       <Stat.Container className="h-full flex flex-col">
-        <Stat.Header>작업자 현황</Stat.Header>
+        <Stat.Head>작업자 현황</Stat.Head>
 
         {/* 요약 통계 */}
         <Stat.Grid cols={2} className="mb-6">

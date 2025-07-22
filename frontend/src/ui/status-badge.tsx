@@ -9,24 +9,29 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-        destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "border-transparent rounded-full px-2.5 py-0.5 rounded-full px-2.5 py-0.5",
+      },
+      color: {
+        yellow:
+          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+        blue: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+        green:
+          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        red: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+        gray: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
       },
     },
     defaultVariants: {
       variant: "default",
+      color: "gray",
     },
   }
 );
 
-function Badge({
+function StatusBadge({
   className,
   variant,
+  color,
   asChild = false,
   ...props
 }: React.ComponentProps<"span"> &
@@ -36,10 +41,10 @@ function Badge({
   return (
     <Comp
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant, color }), className)}
       {...props}
     />
   );
 }
 
-export { Badge };
+export { StatusBadge };

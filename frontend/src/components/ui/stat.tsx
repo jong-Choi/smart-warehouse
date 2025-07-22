@@ -45,7 +45,7 @@ const StatContainer = React.forwardRef<
 ));
 StatContainer.displayName = "StatContainer";
 
-const StatHeader = React.forwardRef<
+const StatHead = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => (
@@ -57,7 +57,7 @@ const StatHeader = React.forwardRef<
     {children}
   </h3>
 ));
-StatHeader.displayName = "StatHeader";
+StatHead.displayName = "StatHead";
 
 const StatGrid = React.forwardRef<HTMLDivElement, StatGridProps>(
   ({ className, cols = 4, ...props }, ref) => {
@@ -174,11 +174,11 @@ StatCard.displayName = "StatCard";
 
 const Stat = Object.assign(StatContainer, {
   Container: StatContainer,
-  Header: StatHeader,
+  Head: StatHead,
   Card: StatCard,
   Grid: StatGrid,
 });
 
-export { Stat, StatContainer, StatHeader, StatGrid, StatCard };
+export { Stat, StatContainer, StatHead, StatGrid, StatCard };
 
 export default Stat;

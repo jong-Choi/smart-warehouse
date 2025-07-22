@@ -240,7 +240,7 @@ ${Object.entries(workerStats)
   ]);
 
   return (
-    <div className="p-6">
+    <div>
       <PageHeader />
 
       {!tableData ? (
