@@ -16,7 +16,7 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
     (data: BroadcastMessage) => {
       const { msg, category, severity } = data;
       console.log(data);
-      const waybillId = data.waybillId as number;
+      const waybillId = data.waybillId as string;
       const operatorId = data.operatorId as number;
       const operatorName = data.operatorName as string;
       const now = new Date().toISOString();

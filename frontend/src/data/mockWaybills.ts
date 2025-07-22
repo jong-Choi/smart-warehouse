@@ -24,7 +24,7 @@ export interface MockWaybillLocation {
 
 export interface MockParcel {
   id: number;
-  waybillId: number;
+  waybillId: string;
   operatorId?: number;
   locationId: number;
   status: MockWaybillStatus;
@@ -150,10 +150,9 @@ function generateParcel(waybillId: number): MockParcel {
   } else {
     status = "ACCIDENT";
   }
-
   return {
     id: waybillId, // 소포 ID = 운송장 ID (1:1 관계)
-    waybillId,
+    waybillId: `WB${Date.now()}${String(waybillId).padStart(5, "0")}`,
     operatorId: operator?.id,
     locationId: location.id,
     status,

@@ -4,7 +4,7 @@ import type { UnloadingParcel } from "@components/dashboard/home/waybills/types"
 interface UnloadingParcelsState {
   parcels: UnloadingParcel[];
   setParcels: (parcels: UnloadingParcel[]) => void;
-  updateParcel: (waybillId: number, updates: Partial<UnloadingParcel>) => void;
+  updateParcel: (waybillId: string, updates: Partial<UnloadingParcel>) => void;
   clearParcels: () => void;
 }
 

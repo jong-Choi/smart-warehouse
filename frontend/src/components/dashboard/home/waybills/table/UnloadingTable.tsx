@@ -24,15 +24,20 @@ import {
 } from "@components/dashboard/home/waybills/table/components";
 import { Stat } from "@components/ui";
 import { formatCurrency } from "@utils/formatString";
+import { generateMarkdownTable } from "@utils/tableToMarkdown";
 
 interface UnloadingTableProps {
   parcels: UnloadingParcel[];
   onRefresh: () => void;
+  isCollecting: boolean;
+  setTableContextMessage: (message: string) => void;
 }
 
 export const UnloadingTable: React.FC<UnloadingTableProps> = ({
   parcels,
   onRefresh,
+  isCollecting,
+  setTableContextMessage,
 }) => {
   // zustand store에서 상태 가져오기
   const {
@@ -133,6 +138,14 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
+
+  useEffect(() => {
+    if (isCollecting) {
+      const markdownTable = generateMarkdownTable(table);
+      const totalMessage = `총 ${parcels.length}개의 운송장이 있습니다.`;
+      setTableContextMessage(markdownTable + "\n" + totalMessage);
+    }
+  }, [table, isCollecting, setTableContextMessage, parcels.length]);
 
   const statusColumn = useMemo(() => table.getColumn("status"), [table]);
   // 상태 필터 변경 시 테이블에 반영 (table 객체 의존성 제거)

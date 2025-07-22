@@ -40,7 +40,7 @@ export interface Waybill {
 // 수정된 Parcel 타입 - 물건 정보만 관리
 export interface Parcel {
   id: number;
-  waybillId: number;
+  waybillId: string;
   declaredValue: number; // 물건 가격
 }
 
