@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { createChannelInterface } from "@/utils";
-import { useFactoryStore } from "@/stores/factoryStore";
+import { useWarehouseStore } from "@/stores/warehouseStore";
 import {
   MAX_WORKERS,
   WORKER_COOLDOWN_SCALES,
@@ -22,7 +22,7 @@ export interface LoadedParcel {
 }
 
 export function useWarehouse2D() {
-  // factoryStore에서 상태 가져오기
+  // warehouseStore에서 상태 가져오기
   const {
     isRunning: running,
     isPaused: paused,
@@ -34,7 +34,7 @@ export function useWarehouse2D() {
     setFailCount,
     setWorkerSpeeds,
     stopUnload,
-  } = useFactoryStore();
+  } = useWarehouseStore();
 
   // 속도 계산을 useMemo로 최적화 (상수 부분 분리)
   const speed = useMemo(() => beltSpeed / 2 / SPEED_DENOMINATOR, [beltSpeed]);
@@ -56,7 +56,7 @@ export function useWarehouse2D() {
   );
 
   // 브로드캐스트 채널 인터페이스 생성
-  const channel = useMemo(() => createChannelInterface("factory-events"), []);
+  const channel = useMemo(() => createChannelInterface("warehouse-events"), []);
 
   // 운송장 번호 ref (타이머에서 사용)
 

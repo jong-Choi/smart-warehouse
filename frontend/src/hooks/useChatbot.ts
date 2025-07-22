@@ -208,9 +208,11 @@ export const useChatbot = () => {
     addMessage,
     clearMessages,
     finishStreaming,
+    removeLastMessage,
     setConnectionFailed,
     setIsConnected,
     setIsLoading,
+    useContext,
   ]);
 
   // 재시도 함수

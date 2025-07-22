@@ -466,7 +466,7 @@ const sidebarMenuButtonVariants = cva(
     variants: {
       variant: {
         default: "text-sidebar-foreground",
-        ghost: "text-sidebar-foreground/70",
+        ghost: "text-sidebar-foreground/50",
         submenu:
           "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       },

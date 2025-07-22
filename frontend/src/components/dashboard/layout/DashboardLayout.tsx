@@ -29,7 +29,7 @@ function DashboardLayout() {
             />
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold text-gray-900">
-                물류 관리 시스템
+                스마트 창고
               </h1>
             </div>
           </header>

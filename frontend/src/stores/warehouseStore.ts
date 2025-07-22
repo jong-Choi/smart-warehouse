@@ -20,7 +20,7 @@ const INITIAL_STATE = {
     .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
 };
 
-interface FactoryState {
+interface WarehouseState {
   // 작업자 관련
   workerCount: number;
   maxWorkers: number;
@@ -64,7 +64,7 @@ interface FactoryState {
   reset: () => void;
 }
 
-export const useFactoryStore = create<FactoryState>((set) => ({
+export const useWarehouseStore = create<WarehouseState>((set) => ({
   // 초기 상태 - INITIAL_STATE 객체 사용
   ...INITIAL_STATE,
 

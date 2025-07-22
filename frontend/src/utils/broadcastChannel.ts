@@ -12,7 +12,7 @@ class BroadcastChannelManager implements BroadcastChannelInterface {
   private isConnected = false;
   private senderId: string; // 고정된 발신자 ID
 
-  constructor(channelName: string = "factory-events") {
+  constructor(channelName: string = "warehouse-events") {
     this.channel = new BroadcastChannel(channelName);
     this.senderId = this.generateSenderId(); // 생성자에서 한 번만 생성
     this.setupEventListeners();
@@ -92,7 +92,7 @@ const channelInstances = new Map<string, BroadcastChannelManager>();
 const localEventInstances = new Map<string, LocalEventManager>();
 
 export function createBroadcastChannel(
-  channelName: string = "factory-events"
+  channelName: string = "warehouse-events"
 ): BroadcastChannelInterface {
   if (!channelInstances.has(channelName)) {
     channelInstances.set(channelName, new BroadcastChannelManager(channelName));
@@ -101,7 +101,7 @@ export function createBroadcastChannel(
 }
 
 export function createLocalEventManager(
-  channelName: string = "factory-events"
+  channelName: string = "warehouse-events"
 ): BroadcastChannelInterface {
   if (!localEventInstances.has(channelName)) {
     localEventInstances.set(channelName, new LocalEventManager());
@@ -110,7 +110,7 @@ export function createLocalEventManager(
 }
 
 export function getBroadcastChannel(
-  channelName: string = "factory-events"
+  channelName: string = "warehouse-events"
 ): BroadcastChannelInterface {
   return createBroadcastChannel(channelName);
 }
@@ -174,7 +174,7 @@ class LocalEventManager implements BroadcastChannelInterface {
 
 // 브라우저 지원 여부에 따라 적절한 구현체 반환
 export function createChannelInterface(
-  channelName: string = "factory-events"
+  channelName: string = "warehouse-events"
 ): BroadcastChannelInterface {
   // 개발 중에는 LocalEventManager를 사용 (같은 탭에서 테스트하기 위해)
   // 실제 배포 시에는 BroadcastChannel 사용

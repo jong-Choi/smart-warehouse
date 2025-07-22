@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { TabSwitcher } from "@components/ui/TabSwitcher";
-import FactoryBackground from "@/components/factory/FactoryBackground";
+import WarehouseBackground from "@/components/warehouse/WarehouseBackground";
 import { useUnloadingBroadcast } from "@/components/dashboard/unloading/hooks/useUnloadingBroadcast";
 import { useWorkersBroadcast } from "@/components/dashboard/workers/hooks/useWorkersBroadcast";
 import { useUnloadingParcels } from "@hooks/useWaybills";
@@ -9,7 +9,7 @@ import type { UnloadingParcel } from "@/components/dashboard/unloading/types";
 
 function RootLayout() {
   const location = useLocation();
-  const isFactory = location.pathname.startsWith("/factory");
+  const isWarehouse = location.pathname.startsWith("/warehouse");
   // const isDashboard = location.pathname.startsWith("/dashboard");
 
   // 전역 parcels 데이터 관리
@@ -21,8 +21,8 @@ function RootLayout() {
 
     return parcelsData.parcels.map((parcel) => ({
       ...parcel,
-      createdAt: parcel.processedAt, // processedAt을 createdAt으로 사용
-      updatedAt: parcel.processedAt, // processedAt을 updatedAt으로 사용
+      // API에서 가져온 데이터의 status를 그대로 사용
+      // createdAt은 이미 parcel에 포함되어 있음
     }));
   }, [parcelsData]);
 
@@ -36,14 +36,14 @@ function RootLayout() {
     <div>
       <div
         className={`h-screen flex flex-col  ${
-          isFactory
+          isWarehouse
             ? "bg-slate-200 duration-700 transition-colors "
             : "bg-white"
         }`}
       >
         <TabSwitcher />
-        {/* Factory 백그라운드 - 공장일 때만 표시 */}
-        <FactoryBackground />
+        {/* Warehouse 백그라운드 - 창고일 때만 표시 */}
+        <WarehouseBackground />
         <Outlet />
       </div>
     </div>

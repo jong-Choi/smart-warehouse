@@ -59,6 +59,6 @@ export const WORKER_COOLDOWN_SCALES = Array(MAX_WORKERS)
 // 고장 관련 상수
 export const WORKER_BROKEN_DURATION = 15000; // 15초
 export const WORKER_BROKEN_PROBABILITY = 0.05; // 5% 확률
-export const WORKER_BROKEN_THRESHOLD = 2; // 끝 두자리 차이가 2 이하일 때
+export const WORKER_BROKEN_THRESHOLD = 100; // 끝 두자리 차이가 2 이하일 때
 
 // 초기 운송장 번호

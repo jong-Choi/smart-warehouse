@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 
-function FactoryLayout() {
+function WarehouseLayout() {
   return <Outlet />;
 }
 
-export default FactoryLayout;
+export default WarehouseLayout;

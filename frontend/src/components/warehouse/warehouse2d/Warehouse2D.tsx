@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useFactoryStore } from "@/stores/factoryStore";
+import { useWarehouseStore } from "@/stores/warehouseStore";
 import truckSvg from "@assets/svg/truck.svg";
 import { WIDTH, HEIGHT } from "@/utils/warehouse/constants";
 import {
@@ -12,11 +12,11 @@ import {
   MovingBox,
   Worker,
   BeltLines,
-} from "@/components/factory/warehouse2d/components";
+} from "@/components/warehouse/warehouse2d/components";
 
 export default function Warehouse2D() {
-  // factoryStore에서 상태 가져오기
-  const { workerCount, workerCooldown } = useFactoryStore();
+  // warehouseStore에서 상태 가져오기
+  const { workerCount, workerCooldown } = useWarehouseStore();
 
   // 커스텀 훅에서 상태 가져오기
   const { loadedParcels, workerCatchTimes, workerBrokenUntil } =

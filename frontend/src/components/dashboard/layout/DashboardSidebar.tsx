@@ -22,6 +22,7 @@ export function DashboardSidebar({
         <SidebarMenuItem key={item.title}>
           <SidebarMenuButton
             tooltip={item.title}
+            variant="ghost"
             className="group cursor-default hover:bg-transparent !hover:bg-transparent"
             onClick={() => {
               // 아이콘 클릭 시 사이드바 expanded 상태로 변경
@@ -104,13 +105,13 @@ export function DashboardSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" tooltip="물류 관리 시스템" asChild>
-              <NavLink to="/dashboard/realtime/overview">
+            <SidebarMenuButton tooltip="창고 보기" asChild>
+              <NavLink to="/warehouse">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center rounded-lg shadow-sm">
                   <Package className="size-5" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">물류 관리 시스템</span>
+                  <span className="font-medium">스마트 창고</span>
                   <span className="text-xs opacity-70">Dashboard</span>
                 </div>
               </NavLink>

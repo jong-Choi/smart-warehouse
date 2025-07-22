@@ -46,7 +46,7 @@ export {
 } from "./tooltip";
 export { Skeleton } from "./skeleton";
 export {
-  FactorySlider,
+  WarehouseSlider,
   ControlPanel,
   StatusIndicator,
   MetricCard,
@@ -60,7 +60,7 @@ export {
   TypographyHeading,
   TypographyValue,
   TypographyTitle,
-} from "./factory";
+} from "./warehouse";
 export { Slider } from "./slider";
 export { DonutChart } from "./donut-chart";
 export { SortableHeader } from "./sortable-header";

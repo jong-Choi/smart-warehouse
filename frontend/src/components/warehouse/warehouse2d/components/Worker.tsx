@@ -41,7 +41,7 @@ const CooldownTimer = React.memo<{
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [hasSentCooldownEndMessage, setHasSentCooldownEndMessage] =
       useState(false);
-    const channelRef = useRef(createChannelInterface("factory-events"));
+    const channelRef = useRef(createChannelInterface("warehouse-events"));
 
     useEffect(() => {
       let animationId: number;

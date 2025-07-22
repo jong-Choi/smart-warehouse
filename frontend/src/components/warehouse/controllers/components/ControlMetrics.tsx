@@ -1,10 +1,10 @@
 import { MetricCard, WorkerGrid } from "@/components/ui";
 import { Users, Zap, Clock, AlertTriangle } from "lucide-react";
-import { useFactoryControls } from "@/hooks/useFactoryControls";
+import { useWarehouseControls } from "@/hooks/useWarehouseControls";
 
 export const ControlMetrics: React.FC = () => {
   const { workerCount, beltSpeed, unloadInterval, failCount } =
-    useFactoryControls();
+    useWarehouseControls();
 
   return (
     <WorkerGrid cols={2} gap={3}>

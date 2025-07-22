@@ -1,8 +1,8 @@
-import { useFactoryStore } from "@/stores/factoryStore";
+import { useWarehouseStore } from "@/stores/warehouseStore";
 import { ControlPanel, WorkerCard, WorkerGrid } from "@/components/ui";
 
 export const WorkerSpeedPanel: React.FC = () => {
-  const { workerCount, workerSpeeds } = useFactoryStore();
+  const { workerCount, workerSpeeds } = useWarehouseStore();
 
   return (
     <ControlPanel title="작업자별 작업속도">

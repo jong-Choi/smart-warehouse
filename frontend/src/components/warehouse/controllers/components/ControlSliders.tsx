@@ -1,6 +1,6 @@
-import { ControlPanel, FactorySlider } from "@/components/ui";
+import { ControlPanel, WarehouseSlider } from "@/components/ui";
 import { Users, Zap, Clock, Activity } from "lucide-react";
-import { useFactoryControls } from "@/hooks/useFactoryControls";
+import { useWarehouseControls } from "@/hooks/useWarehouseControls";
 
 export const ControlSliders: React.FC = () => {
   const {
@@ -14,13 +14,13 @@ export const ControlSliders: React.FC = () => {
     setBeltSpeed,
     setUnloadInterval,
     setWorkerCooldown,
-  } = useFactoryControls();
+  } = useWarehouseControls();
 
   return (
     <>
       {/* 작업자 제어 */}
       <ControlPanel title="작업자 관리">
-        <FactorySlider
+        <WarehouseSlider
           value={workerCount}
           min={1}
           max={maxWorkers}
@@ -33,7 +33,7 @@ export const ControlSliders: React.FC = () => {
 
       {/* 벨트 속도 제어 */}
       <ControlPanel title="벨트 속도">
-        <FactorySlider
+        <WarehouseSlider
           value={beltSpeed}
           min={1}
           max={maxBeltSpeed}
@@ -46,7 +46,7 @@ export const ControlSliders: React.FC = () => {
 
       {/* 하차 간격 제어 */}
       <ControlPanel title="하차 관리">
-        <FactorySlider
+        <WarehouseSlider
           value={unloadInterval}
           min={500}
           max={5000}
@@ -59,7 +59,7 @@ export const ControlSliders: React.FC = () => {
 
       {/* 작업자 쿨다운 제어 */}
       <ControlPanel title="작업 속도">
-        <FactorySlider
+        <WarehouseSlider
           value={workerCooldown}
           min={1000}
           max={10000}

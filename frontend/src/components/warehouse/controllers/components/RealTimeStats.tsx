@@ -1,9 +1,9 @@
 import { ControlPanel, MetricCard } from "@/components/ui";
 import { BarChart3, Clock, Package, Target } from "lucide-react";
-import { useFactoryStats } from "@/hooks/useFactoryStats";
+import { useWarehouseStats } from "@/hooks/useWarehouseStats";
 
 export const RealTimeStats: React.FC = () => {
-  const stats = useFactoryStats();
+  const stats = useWarehouseStats();
 
   return (
     <ControlPanel title="실시간 통계">

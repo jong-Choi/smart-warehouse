@@ -1,6 +1,6 @@
-import { useFactoryStore } from "@/stores/factoryStore";
+import { useWarehouseStore } from "@/stores/warehouseStore";
 
-export interface FactoryControls {
+export interface WarehouseControls {
   // 상태
   workerCount: number;
   maxWorkers: number;
@@ -22,7 +22,7 @@ export interface FactoryControls {
   reset: () => void;
 }
 
-export function useFactoryControls(): FactoryControls {
+export function useWarehouseControls(): WarehouseControls {
   const {
     workerCount,
     maxWorkers,
@@ -40,7 +40,7 @@ export function useFactoryControls(): FactoryControls {
     startUnload,
     stopUnload,
     reset,
-  } = useFactoryStore();
+  } = useWarehouseStore();
 
   return {
     // 상태

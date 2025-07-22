@@ -3,7 +3,7 @@ import {
   WorkerSpeedPanel,
   RealTimeStats,
   SystemInfoPanel,
-} from "@/components/factory/controllers/components";
+} from "@/components/warehouse/controllers/components";
 
 const RightController: React.FC = () => {
   return (

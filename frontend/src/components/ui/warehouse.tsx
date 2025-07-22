@@ -26,7 +26,7 @@ interface SliderProps {
   tooltip?: string;
 }
 
-export const FactorySlider: React.FC<SliderProps> = ({
+export const WarehouseSlider: React.FC<SliderProps> = ({
   value,
   min = 0,
   max,

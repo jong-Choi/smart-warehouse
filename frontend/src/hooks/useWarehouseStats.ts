@@ -3,7 +3,7 @@ import { createChannelInterface } from "@/utils";
 import { type BroadcastMessage } from "@/types/broadcast";
 import { useUnloadingParcels } from "@/hooks/useWaybills";
 
-export interface FactoryStats {
+export interface WarehouseStats {
   unloadExpected: number;
   unloadCompleted: number;
   processedCount: number;
@@ -12,7 +12,7 @@ export interface FactoryStats {
   error?: string;
 }
 
-export function useFactoryStats(): FactoryStats {
+export function useWarehouseStats(): WarehouseStats {
   // TanStack Query로 하차 예정 목록 가져오기 [[memory:2711770]]
   const { data: unloadingData, isLoading, error } = useUnloadingParcels();
 
@@ -26,7 +26,7 @@ export function useFactoryStats(): FactoryStats {
   });
 
   // 브로드캐스트 채널 연결
-  const channel = useMemo(() => createChannelInterface("factory-events"), []);
+  const channel = useMemo(() => createChannelInterface("warehouse-events"), []);
 
   // 메시지 수신 처리
   useEffect(() => {

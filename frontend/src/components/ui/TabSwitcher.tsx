@@ -12,13 +12,13 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
   const location = useLocation();
   const controls = useAnimation();
 
-  const isFactory = location.pathname.startsWith("/factory");
+  const isWarehouse = location.pathname.startsWith("/warehouse");
   const isDashboard = location.pathname.startsWith("/dashboard");
 
   useEffect(() => {
     const animateIndicator = async () => {
       await controls.start({
-        left: isFactory ? "4px" : "100px",
+        left: isWarehouse ? "4px" : "100px",
         scaleX: [1, 0.8, 0.9, 1],
         scaleY: [1, 0.98, 0.99, 1],
         transition: {
@@ -30,12 +30,13 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
     };
 
     animateIndicator();
-  }, [isFactory, controls]);
+  }, [isWarehouse, controls]);
 
   return (
     <div
       className={cn(
         "flex justify-center items-center py-4 px-4 w-fit absolute top-0 left-[50%] translate-x-[-50%]",
+        isDashboard ? "py-2" : "py-4",
         className
       )}
       style={{ zIndex: 100 }}
@@ -44,10 +45,10 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
       <motion.div
         className="relative bg-gray-100 rounded-full p-1 shadow-lg border border-gray-200"
         animate={{
-          x: isFactory ? 0 : "calc(50vw - 150px)",
+          x: isWarehouse ? 0 : "calc(50vw - 150px)",
         }}
         initial={{
-          x: isFactory ? 0 : "calc(50vw - 150px)",
+          x: isWarehouse ? 0 : "calc(50vw - 150px)",
         }}
         transition={{
           type: "tween",
@@ -60,7 +61,7 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
           className="absolute top-1 w-24 h-10 bg-slate-800 rounded-full shadow-lg"
           animate={controls}
           initial={{
-            left: isFactory ? "4px" : "100px",
+            left: isWarehouse ? "4px" : "100px",
             scaleX: 1,
           }}
         />
@@ -68,13 +69,15 @@ export function TabSwitcher({ className = "" }: TabSwitcherProps) {
         {/* 탭 버튼들 */}
         <div className="relative flex">
           <button
-            onClick={() => navigate("/factory")}
+            onClick={() => navigate("/warehouse")}
             className={`
               relative z-10 w-24 h-10 flex items-center justify-center text-sm font-semibold rounded-full transition-all duration-200 cursor-pointer
-              ${isFactory ? "text-white" : "text-gray-600 hover:text-gray-800"}
+              ${
+                isWarehouse ? "text-white" : "text-gray-600 hover:text-gray-800"
+              }
             `}
           >
-            🏭 공장
+            📦 창고
           </button>
           <button
             onClick={() => navigate("/dashboard")}

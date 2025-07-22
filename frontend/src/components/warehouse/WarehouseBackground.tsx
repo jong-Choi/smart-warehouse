@@ -1,18 +1,18 @@
 import { useLocation } from "react-router-dom";
 
 import backgroundFullSvg from "@assets/backgrounds/background-full.svg";
-import Warehouse2D from "@/components/factory/warehouse2d/Warehouse2D";
-import LeftController from "@/components/factory/controllers/LeftController";
-import RightController from "@/components/factory/controllers/RightController";
+import Warehouse2D from "@/components/warehouse/warehouse2d/Warehouse2D";
+import LeftController from "@/components/warehouse/controllers/LeftController";
+import RightController from "@/components/warehouse/controllers/RightController";
 
-function FactoryBackground() {
+function WarehouseBackground() {
   const location = useLocation();
-  const isFactory = location.pathname.startsWith("/factory");
+  const isWarehouse = location.pathname.startsWith("/warehouse");
 
   return (
     <div
       className={`absolute inset-0 transition-opacity duration-300 overflow-hidden ${
-        isFactory
+        isWarehouse
           ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none hidden"
       }`}
@@ -25,7 +25,7 @@ function FactoryBackground() {
           className="absolute top-[calc(50%-60px)] left-[calc(50%+20px)] transform -translate-x-1/2 -translate-y-1/2 w-[1640px] h-[1640px] max-w-none max-h-none z-0 pointer-events-none"
         />
 
-        {/* Factory 컨텐츠 */}
+        {/* Warehouse 컨텐츠 */}
         <div className="relative w-full h-full">
           {/* Warehouse2D - 중앙에 배치하되 컨트롤러 공간 확보 */}
           <div className="flex justify-center items-center w-full h-full">
@@ -49,4 +49,4 @@ function FactoryBackground() {
   );
 }
 
-export default FactoryBackground;
+export default WarehouseBackground;

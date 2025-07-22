@@ -8,7 +8,7 @@ export const useWorkersBroadcast = () => {
   const { updateWorker } = useWorkersStore();
 
   // 브로드캐스트 채널 연결
-  const channel = useMemo(() => createChannelInterface("factory-events"), []);
+  const channel = useMemo(() => createChannelInterface("warehouse-events"), []);
 
   // 메시지 수신 처리
   useEffect(() => {

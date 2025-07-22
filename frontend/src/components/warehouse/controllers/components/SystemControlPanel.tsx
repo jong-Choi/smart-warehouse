@@ -1,8 +1,8 @@
 import { ControlPanel, StatusIndicator } from "@/components/ui";
-import { useFactoryControls } from "@/hooks/useFactoryControls";
+import { useWarehouseControls } from "@/hooks/useWarehouseControls";
 
 export const SystemControlPanel: React.FC = () => {
-  const { isPaused, startUnload, stopUnload, reset } = useFactoryControls();
+  const { isPaused, startUnload, stopUnload, reset } = useWarehouseControls();
 
   return (
     <ControlPanel title="시스템 제어">

@@ -5,9 +5,9 @@ import {
   Navigate,
 } from "react-router-dom";
 import RootLayout from "@components/layout/RootLayout";
-import FactoryLayout from "@components/factory/layout/FactoryLayout";
+import WarehouseLayout from "@components/warehouse/layout/WarehouseLayout";
 import DashboardLayout from "@components/dashboard/layout/DashboardLayout";
-import FactoryPage from "@pages/factory/FactoryPage";
+import WarehousePage from "@pages/warehouse/WarehousePage";
 import DashboardHomePage from "@pages/dashboard/home/DashboardHomePage";
 
 import DashboardLocationWaybillsPage from "@pages/dashboard/location/DashboardLocationWaybillsPage";
@@ -27,13 +27,13 @@ function App() {
     <Router>
       <Routes>
         {/* Root route with redirect */}
-        <Route path="/" element={<Navigate to="/factory" replace />} />
+        <Route path="/" element={<Navigate to="/warehouse" replace />} />
 
         {/* Root layout with tab switcher */}
         <Route element={<RootLayout />}>
-          {/* Factory routes */}
-          <Route element={<FactoryLayout />}>
-            <Route path="/factory" element={<FactoryPage />} />
+          {/* Warehouse routes */}
+          <Route element={<WarehouseLayout />}>
+            <Route path="/warehouse" element={<WarehousePage />} />
           </Route>
 
           {/* Dashboard routes */}

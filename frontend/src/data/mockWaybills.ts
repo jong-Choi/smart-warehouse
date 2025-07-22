@@ -138,12 +138,25 @@ function generateParcel(waybillId: number): MockParcel {
       : undefined;
   const isAccident = Math.random() > 0.95; // 5% 확률로 사고
 
+  // 상태 분포: 하차 예정 40%, 하차 완료 30%, 정상 처리 25%, 사고 처리 5%
+  const statusRandom = Math.random();
+  let status: MockWaybillStatus;
+  if (statusRandom < 0.4) {
+    status = "PENDING_UNLOAD";
+  } else if (statusRandom < 0.7) {
+    status = "UNLOADED";
+  } else if (statusRandom < 0.95) {
+    status = "NORMAL";
+  } else {
+    status = "ACCIDENT";
+  }
+
   return {
     id: waybillId, // 소포 ID = 운송장 ID (1:1 관계)
     waybillId,
     operatorId: operator?.id,
     locationId: location.id,
-    status: "PENDING_UNLOAD", // 하차 예정 상태
+    status,
     declaredValue: Math.floor(Math.random() * 100000) + 10000, // 1만원~11만원
     processedAt: new Date().toISOString(),
     isAccident,
