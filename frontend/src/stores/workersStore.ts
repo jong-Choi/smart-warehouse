@@ -1,5 +1,8 @@
 import { create } from "zustand";
-import type { Worker, WorkerStats } from "@/components/dashboard/workers/types";
+import type {
+  Worker,
+  WorkerStats,
+} from "@components/dashboard/home/workers/types";
 
 // 20명 작업자 초기 데이터 생성
 const createInitialWorkers = (): Worker[] => {

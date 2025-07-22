@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { createChannelInterface } from "@/utils";
 import type { BroadcastMessage } from "@/types/broadcast";
 import { useWorkersStore } from "@/stores/workersStore";
-import type { WorkerStatus } from "@components/dashboard/workers/types";
+import type { WorkerStatus } from "@components/dashboard/home/workers/types";
 
 export const useWorkersBroadcast = () => {
   const { updateWorker } = useWorkersStore();

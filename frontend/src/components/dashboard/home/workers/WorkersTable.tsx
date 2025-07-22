@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -11,22 +11,33 @@ import { useWorkersStore } from "@/stores/workersStore";
 import {
   StatsSection,
   WorkerTableRow,
-} from "@/components/dashboard/workers/components";
+} from "@components/dashboard/home/workers/components";
 import { StatContainer } from "@components/ui";
 import {
   calculateAccidentRate,
   calculateUtilization,
   formatTime,
   formatWorkTime,
-} from "@/components/dashboard/workers/utils/calculations";
-import type { Worker } from "@/components/dashboard/workers/types";
+} from "@components/dashboard/home/workers/utils/calculations";
+import type { Worker } from "@components/dashboard/home/workers/types";
+import { generateMarkdownTable } from "@utils/tableToMarkdown";
+import { useShallow } from "zustand/shallow";
 
 /**
  * 작업자 관리 테이블 컴포넌트
  * 작업자 목록과 통계 정보를 표시합니다.
  */
-export const WorkersTable: React.FC = () => {
-  const { workers, stats } = useWorkersStore();
+export const WorkersTable: React.FC<{
+  setTableContextMessage: (message: string) => void;
+  isCollecting: boolean;
+}> = ({ setTableContextMessage, isCollecting }) => {
+  const { workers, activeWorkersLength, stats } = useWorkersStore(
+    useShallow((state) => ({
+      workers: state.workers,
+      activeWorkersLength: state.activeWorkers.length,
+      stats: state.stats,
+    }))
+  );
 
   // 통계 데이터를 메모이제이션
   const memoizedStats = useMemo(() => stats, [stats]);
@@ -108,6 +119,33 @@ export const WorkersTable: React.FC = () => {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (!isCollecting) return;
+    const markdownTable = generateMarkdownTable(table);
+    const message = `
+⦁ 시간: ${new Date().toLocaleString()}
+
+⦁ 전체 현황:
+- 총 작업자 수: ${stats.totalWorkers}명
+- 근무중인 작업자: ${activeWorkersLength}명
+- 작업중: ${memoizedStats.workingWorkers}명
+- 대기중: ${memoizedStats.idleWorkers}명
+- 사고처리중: ${memoizedStats.brokenWorkers}명
+
+⦁ 작업자 현황 테이블:
+${markdownTable}
+`;
+    setTableContextMessage(message);
+  }, [
+    isCollecting,
+    memoizedWorkers.length,
+    setTableContextMessage,
+    table,
+    memoizedStats,
+    activeWorkersLength,
+    stats.totalWorkers,
+  ]);
 
   return (
     <div className="space-y-6">

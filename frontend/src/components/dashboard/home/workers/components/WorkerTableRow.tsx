@@ -5,8 +5,8 @@ import {
   formatWorkTime,
   calculateUtilization,
   calculateAccidentRate,
-} from "@/components/dashboard/workers/utils/calculations";
-import type { Worker } from "@/components/dashboard/workers/types";
+} from "@components/dashboard/home/workers/utils/calculations";
+import type { Worker } from "@components/dashboard/home/workers/types";
 import { Link } from "react-router-dom";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";

@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { TabSwitcher } from "@components/ui/TabSwitcher";
 import WarehouseBackground from "@/components/warehouse/WarehouseBackground";
 import { useUnloadingBroadcast } from "@hooks/useUnloadingBroadcast";
-import { useWorkersBroadcast } from "@/components/dashboard/workers/hooks/useWorkersBroadcast";
+import { useWorkersBroadcast } from "@hooks/useWorkersBroadcast";
 import { useUnloadingParcels } from "@hooks/useWaybills";
 import { useMemo } from "react";
 import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";

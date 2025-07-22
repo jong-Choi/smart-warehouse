@@ -1,6 +1,6 @@
 import React from "react";
 import { Stat } from "@/components/ui";
-import type { WorkerStats } from "@/components/dashboard/workers/types";
+import type { WorkerStats } from "@components/dashboard/home/workers/types";
 
 interface StatsSectionProps {
   stats: WorkerStats;

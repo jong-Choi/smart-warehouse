@@ -2,10 +2,12 @@ import {
   LoadingSkeleton,
   PageHeader,
 } from "@/components/dashboard/home/waybills";
+import {
+  useDashboardWaybillMessage,
+  useDashboardSnapshotData,
+} from "@components/dashboard/home/waybills/hooks";
 import { UnloadingTable } from "@components/dashboard/home/waybills/table/UnloadingTable";
 import { UnloadingInfo } from "@components/dashboard/home/waybills/UnloadingInfo";
-import { useDashboardWaybillMessage } from "@components/dashboard/home/waybills/hooks/useDashboardWaybillMessage";
-import { useDashboardSnapshotData } from "@components/dashboard/home/waybills/hooks/useDashboardSnapshotData";
 
 export default function DashboardUnloadingPage() {
   // 챗봇 메시지 훅

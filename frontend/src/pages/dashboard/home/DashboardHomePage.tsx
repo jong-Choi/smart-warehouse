@@ -3,7 +3,7 @@ import {
   WorkerStats,
   DashboardStats,
 } from "@/components/dashboard/home/stats";
-import { useDashboardHomeMessage } from "@components/dashboard/home/stats/hooks/useDashboardHomeMessage";
+import { useDashboardHomeMessage } from "@components/dashboard/home/stats/hooks";
 
 function DashboardHomePage() {
   const {

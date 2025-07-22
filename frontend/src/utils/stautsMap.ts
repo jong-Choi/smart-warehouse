@@ -1,5 +1,5 @@
 import type { WaybillStatus } from "@/types";
-import type { WorkerStatus } from "@components/dashboard/workers";
+import type { WorkerStatus } from "@components/dashboard/home/workers";
 import type { BadgeColor } from "@ui/status-badge";
 
 export const STATUS_MAP: Record<

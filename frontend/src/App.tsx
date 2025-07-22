@@ -9,11 +9,10 @@ import WarehouseLayout from "@components/warehouse/layout/WarehouseLayout";
 import DashboardLayout from "@components/dashboard/layout/DashboardLayout";
 import WarehousePage from "@pages/warehouse/WarehousePage";
 import DashboardHomePage from "@pages/dashboard/home/DashboardHomePage";
-
 import DashboardLocationWaybillsPage from "@pages/dashboard/location/DashboardLocationWaybillsPage";
 import DashboardLocationWaybillDetailPage from "@pages/dashboard/location/DashboardLocationWaybillDetailPage";
 import DashboardUnloadingPage from "@pages/dashboard/home/DashboardUnloadingPage";
-import { DashboardWorkersPage } from "@pages/dashboard/workers/DashboardWorkersPage";
+import { DashboardWorkersPage } from "@pages/dashboard/home/DashboardWorkersPage";
 import { DashboardWorkersListPage } from "@pages/dashboard/workers/DashboardWorkersListPage";
 import { DashboardWorkerDetailPage } from "@pages/dashboard/workers/detail/DashboardWorkerDetailPage";
 import DashboardWaybillsPage from "@pages/dashboard/waybills/DashboardWaybillsPage";
