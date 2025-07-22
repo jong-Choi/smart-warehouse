@@ -24,7 +24,11 @@ function DailySalesContent({
 
   // 챗봇 관련 훅
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore();
+    useChatbotStore([
+      "setSystemContext",
+      "isCollecting",
+      "setIsMessagePending",
+    ]);
 
   useEffect(() => {
     if (salesData && isCollecting) {

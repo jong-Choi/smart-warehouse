@@ -26,7 +26,7 @@ export const ChatbotInput: React.FC = () => {
         <Button
           type="submit"
           size="icon"
-          className="h-8 w-8 bg-sidebar-primary disabled:bg-sidebar-primary/20 hover:bg-sidebar-primary/90 text-sidebar-primary-foreground rounded-md"
+          className="h-8 w-8 bg-sidebar-primary disabled:bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground rounded-md"
           disabled={!inputValue.trim() || isLoading}
         >
           <Send className="h-3 w-3" />

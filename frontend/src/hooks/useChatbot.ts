@@ -25,7 +25,27 @@ export const useChatbot = () => {
     isMessagePending,
     setIsMessagePending,
     isCollecting,
-  } = useChatbotStore();
+  } = useChatbotStore([
+    "messages",
+    "inputValue",
+    "isConnected",
+    "isLoading",
+    "connectionFailed",
+    "addMessage",
+    "updateLastMessage",
+    "setInputValue",
+    "setIsConnected",
+    "setIsLoading",
+    "setConnectionFailed",
+    "clearMessages",
+    "removeLastMessage",
+    "systemContext",
+    "setIsCollecting",
+    "useContext",
+    "isMessagePending",
+    "setIsMessagePending",
+    "isCollecting",
+  ]);
 
   const socketRef = useRef<Socket | null>(null);
   const userIdRef = useRef<string>(generateUserId());
@@ -143,7 +163,7 @@ export const useChatbot = () => {
     });
 
     socket.on("disconnect", () => {
-      console.log("🔌 웹소켓 연결 해제됨");
+      console.log("🔌 웹소켓 연결 해제됨", new Date().toISOString());
       setIsConnected(false);
       setConnectionFailed(false);
     });
@@ -163,7 +183,6 @@ export const useChatbot = () => {
         isUser: false,
         timestamp: new Date(),
         isStreaming: true,
-        isContext: useContext,
       };
       addMessage(streamingMessage);
     });
@@ -190,7 +209,6 @@ export const useChatbot = () => {
         text: `오류: ${data.error}`,
         isUser: false,
         timestamp: new Date(data.timestamp),
-        isContext: useContext,
       };
       addMessage(errorMessage);
     });
@@ -212,7 +230,6 @@ export const useChatbot = () => {
     setConnectionFailed,
     setIsConnected,
     setIsLoading,
-    useContext,
   ]);
 
   // 재시도 함수
@@ -239,7 +256,14 @@ export const useChatbot = () => {
   }, [connectSocket]);
 
   const sendMessage = useCallback(() => {
-    if (!inputValue.trim() || !socketRef.current || isLoading) return;
+    if (
+      !inputValue.trim() ||
+      !socketRef.current ||
+      isLoading ||
+      isMessagePending
+    ) {
+      return;
+    }
 
     const newMessage = {
       id: Date.now().toString(),
@@ -251,7 +275,6 @@ export const useChatbot = () => {
     addMessage(newMessage);
 
     if (useContext) {
-      // useContext가 true일 때만 컨텍스트 수집 로직 실행
       setIsMessagePending(true);
       setIsCollecting(true);
     } else {
@@ -265,22 +288,26 @@ export const useChatbot = () => {
   }, [
     inputValue,
     isLoading,
+    isMessagePending,
     addMessage,
     useContext,
-    setInputValue,
-    setIsCollecting,
     setIsMessagePending,
+    setIsCollecting,
+    setInputValue,
   ]);
 
   useEffect(() => {
     if (isCollecting && !isMessagePending) {
-      socketRef.current?.emit("chat_message", {
-        message: inputValue,
-        userId: userIdRef.current,
-        systemContext: systemContext,
-      });
-      setIsCollecting(false);
-      setInputValue("");
+      const timeout = setTimeout(() => {
+        socketRef.current?.emit("chat_message", {
+          message: inputValue,
+          userId: userIdRef.current,
+          systemContext: systemContext,
+        });
+        setIsCollecting(false);
+        setInputValue("");
+      }, 0);
+      return () => clearTimeout(timeout);
     }
   }, [
     inputValue,

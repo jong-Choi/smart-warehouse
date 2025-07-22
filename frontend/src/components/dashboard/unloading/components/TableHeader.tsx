@@ -3,7 +3,10 @@ import { SortableHeader, TableHeader, TableRow } from "@ui/table";
 import { useUnloadingTableStore } from "@/stores/unloadingTableStore";
 
 export const UnloadingTableHeader: React.FC = () => {
-  const { sorting, setSorting } = useUnloadingTableStore();
+  const { sorting, setSorting } = useUnloadingTableStore([
+    "sorting",
+    "setSorting",
+  ]);
 
   const handleSort = (columnId: string) => {
     setSorting((prev) => {

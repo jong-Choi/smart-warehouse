@@ -34,7 +34,11 @@ function WorkerDetailContent() {
     endDate || undefined
   );
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore();
+    useChatbotStore([
+      "setSystemContext",
+      "isCollecting",
+      "setIsMessagePending",
+    ]);
   // 챗봇 컨텍스트 업데이트
   useEffect(() => {
     if (!operator || !isCollecting) return;

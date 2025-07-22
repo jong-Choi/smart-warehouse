@@ -35,7 +35,18 @@ export function useWarehouse2D() {
     setFailCount,
     setWorkerSpeeds,
     stopUnload,
-  } = useWarehouseStore();
+  } = useWarehouseStore([
+    "isRunning",
+    "isPaused",
+    "unloadInterval",
+    "workerCooldown",
+    "workerCount",
+    "beltSpeed",
+    "failCount",
+    "setFailCount",
+    "setWorkerSpeeds",
+    "stopUnload",
+  ]);
 
   // 속도 계산을 useMemo로 최적화 (상수 부분 분리)
   const speed = useMemo(() => beltSpeed / 2 / SPEED_DENOMINATOR, [beltSpeed]);

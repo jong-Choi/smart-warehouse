@@ -7,11 +7,16 @@ import {
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
 import { useWorkersStore } from "@/stores/workersStore";
 import { useChatbotStore } from "@/stores/chatbotStore";
+import { useShallow } from "zustand/shallow";
 
 function DashboardHomePage() {
   // 챗봇 관련 훅
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore();
+    useChatbotStore([
+      "setSystemContext",
+      "isCollecting",
+      "setIsMessagePending",
+    ]);
 
   // 데이터 가져오기
   const { parcels } = useUnloadingParcelsStore();

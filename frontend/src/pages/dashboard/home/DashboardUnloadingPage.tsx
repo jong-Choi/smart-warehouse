@@ -84,7 +84,11 @@ const PageHeader = () => (
 export default function DashboardUnloadingPage() {
   // 챗봇 관련 훅
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore();
+    useChatbotStore([
+      "setSystemContext",
+      "isCollecting",
+      "setIsMessagePending",
+    ]);
 
   // 데이터 존재 여부만 구독 (parcels 배열 자체는 구독하지 않음)
   const hasData = useUnloadingParcelsStore(
@@ -93,7 +97,12 @@ export default function DashboardUnloadingPage() {
 
   // 테이블 상태 가져오기
   const { pageIndex, pageSize, globalFilter, statusFilter } =
-    useUnloadingTableStore();
+    useUnloadingTableStore([
+      "pageIndex",
+      "pageSize",
+      "globalFilter",
+      "statusFilter",
+    ]);
 
   // 스냅샷 상태 관리
   const [tableData, setTableData] = useState<UnloadingParcel[] | null>(null);

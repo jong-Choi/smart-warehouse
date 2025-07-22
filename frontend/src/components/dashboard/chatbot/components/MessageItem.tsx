@@ -23,7 +23,10 @@ export const MessageItem = React.memo<MessageItemProps>(
   ({ message, onClearConversation }) => {
     const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
     const [systemContextIndex, setSystemContextIndex] = useState(0);
-    const { isLoading, systemContext } = useChatbotStore();
+    const { isLoading, systemContext } = useChatbotStore([
+      "isLoading",
+      "systemContext",
+    ]);
 
     // 로딩 메시지 표시 여부 결정
     const shouldShowLoading =

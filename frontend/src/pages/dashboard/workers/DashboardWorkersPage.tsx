@@ -6,7 +6,11 @@ import { useChatbotStore } from "@/stores/chatbotStore";
 export const DashboardWorkersPage: React.FC = () => {
   // 챗봇 관련 훅
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore();
+    useChatbotStore([
+      "setSystemContext",
+      "isCollecting",
+      "setIsMessagePending",
+    ]);
 
   // 작업자 데이터 가져오기
   const { workers, stats } = useWorkersStore();

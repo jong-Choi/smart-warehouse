@@ -1,3 +1,4 @@
+import { createStoreWithSelectors } from "@utils/zustandCreate";
 import { create } from "zustand";
 
 // 초기값을 별도 객체로 분리하여 유지보수성 향상
@@ -64,7 +65,7 @@ interface WarehouseState {
   reset: () => void;
 }
 
-export const useWarehouseStore = create<WarehouseState>((set) => ({
+const _useWarehouseStore = create<WarehouseState>((set) => ({
   // 초기 상태 - INITIAL_STATE 객체 사용
   ...INITIAL_STATE,
 
@@ -92,3 +93,6 @@ export const useWarehouseStore = create<WarehouseState>((set) => ({
         .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
     })),
 }));
+
+export const useWarehouseStore =
+  createStoreWithSelectors<WarehouseState>(_useWarehouseStore);

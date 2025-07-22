@@ -1,21 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import { Bot } from "lucide-react";
 import { MessageItem } from "@/components/dashboard/chatbot/components/MessageItem";
-import { type Message } from "@/types/chatbot";
 import { useChatbotStore } from "@stores/chatbotStore";
 import { cn } from "@/lib/utils";
 
-interface ChatbotMessagesProps {
-  messages: Message[];
-  onClearConversation?: () => void;
-}
-
-export const ChatbotMessages: React.FC<ChatbotMessagesProps> = ({
-  messages,
-  onClearConversation,
-}) => {
+export const ChatbotMessages: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { connectionFailed } = useChatbotStore();
+  const { connectionFailed, messages, clearMessages } = useChatbotStore([
+    "connectionFailed",
+    "messages",
+    "clearMessages",
+  ]);
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로
   useEffect(() => {
@@ -43,7 +38,7 @@ export const ChatbotMessages: React.FC<ChatbotMessagesProps> = ({
           <MessageItem
             key={message.id}
             message={message}
-            onClearConversation={onClearConversation}
+            onClearConversation={clearMessages}
           />
         ))
       )}

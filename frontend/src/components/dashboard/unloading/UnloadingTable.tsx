@@ -85,7 +85,20 @@ export const UnloadingTable: React.FC<UnloadingTableProps> = ({
     setGlobalFilter,
     setStatusFilter,
     setSorting,
-  } = useUnloadingTableStore();
+  } = useUnloadingTableStore([
+    "pageIndex",
+    "pageSize",
+    "lastPageIndex",
+    "globalFilter",
+    "statusFilter",
+    "sorting",
+    "setPageIndex",
+    "setPageSize",
+    "setLastPageIndex",
+    "setGlobalFilter",
+    "setStatusFilter",
+    "setSorting",
+  ]);
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 

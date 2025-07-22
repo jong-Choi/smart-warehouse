@@ -16,7 +16,10 @@ import {
 
 export default function Warehouse2D() {
   // warehouseStore에서 상태 가져오기
-  const { workerCount, workerCooldown } = useWarehouseStore();
+  const { workerCount, workerCooldown } = useWarehouseStore([
+    "workerCount",
+    "workerCooldown",
+  ]);
 
   // 커스텀 훅에서 상태 가져오기
   const { loadedParcels, workerCatchTimes, workerBrokenUntil } =

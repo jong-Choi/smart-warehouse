@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { UnloadingStatusFilter } from "@/components/dashboard/unloading/types";
+import { createStoreWithSelectors } from "@utils/zustandCreate";
 
 interface UnloadingTableState {
   // 페이징 상태
@@ -44,7 +45,7 @@ const INITIAL_STATE = {
   }>,
 };
 
-export const useUnloadingTableStore = create<UnloadingTableState>()((set) => ({
+const _useUnloadingTableStore = create<UnloadingTableState>()((set) => ({
   ...INITIAL_STATE,
 
   setPageIndex: (pageIndex: number) =>
@@ -84,3 +85,6 @@ export const useUnloadingTableStore = create<UnloadingTableState>()((set) => ({
     }),
   resetAll: () => set(INITIAL_STATE),
 }));
+
+export const useUnloadingTableStore =
+  createStoreWithSelectors<UnloadingTableState>(_useUnloadingTableStore);

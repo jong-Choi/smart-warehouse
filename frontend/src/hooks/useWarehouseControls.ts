@@ -40,7 +40,24 @@ export function useWarehouseControls(): WarehouseControls {
     startUnload,
     stopUnload,
     reset,
-  } = useWarehouseStore();
+  } = useWarehouseStore([
+    "workerCount",
+    "maxWorkers",
+    "beltSpeed",
+    "maxBeltSpeed",
+    "isRunning",
+    "isPaused",
+    "unloadInterval",
+    "workerCooldown",
+    "failCount",
+    "setWorkerCount",
+    "setBeltSpeed",
+    "setUnloadInterval",
+    "setWorkerCooldown",
+    "startUnload",
+    "stopUnload",
+    "reset",
+  ]);
 
   return {
     // 상태

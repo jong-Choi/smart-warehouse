@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { type Message, type ChatbotState } from "@/types/chatbot";
+import { createStoreWithSelectors } from "@utils/zustandCreate";
 
 interface ChatbotStore extends ChatbotState {
   // Actions
@@ -33,18 +34,14 @@ const initialState: ChatbotState = {
   isMessagePending: false,
 };
 
-export const useChatbotStore = create<ChatbotStore>((set) => ({
+const _useChatbotStore = create<ChatbotStore>((set) => ({
   ...initialState,
-
   setIsOpen: (isOpen) => set({ isOpen }),
-
   setMessages: (messages) => set({ messages }),
-
   addMessage: (message) =>
     set((state) => ({
       messages: [...state.messages, message],
     })),
-
   updateLastMessage: (updater) =>
     set((state) => {
       const messages = [...state.messages];
@@ -54,25 +51,15 @@ export const useChatbotStore = create<ChatbotStore>((set) => ({
       }
       return { messages };
     }),
-
   setInputValue: (inputValue) => set({ inputValue }),
-
   setIsConnected: (isConnected) => set({ isConnected }),
-
   setIsLoading: (isLoading) => set({ isLoading }),
-
   setConnectionFailed: (connectionFailed) => set({ connectionFailed }),
-
   setIsCollecting: (isCollecting) => set({ isCollecting }),
-
   setSystemContext: (systemContext) => set({ systemContext }),
-
   setUseContext: (useContext) => set({ useContext }),
-
   setIsMessagePending: (isMessagePending) => set({ isMessagePending }),
-
   clearMessages: () => set({ messages: [] }),
-
   removeLastMessage: () =>
     set((state) => {
       const messages = [...state.messages];
@@ -81,6 +68,8 @@ export const useChatbotStore = create<ChatbotStore>((set) => ({
       }
       return { messages };
     }),
-
   reset: () => set(initialState),
 }));
+
+export const useChatbotStore =
+  createStoreWithSelectors<ChatbotStore>(_useChatbotStore);

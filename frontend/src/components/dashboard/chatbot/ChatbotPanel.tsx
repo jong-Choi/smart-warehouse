@@ -15,18 +15,9 @@ export function ChatbotPanel() {
   const location = useLocation();
   const currentScreen = getScreenName(location.pathname);
 
-  const { isOpen, setIsOpen, useContext, setUseContext } = useChatbotStore();
-  const {
-    messages,
-    isConnected,
-    connectionFailed,
-    clearConversation,
-    retryConnection,
-  } = useChatbot();
-
-  const handleToggleContext = () => {
-    setUseContext(!useContext);
-  };
+  const { isOpen, setIsOpen } = useChatbotStore(["isOpen", "setIsOpen"]);
+  const { isConnected, connectionFailed, clearConversation, retryConnection } =
+    useChatbot();
 
   useEffect(() => {
     if (!isConnected) {
@@ -63,20 +54,15 @@ export function ChatbotPanel() {
         {/* 메시지 영역 */}
         {isOpen && (
           <>
-            <ChatbotMessages
-              messages={messages}
-              onClearConversation={clearConversation}
-            />
+            <ChatbotMessages />
 
             {/* 현재 화면 정보 및 채팅 초기화 버튼 */}
             <ChatbotStatusBar
               currentScreen={currentScreen}
               isConnected={isConnected}
               connectionFailed={connectionFailed}
-              useContext={useContext}
               onClearConversation={clearConversation}
               onRetryConnection={retryConnection}
-              onToggleContext={handleToggleContext}
             />
 
             {/* 입력 영역 */}
