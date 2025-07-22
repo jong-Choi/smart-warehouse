@@ -1,0 +1,1 @@
+export { DashboardDailySalesTable } from "./DashboardDailySalesTable";
