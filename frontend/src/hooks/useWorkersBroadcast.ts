@@ -28,8 +28,6 @@ export const useWorkersBroadcast = () => {
         // 최초 작업 시작 시간 설정 (처음 처리할 때만)
         const workStartedAt = currentWorker?.workStartedAt || now;
 
-        console.log(message);
-
         // 카운트 업데이트 로직
         const isAccident = message.msg === "작업자 고장";
         const currentProcessedCount = currentWorker?.processedCount || 0;

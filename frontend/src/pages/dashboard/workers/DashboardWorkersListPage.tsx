@@ -14,7 +14,6 @@ import {
 function WorkersListContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [sorting, setSorting] = useState<Array<{ id: string; desc: boolean }>>([
@@ -37,7 +36,6 @@ function WorkersListContent() {
     page,
     limit,
     search: appliedSearch || undefined,
-    type: typeFilter !== "all" ? typeFilter : undefined,
     sortField,
     sortDirection,
   });
@@ -57,10 +55,6 @@ function WorkersListContent() {
   }, [searchTerm]);
   const handleSearchTermChange = useCallback((value: string) => {
     setSearchTerm(value);
-  }, []);
-  const handleTypeFilterChange = useCallback((value: string) => {
-    setTypeFilter(value);
-    setPage(1);
   }, []);
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
@@ -83,9 +77,7 @@ function WorkersListContent() {
       <PageHeader total={pagination?.total} isLoading={false} />
       <SearchFilters
         searchTerm={searchTerm}
-        typeFilter={typeFilter}
         onSearchTermChange={handleSearchTermChange}
-        onTypeFilterChange={handleTypeFilterChange}
         onSearch={handleSearch}
       />
       <WorkersTable

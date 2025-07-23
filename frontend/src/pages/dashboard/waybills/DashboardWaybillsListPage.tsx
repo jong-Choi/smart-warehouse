@@ -130,7 +130,6 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">전체 상태</SelectItem>
-              <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
               <SelectItem value="UNLOADED">하차 완료</SelectItem>
               <SelectItem value="NORMAL">정상 처리</SelectItem>
               <SelectItem value="ACCIDENT">사고</SelectItem>
@@ -221,7 +220,7 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold">운송장 목록</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            총 {waybills.length}개의 운송장이 있습니다.
+            총 {data?.total || 0}개의 운송장이 있습니다.
           </p>
         </div>
         <div className="overflow-x-auto">

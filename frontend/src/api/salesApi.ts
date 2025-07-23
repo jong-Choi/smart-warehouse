@@ -54,6 +54,7 @@ export interface SalesOverviewData {
 }
 
 export interface LocationSalesData {
+  locationId: number;
   locationName: string;
   revenue: number;
   processedCount: number;

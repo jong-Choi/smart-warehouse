@@ -146,14 +146,12 @@ export const useChatbot = () => {
     // 5초 후 연결되지 않으면 실패로 처리
     connectionTimeoutRef.current = setTimeout(() => {
       if (!socket.connected) {
-        console.log("🔌 웹소켓 연결 타임아웃");
         setConnectionFailed(true);
         setIsConnected(false);
       }
     }, 5000);
 
     socket.on("connect", () => {
-      console.log("🔌 웹소켓 연결됨");
       if (connectionTimeoutRef.current) {
         clearTimeout(connectionTimeoutRef.current);
         connectionTimeoutRef.current = null;
@@ -163,13 +161,12 @@ export const useChatbot = () => {
     });
 
     socket.on("disconnect", () => {
-      console.log("🔌 웹소켓 연결 해제됨", new Date().toISOString());
       setIsConnected(false);
       setConnectionFailed(false);
     });
 
     socket.on("connect_error", (error) => {
-      console.log("🔌 웹소켓 연결 에러:", error);
+      console.error("🔌 웹소켓 연결 에러:", error);
       setConnectionFailed(true);
       setIsConnected(false);
     });
@@ -189,13 +186,11 @@ export const useChatbot = () => {
 
     // 스트리밍 청크 수신
     socket.on("bot_response_chunk", (data: SocketChunkData) => {
-      console.log("📦 청크 수신:", data.chunk);
       addChunkToQueue(data.chunk);
     });
 
     // 스트리밍 응답 완료
     socket.on("bot_response_end", () => {
-      console.log("✅ 스트리밍 완료");
       finishStreaming();
     });
 

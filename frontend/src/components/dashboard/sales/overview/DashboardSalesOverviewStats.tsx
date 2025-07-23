@@ -34,12 +34,8 @@ export function DashboardSalesOverviewStats({
   const locationData = locationRes.data;
 
   const navigate = useNavigate();
-  const handleLocationClick = (locationName: string) => {
-    navigate(
-      `/dashboard/location/waybills?location=${encodeURIComponent(
-        locationName
-      )}`
-    );
+  const handleLocationClick = (locationId: number) => {
+    navigate(`/dashboard/location/waybills/${encodeURIComponent(locationId)}`);
   };
 
   useEffect(() => {
@@ -145,9 +141,9 @@ export function DashboardSalesOverviewStats({
                 <div className="space-y-4">
                   {locationData.slice(0, 5).map((location, index) => (
                     <div
-                      key={location.locationName}
+                      key={location.locationId}
                       className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
-                      onClick={() => handleLocationClick(location.locationName)}
+                      onClick={() => handleLocationClick(location.locationId)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">

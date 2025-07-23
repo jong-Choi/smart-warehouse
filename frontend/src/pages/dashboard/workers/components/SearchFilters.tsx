@@ -1,31 +1,16 @@
 import { useCallback, memo } from "react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@components/ui/select";
 import { Search } from "lucide-react";
 
 interface SearchFiltersProps {
   searchTerm: string;
-  typeFilter: string;
   onSearchTermChange: (value: string) => void;
-  onTypeFilterChange: (value: string) => void;
   onSearch: () => void;
 }
 
 export const SearchFilters = memo<SearchFiltersProps>(
-  ({
-    searchTerm,
-    typeFilter,
-    onSearchTermChange,
-    onTypeFilterChange,
-    onSearch,
-  }) => {
+  ({ searchTerm, onSearchTermChange, onSearch }) => {
     const handleSubmit = useCallback(
       (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,13 +36,6 @@ export const SearchFilters = memo<SearchFiltersProps>(
       [onSearchTermChange]
     );
 
-    const handleSelectChange = useCallback(
-      (value: string) => {
-        onTypeFilterChange(value);
-      },
-      [onTypeFilterChange]
-    );
-
     return (
       <div className="bg-white rounded-lg border mb-6">
         <div className="p-6">
@@ -74,17 +52,6 @@ export const SearchFilters = memo<SearchFiltersProps>(
                 />
               </div>
             </div>
-            <Select value={typeFilter} onValueChange={handleSelectChange}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="작업자 타입" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체</SelectItem>
-                <SelectItem value="LOADER">로더</SelectItem>
-                <SelectItem value="UNLOADER">언로더</SelectItem>
-                <SelectItem value="SORTER">분류자</SelectItem>
-              </SelectContent>
-            </Select>
             <Button type="submit">검색</Button>
           </form>
         </div>

@@ -43,8 +43,7 @@ export async function fetchWaybills(
     searchParams.append("operatorId", params.operatorId.toString());
   if (params?.locationId)
     searchParams.append("locationId", params.locationId.toString());
-  if (params?.isAccident !== undefined)
-    searchParams.append("isAccident", params.isAccident.toString());
+  // isAccident 파라미터 제거 - status에 ACCIDENT가 있으므로 불필요
   if (params?.startDate) searchParams.append("startDate", params.startDate);
   if (params?.endDate) searchParams.append("endDate", params.endDate);
   if (params?.getAll) searchParams.append("getAll", params.getAll.toString());

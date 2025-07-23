@@ -61,3 +61,4 @@ ${tableMessage}
 
   return { setTableMessage, isCollecting };
 }
+
