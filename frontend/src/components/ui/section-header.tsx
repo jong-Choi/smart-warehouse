@@ -17,22 +17,17 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   descriptionClassName,
 }) => {
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-1", className)}>
       <h2
         className={cn(
-          "text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100",
+          "text-xl font-bold tracking-tight text-gray-900",
           titleClassName
         )}
       >
         {title}
       </h2>
       {description && (
-        <p
-          className={cn(
-            "text-sm text-gray-600 dark:text-gray-400",
-            descriptionClassName
-          )}
-        >
+        <p className={cn("text-sm text-gray-600", descriptionClassName)}>
           {description}
         </p>
       )}

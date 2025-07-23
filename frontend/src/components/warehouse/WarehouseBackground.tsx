@@ -1,13 +1,21 @@
 import { useLocation } from "react-router-dom";
+import { useWarehouseStore } from "@/stores/warehouseStore";
 
 import backgroundFullSvg from "@assets/backgrounds/background-full.svg";
 import Warehouse2D from "@components/warehouse/warehouse2d/Warehouse2D";
 import LeftController from "@components/warehouse/controllers/LeftController";
 import RightController from "@components/warehouse/controllers/RightController";
+import TutorialModal from "@components/warehouse/tutorials/TutorialModal";
 
 function WarehouseBackground() {
   const location = useLocation();
   const isWarehouse = location.pathname.startsWith("/warehouse");
+
+  // warehouseStore에서 isRunning 상태 가져오기
+  const { isTutorialShown, setIsTutorialShown } = useWarehouseStore([
+    "isTutorialShown",
+    "setIsTutorialShown",
+  ]);
 
   return (
     <div
@@ -45,6 +53,16 @@ function WarehouseBackground() {
           </div>
         </div>
       </div>
+
+      {/* 튜토리얼 모달 - isRunning이 false일 때만 표시 */}
+      {isWarehouse && isTutorialShown && (
+        <TutorialModal
+          isOpen={true}
+          onClose={() => {
+            setIsTutorialShown(false);
+          }}
+        />
+      )}
     </div>
   );
 }

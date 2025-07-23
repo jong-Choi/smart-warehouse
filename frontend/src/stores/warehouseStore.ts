@@ -19,6 +19,7 @@ const INITIAL_STATE = {
   workerSpeeds: Array(20)
     .fill(0)
     .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
+  isTutorialShown: true,
 };
 
 interface WarehouseState {
@@ -41,6 +42,7 @@ interface WarehouseState {
   // 시스템 상태
   isRunning: boolean;
   isPaused: boolean;
+  isTutorialShown: boolean;
 
   // Warehouse2D 관련 상태들
   unloadInterval: number;
@@ -63,6 +65,7 @@ interface WarehouseState {
   startUnload: () => void;
   stopUnload: () => void;
   reset: () => void;
+  setIsTutorialShown: (shown: boolean) => void;
 }
 
 const _useWarehouseStore = create<WarehouseState>((set) => ({
@@ -92,6 +95,7 @@ const _useWarehouseStore = create<WarehouseState>((set) => ({
         .fill(0)
         .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
     })),
+  setIsTutorialShown: (shown) => set({ isTutorialShown: shown }),
 }));
 
 export const useWarehouseStore =

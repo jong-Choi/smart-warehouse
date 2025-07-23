@@ -64,7 +64,15 @@ export {
 export { Slider } from "./slider";
 export { DonutChart } from "./donut-chart";
 export { Calendar } from "./calendar";
-
+export {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "./dialog";
 export {
   Card,
   CardHeader,
