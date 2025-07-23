@@ -110,7 +110,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
     // 초기 인사 메시지 전송 함수
     const sendWelcomeMessage = async (socket: any) => {
       const welcomeMessage =
-        "안녕하세요! 물류 관리 시스템 챗봇입니다. 무엇을 도와드릴까요?";
+        "안녕하세요! 스마트 창고 챗봇입니다. 무엇을 도와드릴까요?";
 
       // 초기 인사 메시지 전송
       socket.emit("bot_response_start", {

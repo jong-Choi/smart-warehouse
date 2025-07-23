@@ -422,6 +422,10 @@ const options = {
         name: "배송지 (Locations)",
         description: "배송지 관련 API",
       },
+      {
+        name: "Sales",
+        description: "매출 관련 API",
+      },
     ],
   },
   apis: ["./src/routes/*.ts", "./src/controllers/*.ts"], // API 라우트 파일들

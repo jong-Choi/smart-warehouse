@@ -26,74 +26,80 @@ export interface SalesOverviewData {
 
 export class SalesService {
   /**
-   * 월별 매출 통계를 통계 테이블에서 조회
+   * 월별 매출 통계를 통계 테이블에서 조회 (지역별 데이터 합계)
    */
   async getMonthlySales(year: number): Promise<SalesData[]> {
-    const salesStats = await prisma.salesMonthlyStats.findMany({
+    const salesStats = await prisma.salesMonthlyStats.groupBy({
+      by: ["month"],
       where: { year },
-      orderBy: { month: "asc" },
-      select: {
-        month: true,
+      _sum: {
         totalSales: true,
         totalCount: true,
         normalCount: true,
         normalValue: true,
         accidentCount: true,
         accidentValue: true,
-        locationId: true,
       },
+      orderBy: { month: "asc" },
     });
+
     return salesStats.map((row) => {
+      const totalSales = row._sum.totalSales || 0;
+      const totalCount = row._sum.totalCount || 0;
+
       return {
         period: `${year}.${String(row.month).padStart(2, "0")}`,
-        unloadCount: row.totalCount,
-        totalShippingValue: row.totalSales,
+        unloadCount: totalCount,
+        totalShippingValue: totalSales,
         avgShippingValue:
-          row.totalCount > 0 ? Math.round(row.totalSales / row.totalCount) : 0,
-        normalProcessCount: row.normalCount,
-        processValue: row.normalValue,
-        accidentCount: row.accidentCount,
-        accidentValue: row.accidentValue,
+          totalCount > 0 ? Math.round(totalSales / totalCount) : 0,
+        normalProcessCount: row._sum.normalCount || 0,
+        processValue: row._sum.normalValue || 0,
+        accidentCount: row._sum.accidentCount || 0,
+        accidentValue: row._sum.accidentValue || 0,
       };
     });
   }
 
   /**
-   * 일별 매출 통계를 통계 테이블에서 조회
+   * 일별 매출 통계를 통계 테이블에서 조회 (지역별 데이터 합계)
    */
   async getDailySales(year: number, month: number): Promise<SalesData[]> {
     const monthStr = String(month).padStart(2, "0");
-    const salesStats = await prisma.salesStats.findMany({
+    const salesStats = await prisma.salesStats.groupBy({
+      by: ["date"],
       where: {
         date: {
           gte: `${year}-${monthStr}-01`,
           lte: `${year}-${monthStr}-31`,
         },
       },
-      orderBy: { date: "asc" },
-      select: {
-        date: true,
+      _sum: {
         totalSales: true,
         totalCount: true,
         normalCount: true,
         normalValue: true,
         accidentCount: true,
         accidentValue: true,
-        locationId: true,
       },
+      orderBy: { date: "asc" },
     });
+
     return salesStats.map((row) => {
       const day = Number(row.date.split("-")[2]);
+      const totalSales = row._sum.totalSales || 0;
+      const totalCount = row._sum.totalCount || 0;
+
       return {
         period: `${day}일`,
-        unloadCount: row.totalCount,
-        totalShippingValue: row.totalSales,
+        unloadCount: totalCount,
+        totalShippingValue: totalSales,
         avgShippingValue:
-          row.totalCount > 0 ? Math.round(row.totalSales / row.totalCount) : 0,
-        normalProcessCount: row.normalCount,
-        processValue: row.normalValue,
-        accidentCount: row.accidentCount,
-        accidentValue: row.accidentValue,
+          totalCount > 0 ? Math.round(totalSales / totalCount) : 0,
+        normalProcessCount: row._sum.normalCount || 0,
+        processValue: row._sum.normalValue || 0,
+        accidentCount: row._sum.accidentCount || 0,
+        accidentValue: row._sum.accidentValue || 0,
       };
     });
   }
@@ -208,6 +214,7 @@ export class SalesService {
     const locMap = new Map<
       number,
       {
+        locationId: number;
         locationName: string;
         revenue: number;
         processedCount: number;
@@ -217,6 +224,7 @@ export class SalesService {
     salesStats.forEach((row) => {
       if (!locMap.has(row.locationId)) {
         locMap.set(row.locationId, {
+          locationId: row.locationId,
           locationName: row.location.name,
           revenue: 0,
           processedCount: 0,

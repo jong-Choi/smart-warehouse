@@ -17,6 +17,13 @@ export class WaybillController {
       if (req.query.search) {
         filters.search = req.query.search as string;
       }
+      if (req.query.status) {
+        filters.status = req.query.status as
+          | "PENDING_UNLOAD"
+          | "UNLOADED"
+          | "NORMAL"
+          | "ACCIDENT";
+      }
       if (req.query.startDate) {
         filters.startDate = new Date(req.query.startDate as string);
       }

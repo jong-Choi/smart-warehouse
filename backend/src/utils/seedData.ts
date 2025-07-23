@@ -3,6 +3,20 @@ import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
+export async function chunkedPromiseAll<T>(
+  promises: Promise<T>[],
+  chunkSize = 1000
+): Promise<T[]> {
+  const results: T[] = [];
+
+  for (let i = 0; i < promises.length; i += chunkSize) {
+    const chunk = promises.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk);
+    results.push(...chunkResults);
+  }
+
+  return results;
+}
 async function seedData() {
   try {
     // 기존 데이터 삭제 (순서 중요: 외래키 제약조건 때문에)
@@ -42,7 +56,7 @@ async function seedData() {
       { name: "서울시 중랑구", address: "서울시 중랑구 봉화산로 179" },
     ];
 
-    const locations = await Promise.all(
+    const locations = await chunkedPromiseAll(
       SEOUL_LOCATIONS.map((loc) =>
         prisma.location.create({
           data: loc,
@@ -51,7 +65,7 @@ async function seedData() {
     );
 
     // 작업자 생성
-    const operators = await Promise.all([]);
+    const operators = await chunkedPromiseAll<never>([]);
 
     // A1~B10 코드의 기계들 생성 (이름은 A01, B02 형식)
     const machineCodes = [];
@@ -62,7 +76,7 @@ async function seedData() {
       machineCodes.push(`B${i}`);
     }
 
-    const machines = await Promise.all(
+    const machines = await chunkedPromiseAll(
       machineCodes.map((code) =>
         prisma.operator.create({
           data: {
@@ -169,7 +183,7 @@ async function seedData() {
       const end = new Date("2025-07-15");
       const allWeekdays = getWeekdaysBetween(start, end);
 
-      // 평일 중에서 무작위로 날짜 60개 선택 (전체 기간 중 일부만)
+      // 평일 중에서 무작위로 날짜 30개 선택 (전체 기간 중 일부만)
       const shuffled = faker.helpers.shuffle(allWeekdays);
       const selectedDates = shuffled.slice(0, 60); // 필요한 날짜 수는 조절 가능
 
@@ -177,7 +191,7 @@ async function seedData() {
 
       for (const date of selectedDates) {
         const dateStr = date.toISOString().slice(0, 10); // ex: '2025-05-04'
-        const count = faker.number.int({ min: 1500, max: 2200 });
+        const count = faker.number.int({ min: 600, max: 900 });
 
         for (let i = 0; i < count; i++) {
           const number = `WB${dateStr.replace(/-/g, "")}${String(
@@ -202,7 +216,7 @@ async function seedData() {
       locations.length
     );
 
-    const waybills = await Promise.all(
+    const waybills = await chunkedPromiseAll(
       waybillData.map((data) =>
         prisma.waybill.create({
           data: {
@@ -221,7 +235,7 @@ async function seedData() {
     // 운송장 생성 (처리 정보 포함)
 
     // 소포 생성 (물건 정보만)
-    const parcels = await Promise.all(
+    const parcels = await chunkedPromiseAll(
       waybillData.map((data, index) =>
         prisma.parcel.create({
           data: {
@@ -233,7 +247,7 @@ async function seedData() {
     );
 
     // 근무 기록 생성
-    const shifts = await Promise.all([
+    const shifts = await chunkedPromiseAll([
       prisma.operatorShift.create({
         data: {
           operatorId: allOperators[0].id,
@@ -307,7 +321,7 @@ async function seedData() {
     });
 
     // Map에서 작업 통계 데이터 생성
-    const works = await Promise.all(
+    const works = await chunkedPromiseAll(
       Array.from(workStatsMap.values()).map((stats) =>
         prisma.operatorWork.create({
           data: stats,

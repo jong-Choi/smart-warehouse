@@ -30,9 +30,7 @@ export class WaybillService {
       where.locationId = filters.locationId;
     }
 
-    if (filters.isAccident !== undefined) {
-      where.isAccident = filters.isAccident;
-    }
+    // isAccident 필터는 제거 - status에 ACCIDENT가 있으므로 불필요
 
     if (filters.search) {
       where.OR = [
