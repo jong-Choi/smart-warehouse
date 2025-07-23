@@ -96,7 +96,7 @@ const CooldownTimer = React.memo<{
         // 작업 종료 메시지 전송
         channelRef.current?.send({
           ts: now,
-          msg: `작업 종료 (총 작업시간: ${totalWorkTimeSeconds}초)`,
+          msg: "작업 종료",
           category: "STATUS",
           severity: "INFO",
           asset: "WORKER",

@@ -8,7 +8,8 @@ import {
   Clock,
   Package,
 } from "lucide-react";
-import Stat from "@components/ui/stat";
+import { Stat, AnimatedNumber } from "@components/ui";
+import { formatCurrency, formatPercent } from "@/utils/formatters";
 import { useEffect } from "react";
 
 function DashboardStats({
@@ -32,7 +33,9 @@ function DashboardStats({
   // 작업 진척도: (전체수량 - 미하차) / 전체수량
   const progressRate =
     totalParcels > 0
-      ? Math.round(((totalParcels - pendingUnloadParcels) / totalParcels) * 100)
+      ? Math.round(
+          ((totalParcels - pendingUnloadParcels) / totalParcels) * 100 * 100
+        ) / 100
       : 0;
 
   // 처리율: (정상처리 + 사고처리) / (전체수량 - 미하차)
@@ -40,7 +43,7 @@ function DashboardStats({
   const unloadedParcels = totalParcels - pendingUnloadParcels;
   const processingRate =
     unloadedParcels > 0
-      ? Math.round((processedParcels / unloadedParcels) * 100)
+      ? Math.round((processedParcels / unloadedParcels) * 100 * 100) / 100
       : 0;
 
   // 누적 매출: (정상처리 + 사고처리) * 각 운송가액
@@ -88,7 +91,8 @@ function DashboardStats({
 
   const minuteProcessingRate =
     totalWorkTime > 0
-      ? Math.round((processedParcels / (totalWorkTime / (1000 * 60))) * 10) / 10
+      ? Math.round((processedParcels / (totalWorkTime / (1000 * 60))) * 100) /
+        100
       : 0;
 
   // 사고 손실률: 사고 금액 / 총 매출 비율
@@ -96,16 +100,6 @@ function DashboardStats({
     totalRevenue > 0
       ? Math.round((accidentAmount / totalRevenue) * 100 * 100) / 100 // 소수점 2자리
       : 0;
-
-  // 금액 포맷팅 함수
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ko-KR", {
-      style: "currency",
-      currency: "KRW",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   useEffect(() => {
     if (!isCollecting) return;
@@ -140,7 +134,7 @@ function DashboardStats({
         <Stat.Card
           icon={TrendingUp}
           title="작업 진척도"
-          value={`${progressRate}%`}
+          value={<AnimatedNumber value={progressRate} format={formatPercent} />}
           variant="default"
           helpMessage="전체 운송장 중 하차가 완료된 비율입니다. (전체수량 - 미하차) / 전체수량"
         />
@@ -148,23 +142,29 @@ function DashboardStats({
         <Stat.Card
           icon={Percent}
           title="처리율"
-          value={`${processingRate}%`}
+          value={
+            <AnimatedNumber value={processingRate} format={formatPercent} />
+          }
           variant="green"
           helpMessage="하차된 운송장 중 실제로 처리된 비율입니다. (정상처리 + 사고처리) / (전체수량 - 미하차)"
         />
         {/* 누적 매출 */}
         <Stat.Card
           icon={DollarSign}
-          title="누적 매출"
-          value={formatCurrency(totalRevenue)}
+          title="매출"
+          value={
+            <AnimatedNumber value={totalRevenue} format={formatCurrency} />
+          }
           variant="purple"
           helpMessage="처리된 모든 운송장의 총 운송가액입니다. (정상처리 + 사고처리) × 각 운송가액"
         />
         {/* 사고 금액 */}
         <Stat.Card
           icon={AlertTriangle}
-          title="사고 금액"
-          value={formatCurrency(accidentAmount)}
+          title="사고액"
+          value={
+            <AnimatedNumber value={accidentAmount} format={formatCurrency} />
+          }
           variant="red"
           helpMessage="사고로 처리된 운송장들의 총 운송가액입니다. 사고처리 × 각 운송가액"
         />
@@ -172,7 +172,12 @@ function DashboardStats({
         <Stat.Card
           icon={Clock}
           title="평균 처리시간"
-          value={`${avgProcessingTime}초`}
+          value={
+            <AnimatedNumber
+              value={avgProcessingTime}
+              format={(value) => `${value.toFixed(2)}초`}
+            />
+          }
           variant="orange"
           helpMessage="활성 작업자들이 한 건을 처리하는데 걸리는 평균 시간입니다. 총 작업시간 / 처리건수"
         />
@@ -188,7 +193,12 @@ function DashboardStats({
         <Stat.Card
           icon={TrendingUp}
           title="분당 처리량"
-          value={`${minuteProcessingRate}건`}
+          value={
+            <AnimatedNumber
+              value={minuteProcessingRate}
+              format={(value) => `${value.toFixed(2)}건`}
+            />
+          }
           variant="indigo"
           helpMessage="실제 처리된 운송장을 총 작업시간으로 나눈 분당 평균 처리량입니다."
         />
@@ -196,7 +206,9 @@ function DashboardStats({
         <Stat.Card
           icon={AlertTriangle}
           title="사고 손실률"
-          value={`${accidentLossRate}%`}
+          value={
+            <AnimatedNumber value={accidentLossRate} format={formatPercent} />
+          }
           variant="pink"
           helpMessage="사고 금액이 총 매출에서 차지하는 비율입니다. 사고 금액 / 총 매출"
         />

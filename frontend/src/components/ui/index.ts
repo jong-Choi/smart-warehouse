@@ -97,3 +97,4 @@ export {
 export { StatusBadge } from "./status-badge";
 export { SectionHeader } from "./section-header";
 export { PageLayout } from "./page-layout";
+export { AnimatedNumber } from "./animated-value";
