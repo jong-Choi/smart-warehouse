@@ -250,88 +250,86 @@ export const WorkerDetailTable: React.FC<WorkerDetailTableProps> = ({
         </div>
 
         {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">운송장 번호</th>
-                <th className="px-4 py-3 text-left font-medium">상태</th>
-                <th className="px-4 py-3 text-left font-medium">처리일시</th>
-                <th className="px-4 py-3 text-left font-medium">배송지</th>
-                <th className="px-4 py-3 text-left font-medium">운송가액</th>
-                <th className="px-4 py-3 text-left font-medium">사고여부</th>
-              </tr>
-            </thead>
-            <TableBody>
-              {currentPageRows.length ? (
-                <>
-                  {currentPageRows.map((row) => {
-                    const parcel = row.original;
-                    return (
-                      <TableRow key={parcel.id}>
-                        <TableCell className="font-medium">
-                          {parcel.waybill.number}
-                        </TableCell>
-                        <TableCell>
-                          {(() => {
-                            switch (parcel.status) {
-                              case "NORMAL":
-                                return "정상";
-                              case "ACCIDENT":
-                                return "사고";
-                              case "UNLOADED":
-                                return "하차완료";
-                              case "PENDING_UNLOAD":
-                                return "하차대기";
-                              default:
-                                return parcel.status;
-                            }
-                          })()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(parcel.processedAt).toLocaleString("ko-KR")}
-                        </TableCell>
-                        <TableCell>{parcel.location.name}</TableCell>
-                        <TableCell>
-                          {formatCurrency(parcel.declaredValue)}
-                        </TableCell>
-                        <TableCell>
-                          {parcel.isAccident ? "예" : "아니오"}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {dummyRows}
-                </>
-              ) : (
-                <>
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-12 text-center">
-                      {(() => {
-                        switch (statusFilter) {
-                          case "NORMAL":
-                            return "정상 처리 내역이 없습니다.";
-                          case "ACCIDENT":
-                            return "사고 처리 내역이 없습니다.";
-                          case "UNLOADED":
-                            return "하차 완료 내역이 없습니다.";
-                          case "PENDING_UNLOAD":
-                            return "하차 대기 내역이 없습니다.";
-                          case "all":
-                          default:
-                            return "처리 내역이 없습니다.";
-                        }
-                      })()}
-                    </TableCell>
-                  </TableRow>
-                  {Array.from({ length: pageSize - 1 }, (_, index) => (
-                    <DummyRow key={`dummy-empty-${index}`} />
-                  ))}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <Table>
+          <thead>
+            <tr>
+              <th className="px-4 py-3 text-left font-medium">운송장 번호</th>
+              <th className="px-4 py-3 text-left font-medium">상태</th>
+              <th className="px-4 py-3 text-left font-medium">처리일시</th>
+              <th className="px-4 py-3 text-left font-medium">배송지</th>
+              <th className="px-4 py-3 text-left font-medium">운송가액</th>
+              <th className="px-4 py-3 text-left font-medium">사고여부</th>
+            </tr>
+          </thead>
+          <TableBody>
+            {currentPageRows.length ? (
+              <>
+                {currentPageRows.map((row) => {
+                  const parcel = row.original;
+                  return (
+                    <TableRow key={parcel.id}>
+                      <TableCell className="font-medium">
+                        {parcel.waybill.number}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          switch (parcel.status) {
+                            case "NORMAL":
+                              return "정상";
+                            case "ACCIDENT":
+                              return "사고";
+                            case "UNLOADED":
+                              return "하차완료";
+                            case "PENDING_UNLOAD":
+                              return "하차대기";
+                            default:
+                              return parcel.status;
+                          }
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(parcel.processedAt).toLocaleString("ko-KR")}
+                      </TableCell>
+                      <TableCell>{parcel.location.name}</TableCell>
+                      <TableCell>
+                        {formatCurrency(parcel.declaredValue)}
+                      </TableCell>
+                      <TableCell>
+                        {parcel.isAccident ? "예" : "아니오"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {dummyRows}
+              </>
+            ) : (
+              <>
+                <TableRow>
+                  <TableCell colSpan={6} className="h-12 text-center">
+                    {(() => {
+                      switch (statusFilter) {
+                        case "NORMAL":
+                          return "정상 처리 내역이 없습니다.";
+                        case "ACCIDENT":
+                          return "사고 처리 내역이 없습니다.";
+                        case "UNLOADED":
+                          return "하차 완료 내역이 없습니다.";
+                        case "PENDING_UNLOAD":
+                          return "하차 대기 내역이 없습니다.";
+                        case "all":
+                        default:
+                          return "처리 내역이 없습니다.";
+                      }
+                    })()}
+                  </TableCell>
+                </TableRow>
+                {Array.from({ length: pageSize - 1 }, (_, index) => (
+                  <DummyRow key={`dummy-empty-${index}`} />
+                ))}
+              </>
+            )}
+          </TableBody>
+        </Table>
 
         {/* 페이징 */}
         {pagination && (

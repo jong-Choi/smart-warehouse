@@ -37,7 +37,7 @@ const StatContainer = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "p-6 rounded-lg border bg-card text-card-foreground shadow-sm",
+      "p-6 rounded-lg border bg-sidebar-primary-foreground/20 text-card-foreground shadow-sm shadow-sidebar-primary/15",
       className
     )}
     {...props}
@@ -137,7 +137,7 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
       <div
         ref={ref}
         className={cn(
-          "flex items-center justify-between p-3 rounded-lg",
+          "flex items-center justify-between p-3 rounded-lg border border-slate-300/50",
           variantStyles[variant],
           className
         )}

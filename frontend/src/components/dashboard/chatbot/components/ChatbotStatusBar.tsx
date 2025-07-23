@@ -32,18 +32,23 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
       <div className="px-4 py-2 border-t border-sidebar-border bg-sidebar-secondary/5">
         {/* 첫 번째 줄: 화면 기반 대화 체크박스 (연결된 경우에만 표시) */}
         {isConnected && (
-          <div className="flex items-center gap-2 mb-2 border-b border-sidebar-border pb-2">
+          <div className="flex items-center gap-2 mb-2 border-b border-sidebar-border pb-2 justify-between">
             <div className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80">
               <Checkbox
                 id="use-context"
                 checked={useContext}
                 onCheckedChange={handleToggleContext}
                 className="h-3 w-3"
-                iconSize={2.5}
+                iconClassName="text-green-700 -translate-y-0.5"
+                iconStrokeWidth={4}
               />
               <label
                 htmlFor="use-context"
-                className="cursor-pointer hover:text-sidebar-foreground"
+                className={cn(
+                  "cursor-pointer hover:text-sidebar-foreground",
+                  useContext &&
+                    "text-sidebar-foreground hover:text-muted-foreground"
+                )}
               >
                 화면 기반으로 대화하기
               </label>
@@ -51,13 +56,9 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
             <div
               className={cn("flex items-center", !useContext && "invisible")}
             >
-              <span className="text-xs text-sidebar-foreground/80 whitespace-pre">
-                {"("}현재 화면:{" "}
-              </span>
-              <span className="text-xs font-bold text-sidebar-foreground/80">
+              <span className="text-xs text-muted-foreground">
                 {currentScreen}
               </span>
-              <span className="text-xs text-sidebar-foreground/80">{")"}</span>
             </div>
           </div>
         )}

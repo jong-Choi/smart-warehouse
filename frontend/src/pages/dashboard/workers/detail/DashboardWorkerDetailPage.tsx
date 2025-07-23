@@ -181,48 +181,46 @@ function WorkerDetailContent() {
         </div>
 
         {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">운송장 번호</th>
-                <th className="px-4 py-3 text-left font-medium">상태</th>
-                <th className="px-4 py-3 text-left font-medium">배송지</th>
-                <th className="px-4 py-3 text-left font-medium">운송가액</th>
-                <th className="px-4 py-3 text-left font-medium">처리일시</th>
-              </tr>
-            </thead>
-            <TableBody>
-              {operator.waybills.map((parcel) => {
-                return (
-                  <TableRow
-                    key={parcel.id}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => navigate(`/dashboard/waybills/${parcel.id}`)}
-                  >
-                    <TableCell className="font-medium">
-                      <Link to={`/dashboard/waybills/${parcel.id}`}>
-                        {parcel.number ?? parcel.id ?? "-"}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge color={STATUS_MAP[parcel.status].color}>
-                        {STATUS_MAP[parcel.status].text}
-                      </StatusBadge>
-                    </TableCell>
-                    <TableCell>{parcel.location.name}</TableCell>
-                    <TableCell>
-                      {formatCurrency(parcel.parcel?.declaredValue ?? 0)}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(parcel.processedAt).toLocaleString("ko-KR")}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <Table>
+          <thead>
+            <tr>
+              <th className="px-4 py-3 text-left font-medium">운송장 번호</th>
+              <th className="px-4 py-3 text-left font-medium">상태</th>
+              <th className="px-4 py-3 text-left font-medium">배송지</th>
+              <th className="px-4 py-3 text-left font-medium">운송가액</th>
+              <th className="px-4 py-3 text-left font-medium">처리일시</th>
+            </tr>
+          </thead>
+          <TableBody>
+            {operator.waybills.map((parcel) => {
+              return (
+                <TableRow
+                  key={parcel.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => navigate(`/dashboard/waybills/${parcel.id}`)}
+                >
+                  <TableCell className="font-medium">
+                    <Link to={`/dashboard/waybills/${parcel.id}`}>
+                      {parcel.number ?? parcel.id ?? "-"}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge color={STATUS_MAP[parcel.status].color}>
+                      {STATUS_MAP[parcel.status].text}
+                    </StatusBadge>
+                  </TableCell>
+                  <TableCell>{parcel.location.name}</TableCell>
+                  <TableCell>
+                    {formatCurrency(parcel.parcel?.declaredValue ?? 0)}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(parcel.processedAt).toLocaleString("ko-KR")}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
 
         {/* 페이징 */}
         {operator.waybillsPagination && (

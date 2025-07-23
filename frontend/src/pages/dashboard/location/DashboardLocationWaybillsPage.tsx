@@ -192,8 +192,7 @@ function LocationWaybillsContent() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-[200px] justify-start text-left font-normal",
-                    !dateRange && "text-muted-foreground"
+                    "w-[200px] justify-start text-left font-normal"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -255,62 +254,60 @@ function LocationWaybillsContent() {
         </div>
 
         {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {table.getHeaderGroups()[0].headers.map((header) => (
+                <SortableHeader
+                  key={header.id}
+                  columnId={header.column.id}
+                  sorting={sorting}
+                  onSort={handleSort}
+                  className={
+                    header.column.id === "statuses"
+                      ? "text-center"
+                      : "text-left"
+                  }
+                >
+                  {header.column.columnDef.header as string}
+                </SortableHeader>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length === 0 ? (
               <TableRow>
-                {table.getHeaderGroups()[0].headers.map((header) => (
-                  <SortableHeader
-                    key={header.id}
-                    columnId={header.column.id}
-                    sorting={sorting}
-                    onSort={handleSort}
-                    className={
-                      header.column.id === "statuses"
-                        ? "text-center"
-                        : "text-left"
-                    }
-                  >
-                    {header.column.columnDef.header as string}
-                  </SortableHeader>
-                ))}
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-8 text-gray-500"
+                >
+                  조건에 맞는 데이터가 없습니다.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    조건에 맞는 데이터가 없습니다.
-                  </TableCell>
+            ) : (
+              table.getRowModel().rows.map((row, index) => (
+                <TableRow
+                  key={`${row.original.locationId}-${index}`}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    navigate(
+                      `/dashboard/location/waybills/${row.original.locationId}`
+                    )
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row, index) => (
-                  <TableRow
-                    key={`${row.original.locationId}-${index}`}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      navigate(
-                        `/dashboard/location/waybills/${row.original.locationId}`
-                      )
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </Stat.Container>
     </PageLayout>
   );

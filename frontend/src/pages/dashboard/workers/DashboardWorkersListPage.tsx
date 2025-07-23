@@ -108,15 +108,13 @@ function WorkersListContent() {
         </div>
 
         {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <WorkersTable
-              operators={operators}
-              sorting={sorting}
-              onSort={handleSort}
-            />
-          </Table>
-        </div>
+        <Table>
+          <WorkersTable
+            operators={operators}
+            sorting={sorting}
+            onSort={handleSort}
+          />
+        </Table>
 
         {/* 페이지네이션 */}
         {pagination && pagination.totalPages > 1 && (

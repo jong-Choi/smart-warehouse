@@ -309,8 +309,7 @@ function WaybillsListContent() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-[200px] justify-start text-left font-normal",
-                    !dateRange?.from && "text-muted-foreground"
+                    "w-[200px] justify-start text-left font-normal"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -371,54 +370,52 @@ function WaybillsListContent() {
         </div>
 
         {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {table.getHeaderGroups()[0].headers.map((header) => (
+                <SortableHeader
+                  key={header.id}
+                  columnId={header.column.id}
+                  sorting={sorting}
+                  onSort={handleSort}
+                  className="text-left"
+                >
+                  {header.column.columnDef.header as string}
+                </SortableHeader>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length === 0 ? (
               <TableRow>
-                {table.getHeaderGroups()[0].headers.map((header) => (
-                  <SortableHeader
-                    key={header.id}
-                    columnId={header.column.id}
-                    sorting={sorting}
-                    onSort={handleSort}
-                    className="text-left"
-                  >
-                    {header.column.columnDef.header as string}
-                  </SortableHeader>
-                ))}
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-8 text-gray-500"
+                >
+                  조건에 맞는 운송장이 없습니다.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    조건에 맞는 운송장이 없습니다.
-                  </TableCell>
+            ) : (
+              table.getRowModel().rows.map((row, index) => (
+                <TableRow
+                  key={`${row.original.id}-${index}`}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleWaybillSelect(row.original)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row, index) => (
-                  <TableRow
-                    key={`${row.original.id}-${index}`}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleWaybillSelect(row.original)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
 
         {/* 페이지네이션 */}
         {totalPages > 1 && (

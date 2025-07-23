@@ -234,16 +234,14 @@ function LocationWaybillDetailContent() {
         <div className="flex items-center justify-between mb-4">
           <Stat.Head className="mb-0">운송장 목록</Stat.Head>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              총 {pagination.total}개
-            </span>
+            <span className="text-sm">총 {pagination.total}개</span>
           </div>
         </div>
 
         {/* 필터링 섹션 */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4 mbtext-4">
           <div className="flex items-center gap-2 flex-1">
-            <Search className="h-4 w-4 text-muted-foreground" />
+            <Search className="h-4 w-4" />
             <Input
               placeholder="운송장 번호로 검색..."
               value={searchTerm}
@@ -252,7 +250,7 @@ function LocationWaybillDetailContent() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">상태:</span>
+            <span className="text-sm">상태:</span>
             <Select
               value={statusFilter}
               onValueChange={(value: WaybillStatus | "all") =>
@@ -272,14 +270,13 @@ function LocationWaybillDetailContent() {
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">날짜:</span>
+            <span className="text-sm">날짜:</span>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-[200px] justify-start text-left font-normal",
-                    !dateRange && "text-muted-foreground"
+                    "w-[200px] justify-start text-left font-normal"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -341,56 +338,54 @@ function LocationWaybillDetailContent() {
         </div>
 
         {/* 테이블 */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {table.getHeaderGroups()[0].headers.map((header) => (
+                <SortableHeader
+                  key={header.id}
+                  columnId={header.column.id}
+                  sorting={sorting}
+                  onSort={handleSort}
+                  className="text-left"
+                >
+                  {header.column.columnDef.header as string}
+                </SortableHeader>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length === 0 ? (
               <TableRow>
-                {table.getHeaderGroups()[0].headers.map((header) => (
-                  <SortableHeader
-                    key={header.id}
-                    columnId={header.column.id}
-                    sorting={sorting}
-                    onSort={handleSort}
-                    className="text-left"
-                  >
-                    {header.column.columnDef.header as string}
-                  </SortableHeader>
-                ))}
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-8 text-gray-500"
+                >
+                  조건에 맞는 운송장이 없습니다.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    조건에 맞는 운송장이 없습니다.
-                  </TableCell>
+            ) : (
+              table.getRowModel().rows.map((row, index) => (
+                <TableRow
+                  key={`${row.original.id}-${index}`}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    navigate(`/dashboard/waybills/${row.original.id}`)
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row, index) => (
-                  <TableRow
-                    key={`${row.original.id}-${index}`}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      navigate(`/dashboard/waybills/${row.original.id}`)
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
 
         {/* 페이지네이션 */}
         {pagination.totalPages > 1 && (
