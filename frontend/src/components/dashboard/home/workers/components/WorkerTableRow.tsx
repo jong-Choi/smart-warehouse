@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { TableCell, TableRow } from "@/ui/table";
+import { TableCell, TableRow } from "@ui/table";
 import {
   formatTime,
   formatWorkTime,

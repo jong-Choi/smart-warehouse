@@ -12,7 +12,7 @@ import {
   MovingBox,
   Worker,
   BeltLines,
-} from "@/components/warehouse/warehouse2d/components";
+} from "@components/warehouse/warehouse2d/components";
 
 export default function Warehouse2D() {
   // warehouseStore에서 상태 가져오기

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Bot } from "lucide-react";
-import { MessageItem } from "@/components/dashboard/chatbot/components/MessageItem";
+import { MessageItem } from "@components/dashboard/chatbot/components/MessageItem";
 import { useChatbotStore } from "@stores/chatbotStore";
 import { cn } from "@/lib/utils";
 

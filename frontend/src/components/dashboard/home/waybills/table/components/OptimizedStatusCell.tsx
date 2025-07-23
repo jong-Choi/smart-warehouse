@@ -1,6 +1,6 @@
 import React from "react";
 import type { WaybillStatus } from "@/types/waybill";
-import { StatusBadge } from "@/ui/status-badge";
+import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 
 interface OptimizedStatusCellProps {

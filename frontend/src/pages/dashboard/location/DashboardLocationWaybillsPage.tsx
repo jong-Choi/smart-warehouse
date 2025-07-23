@@ -2,14 +2,14 @@ import { Suspense, useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
+import { Calendar } from "@components/ui/calendar";
+import { Button } from "@components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Filter } from "lucide-react";
+} from "@components/ui/popover";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocationWaybillsStatsSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus } from "@/types";
@@ -22,7 +22,6 @@ interface LocationWaybillStat {
   statuses: Record<string, number>;
 }
 import type { DateRange } from "react-day-picker";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
@@ -36,9 +35,10 @@ import {
   type ColumnFiltersState,
   flexRender,
 } from "@tanstack/react-table";
-import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/ui/table";
-import { SortableHeader } from "@/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@ui/table";
+import { SortableHeader } from "@ui/table";
 import { generateMarkdownTable } from "@/utils/tableToMarkdown";
+import { Stat } from "@components/ui";
 
 function LocationWaybillsContent() {
   const navigate = useNavigate();
@@ -127,7 +127,7 @@ function LocationWaybillsContent() {
         },
       },
     ],
-    [navigate]
+    []
   );
 
   // React Table 인스턴스 생성
@@ -176,157 +176,145 @@ function LocationWaybillsContent() {
         </div>
       </div>
 
-      {/* 필터 영역 */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="w-5 h-5 mr-2" />
-            필터링
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            {/* 날짜 범위 선택 */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">
-                날짜 범위
-              </label>
-              <Popover
-                open={isDatePickerOpen}
-                onOpenChange={setIsDatePickerOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !dateRange && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "yyyy-MM-dd", { locale: ko })}{" "}
-                          - {format(dateRange.to, "yyyy-MM-dd", { locale: ko })}
-                        </>
-                      ) : (
-                        format(dateRange.from, "yyyy-MM-dd", { locale: ko })
-                      )
-                    ) : (
-                      "날짜 범위 선택"
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-4 bg-gray-50">
-                    <Calendar
-                      mode="range"
-                      selected={tempDateRange}
-                      onSelect={(range: DateRange | undefined) => {
-                        setTempDateRange(range);
-                      }}
-                      locale={ko}
-                      className="rounded-lg border shadow-sm [--cell-size:--spacing(11)] md:[--cell-size:--spacing(13)]"
-                      classNames={{
-                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-                        range_start:
-                          "bg-gray-700 text-white hover:bg-gray-800 focus:bg-gray-800 rounded-l-md shadow-sm",
-                        range_end:
-                          "bg-gray-700 text-white hover:bg-gray-800 focus:bg-gray-800 rounded-r-md shadow-sm",
-                        range_middle:
-                          "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:bg-gray-200 border-t border-b border-gray-300",
-                      }}
-                    />
-                    <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-300">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={clearDateRange}
-                        className="hover:bg-gray-100 border-gray-300"
-                      >
-                        초기화
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={applyDateRange}
-                        className="bg-gray-700 hover:bg-gray-800 text-white shadow-sm"
-                      >
-                        적용
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+      <Stat.Container>
+        <div className="flex items-center justify-between mb-4">
+          <Stat.Head className="mb-0">지역별 운송장 현황</Stat.Head>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              총 {stats.length}개 지역
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* 통계 테이블 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>지역별 운송장 현황</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {table.getHeaderGroups()[0].headers.map((header) => (
-                    <SortableHeader
-                      key={header.id}
-                      columnId={header.column.id}
-                      sorting={sorting}
-                      onSort={handleSort}
-                      className={
-                        header.column.id === "statuses"
-                          ? "text-center"
-                          : "text-left"
-                      }
+        {/* 필터링 섹션 */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">날짜:</span>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[200px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "yyyy-MM-dd", { locale: ko })} -{" "}
+                        {format(dateRange.to, "yyyy-MM-dd", { locale: ko })}
+                      </>
+                    ) : (
+                      format(dateRange.from, "yyyy-MM-dd", { locale: ko })
+                    )
+                  ) : (
+                    "날짜 범위 선택"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-4 bg-gray-50">
+                  <Calendar
+                    mode="range"
+                    selected={tempDateRange}
+                    onSelect={(range: DateRange | undefined) => {
+                      setTempDateRange(range);
+                    }}
+                    locale={ko}
+                    className="rounded-lg border shadow-sm [--cell-size:--spacing(11)] md:[--cell-size:--spacing(13)]"
+                    classNames={{
+                      day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+                      range_start:
+                        "bg-gray-700 text-white hover:bg-gray-800 focus:bg-gray-800 rounded-l-md shadow-sm",
+                      range_end:
+                        "bg-gray-700 text-white hover:bg-gray-800 focus:bg-gray-800 rounded-r-md shadow-sm",
+                      range_middle:
+                        "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:bg-gray-200 border-t border-b border-gray-300",
+                    }}
+                  />
+                  <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-300">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearDateRange}
+                      className="hover:bg-gray-100 border-gray-300"
                     >
-                      {header.column.columnDef.header as string}
-                    </SortableHeader>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-center py-8 text-gray-500"
+                      초기화
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={applyDateRange}
+                      className="bg-gray-700 hover:bg-gray-800 text-white shadow-sm"
                     >
-                      조건에 맞는 데이터가 없습니다.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  table.getRowModel().rows.map((row, index) => (
-                    <TableRow
-                      key={`${row.original.locationId}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() =>
-                        navigate(
-                          `/dashboard/location/waybills/${row.original.locationId}`
-                        )
-                      }
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                      적용
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* 테이블 */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {table.getHeaderGroups()[0].headers.map((header) => (
+                  <SortableHeader
+                    key={header.id}
+                    columnId={header.column.id}
+                    sorting={sorting}
+                    onSort={handleSort}
+                    className={
+                      header.column.id === "statuses"
+                        ? "text-center"
+                        : "text-left"
+                    }
+                  >
+                    {header.column.columnDef.header as string}
+                  </SortableHeader>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    조건에 맞는 데이터가 없습니다.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row, index) => (
+                  <TableRow
+                    key={`${row.original.locationId}-${index}`}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/location/waybills/${row.original.locationId}`
+                      )
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Stat.Container>
     </div>
   );
 }

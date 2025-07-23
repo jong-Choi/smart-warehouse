@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { type Message } from "@/types/chatbot";
 import { useChatbotStore } from "@/stores/chatbotStore";
-import { Button } from "@/components/ui/button";
+import { Button } from "@components/ui/button";
 import { RotateCcw } from "lucide-react";
 import { Remark } from "react-remark";
 

@@ -1,4 +1,4 @@
-import { ControlPanel, StatusIndicator } from "@/components/ui";
+import { ControlPanel, StatusIndicator } from "@components/ui";
 import { useWarehouseControls } from "@/hooks/useWarehouseControls";
 
 export const SystemControlPanel: React.FC = () => {

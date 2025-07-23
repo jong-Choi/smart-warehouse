@@ -1,4 +1,4 @@
-import { ControlPanel, WarehouseSlider } from "@/components/ui";
+import { ControlPanel, WarehouseSlider } from "@components/ui";
 import { Users, Zap, Clock, Activity } from "lucide-react";
 import { useWarehouseControls } from "@/hooks/useWarehouseControls";
 

@@ -1,12 +1,12 @@
 import { Outlet } from "react-router-dom";
-import { DashboardSidebar } from "@/components/dashboard/layout/DashboardSidebar";
-import { ChatbotPanel } from "@/components/dashboard/chatbot/ChatbotPanel";
+import { DashboardSidebar } from "@components/dashboard/layout/DashboardSidebar";
+import { ChatbotPanel } from "@components/dashboard/chatbot/ChatbotPanel";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+} from "@components/ui/sidebar";
+import { Separator } from "@components/ui/separator";
 
 function DashboardLayout() {
   return (

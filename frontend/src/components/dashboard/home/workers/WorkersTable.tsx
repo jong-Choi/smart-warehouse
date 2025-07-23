@@ -5,8 +5,8 @@ import {
   getSortedRowModel,
   type SortingState,
 } from "@tanstack/react-table";
-import { Table, TableBody, TableHeader, TableRow } from "@/ui/table";
-import { SortableHeader } from "@/ui/table";
+import { Table, TableBody, TableHeader, TableRow } from "@ui/table";
+import { SortableHeader } from "@ui/table";
 import { useWorkersStore } from "@/stores/workersStore";
 import {
   StatsSection,

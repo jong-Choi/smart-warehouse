@@ -8,7 +8,7 @@ import {
   ChatbotMessages,
   ChatbotStatusBar,
   ChatbotInput,
-} from "@/components/dashboard/chatbot/components";
+} from "@components/dashboard/chatbot/components";
 import { useEffect } from "react";
 
 export function ChatbotPanel() {

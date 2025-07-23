@@ -5,7 +5,7 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card";
+} from "@components/ui/hover-card";
 import { HelpCircle } from "lucide-react";
 
 export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {

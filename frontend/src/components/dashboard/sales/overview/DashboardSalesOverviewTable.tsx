@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@ui/table";
 
 import { useState } from "react";
 import {
@@ -10,7 +10,7 @@ import {
   type SortingState,
   flexRender,
 } from "@tanstack/react-table";
-import { SortableHeader } from "@/ui/table";
+import { SortableHeader } from "@ui/table";
 import { formatCurrency, formatNumber } from "@utils/formatString";
 import { useLocationSalesSuspense } from "@hooks/useSales";
 import { generateMarkdownTable } from "@utils/tableToMarkdown";

@@ -8,7 +8,7 @@ import {
   Clock,
   Package,
 } from "lucide-react";
-import Stat from "@/components/ui/stat";
+import Stat from "@components/ui/stat";
 import { useEffect } from "react";
 
 function DashboardStats({

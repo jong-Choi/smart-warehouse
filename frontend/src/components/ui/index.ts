@@ -76,3 +76,14 @@ export {
 export { Popover, PopoverContent, PopoverTrigger } from "./popover";
 export { buttonVariants } from "./button-variants";
 export { Stat, StatContainer, StatHead, StatGrid, StatCard } from "./stat";
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from "./table";
+export { StatusBadge } from "./status-badge";

@@ -3,7 +3,7 @@ import {
   ControlPanel,
   SystemInfoContainer,
   SystemInfoRow,
-} from "@/components/ui";
+} from "@components/ui";
 import { createChannelInterface } from "@/utils";
 import { type BroadcastMessage } from "@/types/broadcast";
 

@@ -5,7 +5,7 @@ import {
   fetchOperatorParcels,
   fetchOperators,
 } from "@/api/operatorApi";
-import type { Operator, OperatorDetail, OperatorParcel } from "@/types";
+import type { Operator, OperatorDetail, OperatorParcel } from "@types";
 
 // Query Keys
 export const operatorKeys = {

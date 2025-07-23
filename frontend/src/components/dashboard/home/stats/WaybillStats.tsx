@@ -1,7 +1,7 @@
-import { DonutChart } from "@/components/ui/donut-chart";
+import { DonutChart } from "@components/ui/donut-chart";
 import { Package, Truck, CheckCircle, AlertTriangle } from "lucide-react";
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
-import Stat from "@/components/ui/stat";
+import Stat from "@components/ui/stat";
 import { useEffect } from "react";
 
 function WaybillStats({

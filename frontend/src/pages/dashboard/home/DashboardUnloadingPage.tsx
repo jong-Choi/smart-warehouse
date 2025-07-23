@@ -1,7 +1,7 @@
 import {
   LoadingSkeleton,
   PageHeader,
-} from "@/components/dashboard/home/waybills";
+} from "@components/dashboard/home/waybills";
 import {
   useDashboardWaybillMessage,
   useDashboardSnapshotData,

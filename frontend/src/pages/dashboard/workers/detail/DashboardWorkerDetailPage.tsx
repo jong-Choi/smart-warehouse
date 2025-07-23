@@ -1,24 +1,27 @@
 import { Suspense, useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Button } from "@/ui/button";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@components/ui/select";
 import { useOperatorDetailSuspense } from "@/hooks/useOperator";
-import {
-  DetailHeader,
-  OperatorInfoCards,
-  ParcelFilters,
-  ParcelTable,
-} from "./components";
+import { DetailHeader, OperatorInfoCards } from "./components";
 import { useChatbotStore } from "@/stores/chatbotStore";
+import { Stat } from "@components/ui";
+import { Input } from "@components/ui/input";
+import { Table, TableBody, TableCell, TableRow } from "@ui/table";
+import { STATUS_MAP } from "@utils/stautsMap";
+import { StatusBadge } from "@ui/status-badge";
+import { formatCurrency } from "@utils/formatString";
+import { Link } from "react-router-dom";
 
 function WorkerDetailContent() {
   const { code } = useParams<{ code: string }>();
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
@@ -125,62 +128,146 @@ function WorkerDetailContent() {
     <div className="space-y-6">
       <DetailHeader operator={operator} />
       <OperatorInfoCards operator={operator} />
-      <ParcelFilters
-        statusFilter={statusFilter}
-        startDate={startDate}
-        endDate={endDate}
-        onStatusFilterChange={handleStatusFilterChange}
-        onStartDateChange={handleStartDateChange}
-        onEndDateChange={handleEndDateChange}
-      />
-      <ParcelTable
-        parcels={operator.waybills}
-        total={operator.waybillsPagination?.total || 0}
-      />
-      {/* 페이징 */}
-      {operator.waybillsPagination && (
-        <div className="flex items-center justify-between">
+
+      <Stat.Container>
+        <div className="flex items-center justify-between mb-4">
+          <Stat.Head className="mb-0">처리 내역</Stat.Head>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              페이지당 행 수:
+              총 {operator.waybillsPagination?.total || 0}개
             </span>
+          </div>
+        </div>
+
+        {/* 필터링 섹션 */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">상태:</span>
             <Select
-              value={pageSize.toString()}
-              onValueChange={handlePageSizeChange}
+              value={statusFilter}
+              onValueChange={handleStatusFilterChange}
             >
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="NORMAL">정상</SelectItem>
+                <SelectItem value="ACCIDENT">사고</SelectItem>
+                <SelectItem value="UNLOADED">하차완료</SelectItem>
+                <SelectItem value="PENDING_UNLOAD">하차대기</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-            >
-              이전
-            </Button>
-            <span className="text-sm">
-              {page} / {operator.waybillsPagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= operator.waybillsPagination.totalPages}
-            >
-              다음
-            </Button>
+            <span className="text-sm text-muted-foreground">시작일:</span>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => handleStartDateChange(e.target.value)}
+              className="w-40"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">종료일:</span>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => handleEndDateChange(e.target.value)}
+              className="w-40"
+            />
           </div>
         </div>
-      )}
+
+        {/* 테이블 */}
+        <div className="rounded-md border">
+          <Table>
+            <thead>
+              <tr>
+                <th className="px-4 py-3 text-left font-medium">운송장 번호</th>
+                <th className="px-4 py-3 text-left font-medium">상태</th>
+                <th className="px-4 py-3 text-left font-medium">배송지</th>
+                <th className="px-4 py-3 text-left font-medium">운송가액</th>
+                <th className="px-4 py-3 text-left font-medium">처리일시</th>
+              </tr>
+            </thead>
+            <TableBody>
+              {operator.waybills.map((parcel) => {
+                return (
+                  <TableRow
+                    key={parcel.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => navigate(`/dashboard/waybills/${parcel.id}`)}
+                  >
+                    <TableCell className="font-medium">
+                      <Link to={`/dashboard/waybills/${parcel.id}`}>
+                        {parcel.number ?? parcel.id ?? "-"}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge color={STATUS_MAP[parcel.status].color}>
+                        {STATUS_MAP[parcel.status].text}
+                      </StatusBadge>
+                    </TableCell>
+                    <TableCell>{parcel.location.name}</TableCell>
+                    <TableCell>
+                      {formatCurrency(parcel.parcel?.declaredValue ?? 0)}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(parcel.processedAt).toLocaleString("ko-KR")}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* 페이징 */}
+        {operator.waybillsPagination && (
+          <div className="flex items-center justify-between mt-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                페이지당 행 수:
+              </span>
+              <Select
+                value={pageSize.toString()}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+              >
+                이전
+              </Button>
+              <span className="text-sm">
+                {page} / {operator.waybillsPagination.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= operator.waybillsPagination.totalPages}
+              >
+                다음
+              </Button>
+            </div>
+          </div>
+        )}
+      </Stat.Container>
     </div>
   );
 }

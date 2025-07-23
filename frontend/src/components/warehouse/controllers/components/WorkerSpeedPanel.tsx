@@ -1,5 +1,5 @@
 import { useWarehouseStore } from "@/stores/warehouseStore";
-import { ControlPanel, WorkerCard, WorkerGrid } from "@/components/ui";
+import { ControlPanel, WorkerCard, WorkerGrid } from "@components/ui";
 
 export const WorkerSpeedPanel: React.FC = () => {
   const { workerCount, workerSpeeds } = useWarehouseStore([

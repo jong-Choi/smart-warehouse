@@ -2,7 +2,7 @@ import {
   WaybillStats,
   WorkerStats,
   DashboardStats,
-} from "@/components/dashboard/home/stats";
+} from "@components/dashboard/home/stats";
 import { useDashboardHomeMessage } from "@components/dashboard/home/stats/hooks";
 
 function DashboardHomePage() {

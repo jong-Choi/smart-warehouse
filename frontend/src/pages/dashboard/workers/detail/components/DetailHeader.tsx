@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/ui/button";
+import { Button } from "@components/ui/button";
 import type { OperatorDetail } from "@/types/operator";
 
 interface DetailHeaderProps {
@@ -10,7 +10,7 @@ interface DetailHeaderProps {
 export function DetailHeader({ operator }: DetailHeaderProps) {
   return (
     <div className="space-y-6">
-      <Button variant="outline" size="sm" asChild>
+      <Button variant="outline" size="sm">
         <Link to="/dashboard/workers/home">
           <ArrowLeft className="h-4 w-4 mr-2" />
           뒤로가기

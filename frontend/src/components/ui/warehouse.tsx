@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Button } from "@components/ui/button";
+import { Slider } from "@components/ui/slider";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card";
+} from "@components/ui/hover-card";
 import {
   Play,
   Pause,

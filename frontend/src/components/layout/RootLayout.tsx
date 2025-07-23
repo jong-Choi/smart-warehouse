@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { TabSwitcher } from "@components/ui/TabSwitcher";
-import WarehouseBackground from "@/components/warehouse/WarehouseBackground";
+import WarehouseBackground from "@components/warehouse/WarehouseBackground";
 import { useUnloadingBroadcast } from "@hooks/useUnloadingBroadcast";
 import { useWorkersBroadcast } from "@hooks/useWorkersBroadcast";
 import { useUnloadingParcels } from "@hooks/useWaybills";

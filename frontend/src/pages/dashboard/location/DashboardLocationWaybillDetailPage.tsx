@@ -8,27 +8,26 @@ import React, {
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@components/ui/calendar";
+import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Search, Filter, ArrowLeft } from "lucide-react";
+} from "@components/ui/popover";
+import { CalendarIcon, Search, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWaybillsByLocationSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus, Waybill } from "@/types";
 import type { DateRange } from "react-day-picker";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { StatusBadge } from "@ui/status-badge";
@@ -42,9 +41,10 @@ import {
   type ColumnFiltersState,
   flexRender,
 } from "@tanstack/react-table";
-import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/ui/table";
-import { SortableHeader } from "@/ui/table";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@ui/table";
+import { SortableHeader } from "@ui/table";
 import { generateMarkdownTable } from "@/utils/tableToMarkdown";
+import { Stat } from "@components/ui";
 
 function LocationWaybillDetailContent() {
   const { locationId } = useParams<{ locationId: string }>();
@@ -182,7 +182,7 @@ function LocationWaybillDetailContent() {
         },
       },
     ],
-    [navigate]
+    []
   );
 
   // React Table 인스턴스 생성
@@ -242,214 +242,215 @@ function LocationWaybillDetailContent() {
         </div>
       </div>
 
-      {/* 필터 영역 */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="w-5 h-5 mr-2" />
-            필터링 및 검색
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            {/* 검색어 */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">
-                운송장 번호 검색
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="운송장 번호 입력"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-[250px]"
-                />
-              </div>
-            </div>
-            {/* 상태 필터 */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">
-                배송 상태
-              </label>
-              <Select
-                value={statusFilter}
-                onValueChange={(value: WaybillStatus | "all") =>
-                  setStatusFilter(value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="상태 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
-                  <SelectItem value="UNLOADED">하차 완료</SelectItem>
-                  <SelectItem value="NORMAL">정상 처리</SelectItem>
-                  <SelectItem value="ACCIDENT">사고</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {/* 날짜 범위 선택 */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">
-                발송 날짜 범위
-              </label>
-              <Popover
-                open={isDatePickerOpen}
-                onOpenChange={setIsDatePickerOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !dateRange && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "yyyy-MM-dd", { locale: ko })}{" "}
-                          - {format(dateRange.to, "yyyy-MM-dd", { locale: ko })}
-                        </>
-                      ) : (
-                        format(dateRange.from, "yyyy-MM-dd", { locale: ko })
-                      )
+      <Stat.Container>
+        <div className="flex items-center justify-between mb-4">
+          <Stat.Head className="mb-0">운송장 목록</Stat.Head>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              총 {pagination.total}개
+            </span>
+          </div>
+        </div>
+
+        {/* 필터링 섹션 */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-2 flex-1">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="운송장 번호로 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">상태:</span>
+            <Select
+              value={statusFilter}
+              onValueChange={(value: WaybillStatus | "all") =>
+                setStatusFilter(value)
+              }
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
+                <SelectItem value="UNLOADED">하차 완료</SelectItem>
+                <SelectItem value="NORMAL">정상 처리</SelectItem>
+                <SelectItem value="ACCIDENT">사고</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">날짜:</span>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[200px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "yyyy-MM-dd", { locale: ko })} -{" "}
+                        {format(dateRange.to, "yyyy-MM-dd", { locale: ko })}
+                      </>
                     ) : (
-                      "날짜 범위 선택"
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                      format(dateRange.from, "yyyy-MM-dd", { locale: ko })
+                    )
+                  ) : (
+                    "날짜 범위 선택"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-4 bg-gray-50">
                   <Calendar
                     mode="range"
-                    defaultMonth={tempDateRange?.from}
                     selected={tempDateRange}
-                    onSelect={setTempDateRange}
-                    numberOfMonths={2}
+                    onSelect={(range: DateRange | undefined) => {
+                      setTempDateRange(range);
+                    }}
                     locale={ko}
+                    className="rounded-lg border shadow-sm [--cell-size:--spacing(11)] md:[--cell-size:--spacing(13)]"
+                    classNames={{
+                      day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+                      range_start:
+                        "bg-gray-700 text-white hover:bg-gray-800 focus:bg-gray-800 rounded-l-md shadow-sm",
+                      range_end:
+                        "bg-gray-700 text-white hover:bg-gray-800 focus:bg-gray-800 rounded-r-md shadow-sm",
+                      range_middle:
+                        "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:bg-gray-200 border-t border-b border-gray-300",
+                    }}
                   />
-                  <div className="flex justify-between p-3 border-t">
-                    <Button variant="outline" onClick={clearDateRange}>
+                  <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-300">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearDateRange}
+                      className="hover:bg-gray-100 border-gray-300"
+                    >
                       초기화
                     </Button>
-                    <Button onClick={applyDateRange}>적용</Button>
+                    <Button
+                      size="sm"
+                      onClick={applyDateRange}
+                      className="bg-gray-700 hover:bg-gray-800 text-white shadow-sm"
+                    >
+                      적용
+                    </Button>
                   </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* 운송장 목록 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>운송장 목록 ({pagination.total}개)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
+        {/* 테이블 */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {table.getHeaderGroups()[0].headers.map((header) => (
+                  <SortableHeader
+                    key={header.id}
+                    columnId={header.column.id}
+                    sorting={sorting}
+                    onSort={handleSort}
+                    className="text-left"
+                  >
+                    {header.column.columnDef.header as string}
+                  </SortableHeader>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
-                  {table.getHeaderGroups()[0].headers.map((header) => (
-                    <SortableHeader
-                      key={header.id}
-                      columnId={header.column.id}
-                      sorting={sorting}
-                      onSort={handleSort}
-                      className="text-left"
-                    >
-                      {header.column.columnDef.header as string}
-                    </SortableHeader>
-                  ))}
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    조건에 맞는 운송장이 없습니다.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center py-8 text-gray-500"
-                    >
-                      조건에 맞는 운송장이 없습니다.
-                    </TableCell>
+              ) : (
+                table.getRowModel().rows.map((row, index) => (
+                  <TableRow
+                    key={`${row.original.id}-${index}`}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      navigate(`/dashboard/waybills/${row.original.id}`)
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                ) : (
-                  table.getRowModel().rows.map((row, index) => (
-                    <TableRow
-                      key={`${row.original.id}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() =>
-                        navigate(`/dashboard/waybills/${row.original.id}`)
-                      }
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-          {/* 페이지네이션 */}
-          {pagination.totalPages > 1 && (
-            <div className="flex justify-center items-center mt-6 space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
-              >
-                이전
-              </Button>
-              <div className="flex space-x-1">
-                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                  .filter(
-                    (pageNum) =>
-                      Math.abs(pageNum - pagination.page) <= 2 ||
-                      pageNum === 1 ||
-                      pageNum === pagination.totalPages
-                  )
-                  .map((pageNum, index, array) => (
-                    <React.Fragment key={pageNum}>
-                      {index > 0 && array[index - 1] !== pageNum - 1 && (
-                        <span className="px-2 py-1 text-gray-500">...</span>
-                      )}
-                      <Button
-                        variant={
-                          pagination.page === pageNum ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </Button>
-                    </React.Fragment>
-                  ))}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
-              >
-                다음
-              </Button>
+        {/* 페이지네이션 */}
+        {pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center mt-6 space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page === 1}
+            >
+              이전
+            </Button>
+            <div className="flex space-x-1">
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                .filter(
+                  (pageNum) =>
+                    Math.abs(pageNum - pagination.page) <= 2 ||
+                    pageNum === 1 ||
+                    pageNum === pagination.totalPages
+                )
+                .map((pageNum, index, array) => (
+                  <React.Fragment key={pageNum}>
+                    {index > 0 && array[index - 1] !== pageNum - 1 && (
+                      <span className="px-2 py-1 text-gray-500">...</span>
+                    )}
+                    <Button
+                      variant={
+                        pagination.page === pageNum ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  </React.Fragment>
+                ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page === pagination.totalPages}
+            >
+              다음
+            </Button>
+          </div>
+        )}
+      </Stat.Container>
     </div>
   );
 }

@@ -1,12 +1,12 @@
 import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@components/ui/select";
 import type { UnloadingStatusFilter } from "@components/dashboard/home/waybills/types";
 
 interface TableFiltersProps {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Bot, X, Wifi, WifiOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@components/ui/button";
 
 interface ChatbotHeaderProps {
   isOpen: boolean;

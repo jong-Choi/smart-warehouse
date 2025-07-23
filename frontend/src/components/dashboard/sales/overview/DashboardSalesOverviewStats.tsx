@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { CardContent } from "@components/ui/card";
+import { Button } from "@components/ui/button";
 import {
   DollarSign,
   TrendingUp,
@@ -11,7 +11,7 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
-import Stat from "@/components/ui/stat";
+import Stat from "@components/ui/stat";
 import { formatCurrency, formatNumber } from "@utils/formatString";
 import {
   useLocationSalesSuspense,

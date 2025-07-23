@@ -1,11 +1,11 @@
-import { Input } from "@/components/ui/input";
+import { Input } from "@components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@components/ui/select";
 
 interface ParcelFiltersProps {
   statusFilter: string;

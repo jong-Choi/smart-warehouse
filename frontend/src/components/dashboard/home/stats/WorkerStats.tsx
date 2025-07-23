@@ -1,6 +1,6 @@
 import { useWorkersStore } from "@/stores/workersStore";
 import { Users, Clock, TrendingUp } from "lucide-react";
-import Stat from "@/components/ui/stat";
+import Stat from "@components/ui/stat";
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 

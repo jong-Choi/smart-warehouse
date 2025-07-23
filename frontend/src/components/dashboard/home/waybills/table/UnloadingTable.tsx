@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { RefreshCw } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@ui/table";
-import { Button } from "@ui/button";
+import { Button } from "@components/ui/button";
 import { useUnloadingTableStore } from "@/stores/unloadingTableStore";
 import type {
   UnloadingParcel,

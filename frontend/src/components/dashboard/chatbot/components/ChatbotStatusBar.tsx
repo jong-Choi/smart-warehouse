@@ -1,7 +1,7 @@
 import React from "react";
 import { RotateCcw, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@components/ui/button";
+import { Checkbox } from "@components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useChatbotStore } from "@stores/chatbotStore";
 

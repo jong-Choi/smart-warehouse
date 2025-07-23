@@ -1,4 +1,4 @@
-import { MetricCard, WorkerGrid } from "@/components/ui";
+import { MetricCard, WorkerGrid } from "@components/ui";
 import { Users, Zap, Clock, AlertTriangle } from "lucide-react";
 import { useWarehouseControls } from "@/hooks/useWarehouseControls";
 

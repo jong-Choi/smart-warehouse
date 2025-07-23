@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Table, TableBody, TableCell, TableRow } from "@/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@ui/table";
 import type { OperatorParcel } from "@/types/operator";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { StatusBadge } from "@ui/status-badge";
