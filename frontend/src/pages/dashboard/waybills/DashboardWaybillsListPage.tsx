@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { useWaybillsSuspense } from "@/hooks/useWaybills";
 import type { Waybill, WaybillStatus } from "@/types";
 import type { DateRange } from "react-day-picker";
-import { TableSkeleton } from "@pages/dashboard/workers/components";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { useWaybillListMessage } from "@components/dashboard/waybills/home/hooks";
@@ -471,7 +471,7 @@ function WaybillsListContent() {
 
 export default function DashboardWaybillsListPage() {
   return (
-    <Suspense fallback={<TableSkeleton rows={20} />}>
+    <Suspense fallback={<LoadingSkeleton />}>
       <WaybillsListContent />
     </Suspense>
   );

@@ -23,7 +23,6 @@ interface LocationWaybillStat {
   statuses: Record<string, number>;
 }
 import type { DateRange } from "react-day-picker";
-import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { useLocationWaybillMessage } from "@components/dashboard/waybills/location/hooks";
@@ -40,6 +39,7 @@ import { Table, TableHeader, TableBody, TableRow, TableCell } from "@ui/table";
 import { SortableHeader } from "@ui/table";
 import { generateMarkdownTable } from "@/utils/tableToMarkdown";
 import { Stat } from "@components/ui";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 
 function LocationWaybillsContent() {
   const navigate = useNavigate();
@@ -318,7 +318,7 @@ function LocationWaybillsContent() {
 
 export default function DashboardLocationWaybillsPage() {
   return (
-    <Suspense fallback={<TableSkeleton rows={20} />}>
+    <Suspense fallback={<LoadingSkeleton />}>
       <LocationWaybillsContent />
     </Suspense>
   );

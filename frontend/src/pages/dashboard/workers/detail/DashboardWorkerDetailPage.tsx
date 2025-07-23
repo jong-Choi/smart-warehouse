@@ -18,6 +18,7 @@ import { STATUS_MAP } from "@utils/stautsMap";
 import { StatusBadge } from "@ui/status-badge";
 import { formatCurrency } from "@utils/formatString";
 import { Link } from "react-router-dom";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 
 function WorkerDetailContent() {
   const { code } = useParams<{ code: string }>();
@@ -274,17 +275,7 @@ function WorkerDetailContent() {
 
 export function DashboardWorkerDetailPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="space-y-6">
-          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-          <div className="space-y-4">
-            <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-            <div className="h-64 bg-muted animate-pulse rounded" />
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSkeleton />}>
       <WorkerDetailContent />
     </Suspense>
   );

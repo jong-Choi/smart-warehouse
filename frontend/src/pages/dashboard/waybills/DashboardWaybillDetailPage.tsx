@@ -9,7 +9,7 @@ import { Separator } from "@components/ui/separator";
 import { SectionHeader, PageLayout } from "@components/ui";
 import { useWaybillDetailSuspense } from "@/hooks/useWaybills";
 import type { Waybill } from "@/types";
-import { TableSkeleton } from "@pages/dashboard/workers/components";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { formatCurrency } from "@utils/formatString";
@@ -166,7 +166,7 @@ export default function DashboardWaybillDetailPage(
   props: DashboardWaybillDetailPageProps
 ) {
   return (
-    <Suspense fallback={<TableSkeleton rows={20} />}>
+    <Suspense fallback={<LoadingSkeleton />}>
       <WaybillDetailContent {...props} />
     </Suspense>
   );

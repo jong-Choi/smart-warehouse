@@ -4,13 +4,14 @@ import {
   sortOperatorsByNormalParcels,
   sortOperatorsByAccidentParcels,
 } from "@/utils/operatorUtils";
-import { WorkersTable, PageHeader, TableSkeleton } from "./components";
+import { WorkersTable, PageHeader } from "./components";
 import { Stat, PageLayout } from "@components/ui";
 import { Search } from "lucide-react";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
 import { Table } from "@ui/table";
 import React from "react";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 
 function WorkersListContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -168,7 +169,7 @@ function WorkersListContent() {
 
 export function DashboardWorkersListPage() {
   return (
-    <Suspense fallback={<TableSkeleton rows={20} />}>
+    <Suspense fallback={<LoadingSkeleton />}>
       <WorkersListContent />
     </Suspense>
   );

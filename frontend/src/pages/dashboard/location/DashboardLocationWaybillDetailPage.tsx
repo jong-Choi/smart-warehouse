@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 import { useWaybillsByLocationSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus, Waybill } from "@/types";
 import type { DateRange } from "react-day-picker";
-import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { StatusBadge } from "@ui/status-badge";
 import { useLocationDetailMessage } from "@components/dashboard/waybills/location/detail/hooks";
@@ -46,6 +45,7 @@ import { Table, TableHeader, TableBody, TableRow, TableCell } from "@ui/table";
 import { SortableHeader } from "@ui/table";
 import { generateMarkdownTable } from "@/utils/tableToMarkdown";
 import { Stat } from "@components/ui";
+import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 
 function LocationWaybillDetailContent() {
   const { locationId } = useParams<{ locationId: string }>();
@@ -445,7 +445,7 @@ function LocationWaybillDetailContent() {
 
 export default function DashboardLocationWaybillDetailPage() {
   return (
-    <Suspense fallback={<TableSkeleton rows={20} />}>
+    <Suspense fallback={<LoadingSkeleton />}>
       <LocationWaybillDetailContent />
     </Suspense>
   );

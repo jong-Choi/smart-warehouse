@@ -8,6 +8,7 @@ import {
 } from "@components/dashboard/home/waybills/hooks";
 import { UnloadingTable } from "@components/dashboard/home/waybills/table/UnloadingTable";
 import { UnloadingInfo } from "@components/dashboard/home/waybills/UnloadingInfo";
+import { PageLayout } from "@ui/page-layout";
 
 export default function DashboardUnloadingPage() {
   // 챗봇 메시지 훅
@@ -17,7 +18,7 @@ export default function DashboardUnloadingPage() {
   const { tableData, handleRefresh } = useDashboardSnapshotData();
 
   return (
-    <div>
+    <PageLayout>
       <PageHeader />
 
       {!tableData ? (
@@ -31,6 +32,6 @@ export default function DashboardUnloadingPage() {
         />
       )}
       <UnloadingInfo />
-    </div>
+    </PageLayout>
   );
 }
