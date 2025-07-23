@@ -244,7 +244,10 @@ export function DashboardDailySalesTable({
                 sorting={sorting}
                 onSort={handleSort}
                 className={
-                  header.column.id === "period" ? "text-left" : "text-right"
+                  header.column.id === "period" ||
+                  header.column.id === "unloadCount"
+                    ? "text-left"
+                    : "text-right"
                 }
               >
                 {header.column.columnDef.header as string}

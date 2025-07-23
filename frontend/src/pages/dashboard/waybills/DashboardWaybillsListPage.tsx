@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -25,6 +25,19 @@ import type { DateRange } from "react-day-picker";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
+import { useWaybillListMessage } from "@components/dashboard/waybills/home/hooks";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  type SortingState,
+  type ColumnFiltersState,
+  flexRender,
+} from "@tanstack/react-table";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/ui/table";
+import { SortableHeader } from "@/ui/table";
+import { generateMarkdownTable } from "@/utils/tableToMarkdown";
 
 interface WaybillsListPageProps {
   onWaybillSelect?: (waybill: Waybill) => void;
@@ -33,6 +46,8 @@ interface WaybillsListPageProps {
 function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { setTableMessage, isCollecting } = useWaybillListMessage();
+
   // 필터 상태
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<WaybillStatus | "all">(
@@ -53,9 +68,15 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
     undefined
   );
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
   // 페이지네이션
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
+
+  // React Table 상태
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   // Suspense 데이터 패칭
   const { data } = useWaybillsSuspense({
     page: currentPage,
@@ -75,6 +96,8 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
     setDateRange(undefined);
     setTempDateRange(undefined);
     setCurrentPage(1);
+    setSorting([]);
+    setColumnFilters([]);
   };
 
   // 운송장 선택
@@ -85,6 +108,123 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
     navigate(`/dashboard/waybills/${waybill.id}`);
   };
 
+  // React Table 컬럼 정의
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "number",
+        header: "운송장 번호",
+        enableSorting: true,
+        cell: (info: { getValue: () => string }) => (
+          <span className="font-medium">{info.getValue()}</span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "상태",
+        enableSorting: true,
+        cell: (info: { getValue: () => WaybillStatus }) => {
+          const status = info.getValue();
+          return (
+            <StatusBadge color={STATUS_MAP[status].color}>
+              {STATUS_MAP[status].text}
+            </StatusBadge>
+          );
+        },
+      },
+      {
+        accessorKey: "unloadDate",
+        header: "하차 예정일",
+        enableSorting: true,
+        cell: (info: { getValue: () => string }) => (
+          <span>
+            {format(new Date(info.getValue()), "yyyy-MM-dd", {
+              locale: ko,
+            })}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "processedAt",
+        header: "처리 일시",
+        enableSorting: true,
+        cell: (info: { getValue: () => string | null }) => {
+          const value = info.getValue();
+          return value ? (
+            <span>
+              {format(new Date(value), "yyyy-MM-dd HH:mm", { locale: ko })}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          );
+        },
+      },
+      {
+        accessorKey: "operator.name",
+        header: "작업자",
+        enableSorting: true,
+        cell: (info: { row: { original: Waybill } }) => (
+          <span>{info.row.original.operator?.name || "-"}</span>
+        ),
+      },
+      {
+        accessorKey: "location.name",
+        header: "배송지",
+        enableSorting: true,
+        cell: (info: { row: { original: Waybill } }) => (
+          <span>{info.row.original.location?.name || "-"}</span>
+        ),
+      },
+      {
+        accessorKey: "parcel.declaredValue",
+        header: "물건 가격",
+        enableSorting: true,
+        cell: (info: { row: { original: Waybill } }) => {
+          const value = info.row.original.parcel?.declaredValue;
+          return value ? (
+            <span>{value.toLocaleString()}원</span>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          );
+        },
+      },
+    ],
+    [handleWaybillSelect]
+  );
+
+  // React Table 인스턴스 생성
+  const table = useReactTable({
+    data: waybills,
+    columns,
+    state: { sorting, columnFilters },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
+
+  // 챗봇 메시지 설정
+  useEffect(() => {
+    if (isCollecting) {
+      setTableMessage(generateMarkdownTable(table));
+    }
+  }, [isCollecting, setTableMessage, table]);
+
+  // 정렬 핸들러
+  const handleSort = useCallback((columnId: string) => {
+    setSorting((prev) => {
+      const currentSort = prev.find((sort) => sort.id === columnId);
+      if (!currentSort) {
+        return [{ id: columnId, desc: false }];
+      } else if (!currentSort.desc) {
+        return [{ id: columnId, desc: true }];
+      } else {
+        return [];
+      }
+    });
+  }, []);
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -93,6 +233,7 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
           등록된 모든 운송장 정보를 조회하고 관리할 수 있습니다.
         </p>
       </div>
+
       {/* 필터 섹션 */}
       <div className="bg-card rounded-lg border p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -215,79 +356,53 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
           </Popover>
         </div>
       </div>
+
       {/* 테이블 섹션 */}
-      <div className="bg-card rounded-lg border">
-        <div className="p-6 border-b">
+      <div className="bg-card rounded-lg border  p-6">
+        <div className="mb-6">
           <h2 className="text-lg font-semibold">운송장 목록</h2>
           <p className="text-sm text-muted-foreground mt-1">
             총 {data?.total || 0}개의 운송장이 있습니다.
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left p-4 font-medium">운송장 번호</th>
-                <th className="text-left p-4 font-medium">상태</th>
-                <th className="text-left p-4 font-medium">하차 예정일</th>
-                <th className="text-left p-4 font-medium">처리 일시</th>
-                <th className="text-left p-4 font-medium">작업자</th>
-                <th className="text-left p-4 font-medium">배송지</th>
-                <th className="text-left p-4 font-medium">물건 가격</th>
-                <th className="text-left p-4 font-medium">작업</th>
-              </tr>
-            </thead>
-            <tbody>
-              {waybills.map((waybill) => (
-                <tr
-                  key={waybill.id}
-                  className="border-b hover:bg-muted/50 cursor-pointer"
-                  onClick={() => handleWaybillSelect(waybill)}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {table.getHeaderGroups()[0].headers.map((header) => (
+                  <SortableHeader
+                    key={header.id}
+                    columnId={header.column.id}
+                    sorting={sorting}
+                    onSort={handleSort}
+                    className="text-left"
+                  >
+                    {header.column.columnDef.header as string}
+                  </SortableHeader>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row, index) => (
+                <TableRow
+                  key={`${row.original.id}-${index}`}
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => handleWaybillSelect(row.original)}
                 >
-                  <td className="p-4 font-medium">{waybill.number}</td>
-                  <td className="p-4">
-                    <StatusBadge color={STATUS_MAP[waybill.status].color}>
-                      {STATUS_MAP[waybill.status].text}
-                    </StatusBadge>
-                  </td>
-                  <td className="p-4">
-                    {format(new Date(waybill.unloadDate), "yyyy-MM-dd", {
-                      locale: ko,
-                    })}
-                  </td>
-                  <td className="p-4">
-                    {waybill.processedAt
-                      ? format(
-                          new Date(waybill.processedAt),
-                          "yyyy-MM-dd HH:mm",
-                          { locale: ko }
-                        )
-                      : "-"}
-                  </td>
-                  <td className="p-4">{waybill.operator?.name || "-"}</td>
-                  <td className="p-4">{waybill.location?.name || "-"}</td>
-                  <td className="p-4">
-                    {waybill.parcel?.declaredValue
-                      ? `${waybill.parcel.declaredValue.toLocaleString()}원`
-                      : "-"}
-                  </td>
-                  <td className="p-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleWaybillSelect(waybill);
-                      }}
-                    >
-                      상세보기
-                    </Button>
-                  </td>
-                </tr>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
+
         {/* 페이지네이션 */}
         {totalPages > 1 && (
           <div className="p-6 border-t">

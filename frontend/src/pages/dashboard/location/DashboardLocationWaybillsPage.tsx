@@ -1,16 +1,9 @@
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -20,44 +13,155 @@ import { CalendarIcon, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocationWaybillsStatsSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus } from "@/types";
+
+interface LocationWaybillStat {
+  locationId: number;
+  locationName: string;
+  address: string | null;
+  count: number;
+  statuses: Record<string, number>;
+}
 import type { DateRange } from "react-day-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
+import { useLocationWaybillMessage } from "@components/dashboard/waybills/location/hooks";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  type SortingState,
+  type ColumnFiltersState,
+  flexRender,
+} from "@tanstack/react-table";
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/ui/table";
+import { SortableHeader } from "@/ui/table";
+import { generateMarkdownTable } from "@/utils/tableToMarkdown";
 
 function LocationWaybillsContent() {
   const navigate = useNavigate();
-  // 필터 상태
-  const [statusFilter, setStatusFilter] = useState<WaybillStatus | "all">(
-    "all"
-  );
+  const { setTableMessage, isCollecting } = useLocationWaybillMessage();
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
     undefined
   );
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // React Table 상태
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   // Suspense 데이터 패칭
-  const { data: stats = [] } = useLocationWaybillsStatsSuspense({
-    status: statusFilter === "all" ? undefined : statusFilter,
-    startDate: dateRange?.from,
-    endDate: dateRange?.to,
-  });
-  // 챗봇 스토어에서 컨텍스트 수집 관련 상태 가져오기
-  // const { setSystemContext, isCollecting, setIsMessagePending } = useChatbotStore();
-  // chatbot에 사용할 컨텍스트
-  // ... (기존 컨텍스트 useEffect 로직은 유지) ...
+  const { data: stats = [] }: { data: LocationWaybillStat[] } =
+    useLocationWaybillsStatsSuspense({
+      startDate: dateRange?.from,
+      endDate: dateRange?.to,
+    });
+
   // 날짜 범위 적용
   const applyDateRange = () => {
     setDateRange(tempDateRange);
     setIsDatePickerOpen(false);
   };
+
   // 날짜 범위 초기화
   const clearDateRange = () => {
     setDateRange(undefined);
     setTempDateRange(undefined);
     setIsDatePickerOpen(false);
   };
+
+  // React Table 컬럼 정의
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "locationName",
+        header: "지역명",
+        enableSorting: true,
+        cell: (info: { getValue: () => string }) => (
+          <div className="font-medium">{info.getValue()}</div>
+        ),
+      },
+      {
+        accessorKey: "address",
+        header: "주소",
+        enableSorting: true,
+        cell: (info: { getValue: () => string }) => (
+          <span className="text-gray-600">{info.getValue() || "-"}</span>
+        ),
+      },
+      {
+        accessorKey: "count",
+        header: "총 운송장 수",
+        enableSorting: true,
+        cell: (info: { getValue: () => number }) => (
+          <span className="font-semibold text-lg">{info.getValue()}</span>
+        ),
+      },
+      {
+        accessorKey: "statuses",
+        header: "상태별 분포",
+        enableSorting: false,
+        cell: (info: { getValue: () => Record<string, number> }) => {
+          const statuses = info.getValue();
+          return (
+            <div className="flex flex-wrap gap-1 justify-center">
+              {Object.entries(statuses).map(([status, count]) => {
+                if (Object.keys(STATUS_MAP).includes(status)) {
+                  return (
+                    <StatusBadge
+                      key={status}
+                      color={STATUS_MAP[status as WaybillStatus].color}
+                    >
+                      {STATUS_MAP[status as WaybillStatus].text}: {count}
+                    </StatusBadge>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          );
+        },
+      },
+    ],
+    [navigate]
+  );
+
+  // React Table 인스턴스 생성
+  const table = useReactTable({
+    data: stats,
+    columns,
+    state: { sorting, columnFilters },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
+
+  // 챗봇 메시지 설정
+  useEffect(() => {
+    if (isCollecting) {
+      setTableMessage(generateMarkdownTable(table));
+    }
+  }, [isCollecting, setTableMessage, table]);
+
+  // 정렬 핸들러
+  const handleSort = useCallback((columnId: string) => {
+    setSorting((prev) => {
+      const currentSort = prev.find((sort) => sort.id === columnId);
+      if (!currentSort) {
+        return [{ id: columnId, desc: false }];
+      } else if (!currentSort.desc) {
+        return [{ id: columnId, desc: true }];
+      } else {
+        return [];
+      }
+    });
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -71,6 +175,7 @@ function LocationWaybillsContent() {
           </p>
         </div>
       </div>
+
       {/* 필터 영역 */}
       <Card className="mb-6">
         <CardHeader>
@@ -81,29 +186,6 @@ function LocationWaybillsContent() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
-            {/* 상태 필터 */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">
-                배송 상태
-              </label>
-              <Select
-                value={statusFilter}
-                onValueChange={(value: WaybillStatus | "all") =>
-                  setStatusFilter(value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="상태 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="PENDING_UNLOAD">하차 예정</SelectItem>
-                  <SelectItem value="UNLOADED">하차 완료</SelectItem>
-                  <SelectItem value="NORMAL">정상 처리</SelectItem>
-                  <SelectItem value="ACCIDENT">사고</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             {/* 날짜 범위 선택 */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">
@@ -180,6 +262,7 @@ function LocationWaybillsContent() {
           </div>
         </CardContent>
       </Card>
+
       {/* 통계 테이블 */}
       <Card>
         <CardHeader>
@@ -187,88 +270,60 @@ function LocationWaybillsContent() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
-                    지역명
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
-                    주소
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                    총 운송장 수
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                    상태별 분포
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
-                    작업
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.length === 0 ? (
-                  <tr>
-                    <td
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {table.getHeaderGroups()[0].headers.map((header) => (
+                    <SortableHeader
+                      key={header.id}
+                      columnId={header.column.id}
+                      sorting={sorting}
+                      onSort={handleSort}
+                      className={
+                        header.column.id === "statuses"
+                          ? "text-center"
+                          : "text-left"
+                      }
+                    >
+                      {header.column.columnDef.header as string}
+                    </SortableHeader>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell
                       colSpan={5}
-                      className="border border-gray-300 px-4 py-8 text-center text-gray-500"
+                      className="text-center py-8 text-gray-500"
                     >
                       조건에 맞는 데이터가 없습니다.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  stats.map((stat) => (
-                    <tr key={stat.locationId} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3">
-                        <div className="font-medium">{stat.locationName}</div>
-                      </td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-600">
-                        {stat.address || "-"}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-3 text-center">
-                        <span className="font-semibold text-lg">
-                          {stat.count}
-                        </span>
-                      </td>
-                      <td className="border border-gray-300 px-4 py-3">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {Object.entries(stat.statuses).map(
-                            ([status, count]) => {
-                              if (Object.keys(STATUS_MAP).includes(status)) {
-                                return (
-                                  <StatusBadge
-                                    key={status}
-                                    color={
-                                      STATUS_MAP[status as WaybillStatus].color
-                                    }
-                                  >
-                                    {STATUS_MAP[status as WaybillStatus].text}:{" "}
-                                    {count}
-                                  </StatusBadge>
-                                );
-                              }
-                            }
+                  table.getRowModel().rows.map((row, index) => (
+                    <TableRow
+                      key={`${row.original.locationId}-${index}`}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/location/waybills/${row.original.locationId}`
+                        )
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
                           )}
-                        </div>
-                      </td>
-                      <td className="border border-gray-300 px-4 py-3 text-center">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            navigate(
-                              `/dashboard/location/waybills/${stat.locationId}`
-                            )
-                          }
-                        >
-                          상세 보기
-                        </Button>
-                      </td>
-                    </tr>
+                        </TableCell>
+                      ))}
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

@@ -1,0 +1,1 @@
+export { useLocationWaybillMessage } from "./useLocationWabillMessage";

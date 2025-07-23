@@ -36,7 +36,8 @@ export function DashboardMonthlySalesTable({
   const navigate = useNavigate();
 
   const handleMonthClick = useCallback(
-    (period: string) => {
+    (e: React.MouseEvent<HTMLButtonElement>, period: string) => {
+      e.stopPropagation();
       const month = parseInt(period.split(".")[1]);
       navigate(`/dashboard/sales/daily?year=${currentYear}&month=${month}`);
     },
@@ -44,7 +45,12 @@ export function DashboardMonthlySalesTable({
   );
 
   const handleUnloadCountClick = useCallback(
-    (period: string, unloadCount: number) => {
+    (
+      e: React.MouseEvent<HTMLButtonElement | HTMLTableRowElement>,
+      period: string,
+      unloadCount: number
+    ) => {
+      e.stopPropagation();
       if (unloadCount === 0) return;
       const month = parseInt(period.split(".")[1]);
       const startDate = new Date(currentYear, month - 1, 1);
@@ -70,7 +76,7 @@ export function DashboardMonthlySalesTable({
           const unloadCount = info.row.original.unloadCount;
           return (
             <button
-              onClick={() => handleMonthClick(period)}
+              onClick={(e) => handleMonthClick(e, period)}
               className="flex items-center space-x-2 hover:text-blue-600 hover:underline transition-colors"
               disabled={unloadCount === 0}
             >
@@ -94,7 +100,7 @@ export function DashboardMonthlySalesTable({
           const period = info.row.original.period;
           return (
             <button
-              onClick={() => handleUnloadCountClick(period, unloadCount)}
+              onClick={(e) => handleUnloadCountClick(e, period, unloadCount)}
               className={`flex items-center justify-end space-x-1 hover:text-blue-600 hover:underline transition-colors ${
                 unloadCount > 0 ? "cursor-pointer" : "cursor-default"
               }`}
@@ -248,7 +254,10 @@ export function DashboardMonthlySalesTable({
                 sorting={sorting}
                 onSort={handleSort}
                 className={
-                  header.column.id === "period" ? "text-left" : "text-right"
+                  header.column.id === "period" ||
+                  header.column.id === "unloadCount"
+                    ? "text-left"
+                    : "text-right"
                 }
               >
                 {header.column.columnDef.header as string}
@@ -260,7 +269,20 @@ export function DashboardMonthlySalesTable({
           {table.getRowModel().rows.map((row, index) => (
             <TableRow
               key={`${row.original.period}-${index}`}
-              className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+              className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
+                row.original.unloadCount > 0
+                  ? "cursor-pointer hover:bg-blue-50 transition-colors"
+                  : ""
+              }`}
+              onClick={(e) => {
+                if (row.original.unloadCount > 0) {
+                  handleUnloadCountClick(
+                    e,
+                    row.original.period,
+                    row.original.unloadCount
+                  );
+                }
+              }}
             >
               {row.getVisibleCells().map((cell) => (
                 <TableCell
