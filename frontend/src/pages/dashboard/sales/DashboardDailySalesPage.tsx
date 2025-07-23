@@ -4,6 +4,7 @@ import { Button } from "@components/ui/button";
 import { useState } from "react";
 import Stat from "@components/ui/stat";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SectionHeader, PageLayout } from "@components/ui";
 import { DashboardDailySalesTable } from "@components/dashboard/sales/daily";
 import { useDailySalesMessage } from "@components/dashboard/sales/daily/hooks/useDailySalesMessage";
 
@@ -84,15 +85,13 @@ export function DashboardDailySalesPage() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <PageLayout>
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">일별 매출 현황</h1>
-          <p className="text-muted-foreground">
-            일별 매출 현황과 핵심 지표를 한눈에 확인하세요.
-          </p>
-        </div>
+        <SectionHeader
+          title="일별 매출 현황"
+          description="일별 매출 현황과 핵심 지표를 한눈에 확인하세요."
+        />
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
             <ChevronLeft className="h-4 w-4" />
@@ -110,6 +109,6 @@ export function DashboardDailySalesPage() {
         currentYear={currentYear}
         currentMonth={currentMonth}
       />
-    </div>
+    </PageLayout>
   );
 }

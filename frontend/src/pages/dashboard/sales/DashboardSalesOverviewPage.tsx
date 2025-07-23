@@ -3,6 +3,7 @@ import { CardContent } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { useState } from "react";
 import Stat from "@components/ui/stat";
+import { SectionHeader, PageLayout } from "@components/ui";
 import {
   DashboardSalesOverviewStats,
   DashboardSalesOverviewTable,
@@ -48,15 +49,13 @@ export function DashboardSalesOverviewPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <PageLayout>
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">매출 개요</h1>
-          <p className="text-muted-foreground">
-            전체 매출 현황과 핵심 지표를 한눈에 확인하세요.
-          </p>
-        </div>
+        <SectionHeader
+          title="매출 개요"
+          description="전체 매출 현황과 핵심 지표를 한눈에 확인하세요."
+        />
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -77,6 +76,6 @@ export function DashboardSalesOverviewPage() {
       </div>
 
       <OverviewContent currentYear={currentYear} />
-    </div>
+    </PageLayout>
   );
 }

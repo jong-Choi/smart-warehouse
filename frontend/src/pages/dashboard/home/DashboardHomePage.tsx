@@ -4,6 +4,7 @@ import {
   DashboardStats,
 } from "@components/dashboard/home/stats";
 import { useDashboardHomeMessage } from "@components/dashboard/home/stats/hooks";
+import { SectionHeader, PageLayout } from "@components/ui";
 
 function DashboardHomePage() {
   const {
@@ -15,15 +16,13 @@ function DashboardHomePage() {
   } = useDashboardHomeMessage();
 
   return (
-    <div className="space-y-6">
+    <PageLayout>
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">실시간 개요</h1>
-          <p className="text-muted-foreground">
-            물류센터의 실시간 현황과 핵심 지표를 한눈에 확인하세요.
-          </p>
-        </div>
+        <SectionHeader
+          title="실시간 개요"
+          description="물류센터의 실시간 현황과 핵심 지표를 한눈에 확인하세요."
+        />
       </div>
 
       {/* 대시보드 통계 카드들 */}
@@ -46,7 +45,7 @@ function DashboardHomePage() {
           setWorkerTableMessage={setWorkerTableMessage}
         />
       </div>
-    </div>
+    </PageLayout>
   );
 }
 

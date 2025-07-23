@@ -87,3 +87,5 @@ export {
   TableCaption,
 } from "./table";
 export { StatusBadge } from "./status-badge";
+export { SectionHeader } from "./section-header";
+export { PageLayout } from "./page-layout";

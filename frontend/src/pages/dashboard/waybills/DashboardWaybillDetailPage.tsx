@@ -2,10 +2,11 @@ import { Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { ArrowLeft, Package, Truck } from "lucide-react";
+import { Package, Truck } from "lucide-react";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Separator } from "@components/ui/separator";
+import { SectionHeader, PageLayout } from "@components/ui";
 import { useWaybillDetailSuspense } from "@/hooks/useWaybills";
 import type { Waybill } from "@/types";
 import { TableSkeleton } from "@pages/dashboard/workers/components";
@@ -15,16 +16,9 @@ import { formatCurrency } from "@utils/formatString";
 
 interface DashboardWaybillDetailPageProps {
   waybill?: Waybill;
-  onBack?: () => void;
 }
 
-function WaybillDetailContent({
-  waybill,
-  onBack,
-}: {
-  waybill?: Waybill;
-  onBack?: () => void;
-}) {
+function WaybillDetailContent({ waybill }: { waybill?: Waybill }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const suspenseWaybill = useWaybillDetailSuspense(id ? parseInt(id) : 0).data;
@@ -54,21 +48,13 @@ function WaybillDetailContent({
   }
 
   return (
-    <div className="p-6">
+    <PageLayout>
       {/* 헤더 */}
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={onBack || (() => navigate("/dashboard/waybills"))}
-          className="mb-4 flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          목록으로 돌아가기
-        </Button>
-        <h1 className="text-3xl font-bold">운송장 상세 정보</h1>
-        <p className="text-muted-foreground">
-          운송장 번호: {waybillData.number}
-        </p>
+        <SectionHeader
+          title="운송장 상세 정보"
+          description={`운송장 번호: ${waybillData.number}`}
+        />
       </div>
       {/* 운송장 기본 정보 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -172,7 +158,7 @@ function WaybillDetailContent({
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageLayout>
   );
 }
 

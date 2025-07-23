@@ -5,6 +5,7 @@ import { ko } from "date-fns/locale";
 import { Calendar } from "@components/ui/calendar";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
+import { SectionHeader, PageLayout } from "@components/ui";
 import {
   Select,
   SelectContent,
@@ -41,11 +42,7 @@ import { generateMarkdownTable } from "@/utils/tableToMarkdown";
 import { Stat } from "@components/ui";
 import React from "react";
 
-interface WaybillsListPageProps {
-  onWaybillSelect?: (waybill: Waybill) => void;
-}
-
-function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
+function WaybillsListContent() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setTableMessage, isCollecting } = useWaybillListMessage();
@@ -103,11 +100,7 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
   };
 
   const handleWaybillSelect = (waybill: Waybill) => {
-    if (onWaybillSelect) {
-      onWaybillSelect(waybill);
-    } else {
-      navigate(`/dashboard/waybills/${waybill.id}`);
-    }
+    navigate(`/dashboard/waybills/${waybill.id}`);
   };
 
   // 날짜 범위 적용
@@ -244,12 +237,12 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
   }, []);
 
   return (
-    <div className="p-6">
+    <PageLayout>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">운송장 목록</h1>
-        <p className="text-muted-foreground">
-          등록된 모든 운송장 정보를 조회하고 관리할 수 있습니다.
-        </p>
+        <SectionHeader
+          title="운송장 목록"
+          description="등록된 모든 운송장 정보를 조회하고 관리할 수 있습니다."
+        />
       </div>
 
       <Stat.Container>
@@ -472,16 +465,14 @@ function WaybillsListContent({ onWaybillSelect }: WaybillsListPageProps) {
           </div>
         )}
       </Stat.Container>
-    </div>
+    </PageLayout>
   );
 }
 
-export default function DashboardWaybillsListPage(
-  props: WaybillsListPageProps
-) {
+export default function DashboardWaybillsListPage() {
   return (
     <Suspense fallback={<TableSkeleton rows={20} />}>
-      <WaybillsListContent {...props} />
+      <WaybillsListContent />
     </Suspense>
   );
 }

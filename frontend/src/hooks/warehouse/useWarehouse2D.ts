@@ -19,7 +19,7 @@ import { useUnloadingParcels } from "@hooks/useWaybills";
 
 export interface LoadedParcel {
   progress: number;
-  id: number;
+  id: number | string;
 }
 
 export function useWarehouse2D() {
@@ -198,7 +198,7 @@ export function useWarehouse2D() {
     const now = Date.now();
     const removeIdxs: number[] = [];
     const newCatchTimes = workerCatchTimes.map((times) => [...times]);
-    const caughtCircleSet = new Set<number>();
+    const caughtCircleSet = new Set<number | string>();
     const newBrokenUntil = [...workerBrokenUntil];
 
     for (let workerIdx = 0; workerIdx < workerCount; workerIdx++) {
@@ -227,7 +227,8 @@ export function useWarehouse2D() {
           // --- 고장 조건 체크 ---
           // 5% 확율로 고장: 끝 두자리의 차이가 2 이하일 때
           const cooldownLast2 = Math.round(workerCooldownWithScale) % 100;
-          const waybillIdLast2 = circle.id % 100;
+          const waybillIdLast2 =
+            Number(String(circle.id).replace(/\D/g, "")) % 100;
           if (
             Math.abs(cooldownLast2 - waybillIdLast2) <= WORKER_BROKEN_THRESHOLD
           ) {

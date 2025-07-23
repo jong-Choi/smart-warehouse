@@ -5,7 +5,7 @@ import {
   sortOperatorsByAccidentParcels,
 } from "@/utils/operatorUtils";
 import { WorkersTable, PageHeader, TableSkeleton } from "./components";
-import { Stat } from "@components/ui";
+import { Stat, PageLayout } from "@components/ui";
 import { Search } from "lucide-react";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
@@ -74,7 +74,7 @@ function WorkersListContent() {
     setPage(1);
   }, []);
   return (
-    <div className="p-6">
+    <PageLayout>
       <PageHeader total={pagination?.total} isLoading={false} />
 
       <Stat.Container>
@@ -162,7 +162,7 @@ function WorkersListContent() {
           </div>
         )}
       </Stat.Container>
-    </div>
+    </PageLayout>
   );
 }
 

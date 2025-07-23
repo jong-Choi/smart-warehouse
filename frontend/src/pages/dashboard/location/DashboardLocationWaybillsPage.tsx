@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@components/ui/calendar";
 import { Button } from "@components/ui/button";
+import { SectionHeader, PageLayout } from "@components/ui";
 import {
   Popover,
   PopoverContent,
@@ -164,16 +165,12 @@ function LocationWaybillsContent() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <PageLayout>
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            지역별 운송장 통계
-          </h1>
-          <p className="text-gray-600 mt-2">
-            각 지역별 운송장 수량과 상태별 분포를 확인할 수 있습니다.
-          </p>
-        </div>
+        <SectionHeader
+          title="지역별 운송장 통계"
+          description="각 지역별 운송장 수량과 상태별 분포를 확인할 수 있습니다."
+        />
       </div>
 
       <Stat.Container>
@@ -315,7 +312,7 @@ function LocationWaybillsContent() {
           </Table>
         </div>
       </Stat.Container>
-    </div>
+    </PageLayout>
   );
 }
 

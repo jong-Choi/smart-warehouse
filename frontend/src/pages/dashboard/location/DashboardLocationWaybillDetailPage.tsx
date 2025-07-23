@@ -11,6 +11,7 @@ import { ko } from "date-fns/locale";
 import { Calendar } from "@components/ui/calendar";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
+import { SectionHeader, PageLayout } from "@components/ui";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@components/ui/popover";
-import { CalendarIcon, Search, ArrowLeft } from "lucide-react";
+import { CalendarIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWaybillsByLocationSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus, Waybill } from "@/types";
@@ -219,26 +220,13 @@ function LocationWaybillDetailContent() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <PageLayout>
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/dashboard/location/waybills")}
-            className="mr-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            뒤로가기
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {locationName} 지역 운송장 목록
-            </h1>
-            <p className="text-gray-600 mt-2">
-              해당 지역으로 배송되는 운송장들을 확인할 수 있습니다.
-            </p>
-          </div>
+          <SectionHeader
+            title={`${locationName} 지역 운송장 목록`}
+            description="해당 지역으로 배송되는 운송장들을 확인할 수 있습니다."
+          />
         </div>
       </div>
 
@@ -451,7 +439,7 @@ function LocationWaybillDetailContent() {
           </div>
         )}
       </Stat.Container>
-    </div>
+    </PageLayout>
   );
 }
 
