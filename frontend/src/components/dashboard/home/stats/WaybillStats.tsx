@@ -75,13 +75,13 @@ function WaybillStats({
               />
               <Stat.Card
                 icon={CheckCircle}
-                title="정상처리"
+                title="정상"
                 value={normalCount}
                 variant="green"
               />
               <Stat.Card
                 icon={AlertTriangle}
-                title="사고처리"
+                title="사고"
                 value={accidentCount}
                 variant="red"
               />

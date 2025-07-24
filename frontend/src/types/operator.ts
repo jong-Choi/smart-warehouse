@@ -100,3 +100,20 @@ export interface OperatorParcel {
     declaredValue: number;
   };
 }
+
+export interface OperatorsStats {
+  operatorId: number;
+  code: string;
+  name: string;
+  type: "HUMAN" | "MACHINE";
+  workDays: number;
+  normalCount: number;
+  accidentCount: number;
+  firstWorkDate: string | null;
+  operator: {
+    id: number;
+    name: string;
+    code: string;
+    type: "HUMAN" | "MACHINE";
+  };
+}

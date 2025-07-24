@@ -20,16 +20,23 @@ export const ChatbotHeader: React.FC<ChatbotHeaderProps> = ({
       {isOpen ? (
         <>
           <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-sidebar-primary" />
-            <h3 className="font-semibold text-sidebar-foreground text-sm">
-              챗봇
-            </h3>
-            <div className="flex items-center gap-1">
-              {isConnected ? (
-                <Wifi className="h-3 w-3 text-green-500" />
-              ) : (
-                <WifiOff className="h-3 w-3 text-red-500" />
-              )}
+            <div className="flex flex-col items-start">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-sidebar-primary" />
+                <h3 className="font-semibold text-sidebar-foreground text-sm">
+                  챗봇
+                </h3>
+                <div className="flex items-center gap-1">
+                  {isConnected ? (
+                    <Wifi className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <WifiOff className="h-3 w-3 text-red-500" />
+                  )}
+                </div>
+              </div>
+              <p className="text-[8px] text-sidebar-foreground/50">
+                Powered by NAVER HyperCLOVA X SEED
+              </p>
             </div>
           </div>
           <Button
@@ -51,13 +58,6 @@ export const ChatbotHeader: React.FC<ChatbotHeaderProps> = ({
           >
             <Bot className="h-4 w-4" />
           </Button>
-          <div className="flex items-center gap-1">
-            {isConnected ? (
-              <Wifi className="h-2 w-2 text-green-500" />
-            ) : (
-              <WifiOff className="h-2 w-2 text-red-500" />
-            )}
-          </div>
         </div>
       )}
     </div>

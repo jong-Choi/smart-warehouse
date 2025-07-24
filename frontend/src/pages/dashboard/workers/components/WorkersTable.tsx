@@ -10,15 +10,15 @@ import {
 import { Calendar, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
-  getNormalParcelCount,
-  getAccidentParcelCount,
+  getNormalParcelCountFromStats,
+  getAccidentParcelCountFromStats,
 } from "@/utils/operatorUtils";
-import type { Operator } from "@/types/operator";
+import type { OperatorsStats } from "@/types/operator";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 
 interface WorkersTableProps {
-  operators: Operator[];
+  operators: OperatorsStats[];
   sorting: Array<{ id: string; desc: boolean }>;
   onSort: (columnId: string) => void;
 }
@@ -39,32 +39,32 @@ export const WorkersTable = memo<WorkersTableProps>(
             <TableHead>타입</TableHead>
             <TableHead>근무일수</TableHead>
             <SortableHeader
-              columnId="normalParcels"
+              columnId="normalCount"
               sorting={sorting}
               onSort={onSort}
             >
               정상 처리
             </SortableHeader>
             <SortableHeader
-              columnId="accidentParcels"
+              columnId="accidentCount"
               sorting={sorting}
               onSort={onSort}
             >
               사고 처리
             </SortableHeader>
             <SortableHeader
-              columnId="createdAt"
+              columnId="firstWorkDate"
               sorting={sorting}
               onSort={onSort}
             >
-              등록일
+              최초 작업일
             </SortableHeader>
           </TableRow>
         </TableHeader>
         <TableBody>
           {operators.map((operator) => (
             <TableRow
-              key={operator.id}
+              key={operator.operatorId}
               className="cursor-pointer hover:bg-gray-50"
               onClick={() => navigate(`/dashboard/workers/${operator.code}`)}
             >
@@ -78,23 +78,25 @@ export const WorkersTable = memo<WorkersTableProps>(
               <TableCell>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  <span>{operator._count?.shifts || 0}일</span>
+                  <span>{operator.workDays}일</span>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   <Package className="w-4 h-4 text-green-500" />
-                  <span>{getNormalParcelCount(operator)}개</span>
+                  <span>{getNormalParcelCountFromStats(operator)}개</span>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   <Package className="w-4 h-4 text-red-500" />
-                  <span>{getAccidentParcelCount(operator)}개</span>
+                  <span>{getAccidentParcelCountFromStats(operator)}개</span>
                 </div>
               </TableCell>
               <TableCell>
-                {new Date(operator.createdAt).toLocaleDateString("ko-KR")}
+                {operator.firstWorkDate
+                  ? new Date(operator.firstWorkDate).toLocaleDateString("ko-KR")
+                  : "-"}
               </TableCell>
             </TableRow>
           ))}

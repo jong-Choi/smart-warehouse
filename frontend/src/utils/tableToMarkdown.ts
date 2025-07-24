@@ -8,6 +8,31 @@ function ISOtoKST(isoString: string): string {
   return date.toLocaleString("ko-KR");
 }
 
+// HTML 태그를 제거하고 순수 텍스트만 추출하는 함수
+function stripHtmlTags(html: string): string {
+  // HTML 태그 제거
+  let text = html.replace(/<[^>]*>/g, "");
+
+  // HTML 엔티티 디코딩
+  text = text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+
+  // 연속된 공백을 하나로 치환하고 앞뒤 공백 제거
+  text = text.replace(/\s+/g, " ").trim();
+
+  // 빈 문자열이거나 공백만 있는 경우 처리
+  if (!text || text === "") {
+    return "-";
+  }
+
+  return text;
+}
+
 function renderToText(value: unknown): string {
   let stringValue = "-";
 
@@ -25,6 +50,11 @@ function renderToText(value: unknown): string {
     } catch {
       stringValue = String(value);
     }
+  }
+
+  // HTML 태그가 포함된 경우 제거
+  if (typeof stringValue === "string" && stringValue.includes("<")) {
+    stringValue = stripHtmlTags(stringValue);
   }
 
   if (

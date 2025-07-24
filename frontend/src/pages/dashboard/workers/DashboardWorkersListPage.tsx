@@ -1,8 +1,8 @@
 import { Suspense, useState, useCallback, useMemo } from "react";
-import { useOperatorsSuspense } from "@hooks/useOperator";
+import { fetchOperatorsStats } from "@/api/operatorApi";
 import {
-  sortOperatorsByNormalParcels,
-  sortOperatorsByAccidentParcels,
+  sortOperatorsStatsByNormalParcels,
+  sortOperatorsStatsByAccidentParcels,
 } from "@/utils/operatorUtils";
 import { WorkersTable, PageHeader } from "./components";
 import { Stat, PageLayout } from "@components/ui";
@@ -12,55 +12,90 @@ import { Button } from "@components/ui/button";
 import { Table } from "@ui/table";
 import React from "react";
 import { LoadingSkeleton } from "@components/dashboard/home/waybills";
+import type { OperatorsStats } from "@/types/operator";
 
 function WorkersListContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit] = useState(20);
   const [sorting, setSorting] = useState<Array<{ id: string; desc: boolean }>>([
     { id: "name", desc: false },
   ]);
-  // 정렬 파라미터 변환
+
+  // 새로운 API를 사용해서 통계 데이터 가져오기
+  const [operatorsStats, setOperatorsStats] = useState<OperatorsStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 데이터 로딩
+  React.useEffect(() => {
+    const loadOperatorsStats = async () => {
+      try {
+        setIsLoading(true);
+        const result = await fetchOperatorsStats();
+        setOperatorsStats(result.data);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "데이터를 불러오는데 실패했습니다."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadOperatorsStats();
+  }, []);
+
+  // 검색 필터링
+  const filteredOperators = useMemo(() => {
+    if (!appliedSearch) return operatorsStats;
+
+    return operatorsStats.filter(
+      (operator) =>
+        operator.code.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+        operator.name.toLowerCase().includes(appliedSearch.toLowerCase())
+    );
+  }, [operatorsStats, appliedSearch]);
+
+  // 정렬 처리
   const currentSort = sorting[0];
-  let sortField: string | undefined = currentSort?.id;
-  let sortDirection: "asc" | "desc" | undefined = currentSort?.desc
-    ? "desc"
-    : "asc";
-  const isClientSideSort =
-    sortField === "normalParcels" || sortField === "accidentParcels";
-  if (isClientSideSort) {
-    sortField = undefined;
-    sortDirection = undefined;
-  }
-  // Suspense 데이터 패칭
-  const { data: operatorsData } = useOperatorsSuspense({
-    page,
-    limit,
-    search: appliedSearch || undefined,
-    sortField,
-    sortDirection,
-  });
-  let operators = useMemo(() => operatorsData?.data || [], [operatorsData]);
-  const pagination = operatorsData?.pagination;
-  // 클라이언트 사이드 정렬 처리
-  if (isClientSideSort && operators.length > 0) {
-    if (currentSort?.id === "normalParcels") {
-      operators = sortOperatorsByNormalParcels(operators, currentSort.desc);
-    } else if (currentSort?.id === "accidentParcels") {
-      operators = sortOperatorsByAccidentParcels(operators, currentSort.desc);
+  const sortedOperators = useMemo(() => {
+    if (!currentSort) return filteredOperators;
+
+    if (currentSort.id === "normalCount") {
+      return sortOperatorsStatsByNormalParcels(
+        filteredOperators,
+        currentSort.desc
+      );
+    } else if (currentSort.id === "accidentCount") {
+      return sortOperatorsStatsByAccidentParcels(
+        filteredOperators,
+        currentSort.desc
+      );
+    } else if (currentSort.id === "name") {
+      return [...filteredOperators].sort((a, b) => {
+        const comparison = a.name.localeCompare(b.name);
+        return currentSort.desc ? -comparison : comparison;
+      });
+    } else if (currentSort.id === "code") {
+      return [...filteredOperators].sort((a, b) => {
+        const comparison = a.code.localeCompare(b.code);
+        return currentSort.desc ? -comparison : comparison;
+      });
     }
-  }
+
+    return filteredOperators;
+  }, [filteredOperators, currentSort]);
+
   const handleSearch = useCallback(() => {
     setAppliedSearch(searchTerm);
-    setPage(1);
   }, [searchTerm]);
+
   const handleSearchTermChange = useCallback((value: string) => {
     setSearchTerm(value);
   }, []);
-  const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-  }, []);
+
   const handleSort = useCallback((columnId: string) => {
     setSorting((prev) => {
       const currentSort = prev.find((sort) => sort.id === columnId);
@@ -72,18 +107,32 @@ function WorkersListContent() {
         return [{ id: columnId, desc: false }];
       }
     });
-    setPage(1);
   }, []);
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="text-center text-red-500">
+          <p>오류가 발생했습니다: {error}</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
-      <PageHeader total={pagination?.total} isLoading={false} />
+      <PageHeader total={sortedOperators.length} isLoading={false} />
 
       <Stat.Container>
         <div className="flex items-center justify-between mb-4">
           <Stat.Head className="mb-0">작업자 목록</Stat.Head>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              총 {pagination?.total || 0}명
+              총 {sortedOperators.length}명
             </span>
           </div>
         </div>
@@ -110,56 +159,11 @@ function WorkersListContent() {
         {/* 테이블 */}
         <Table>
           <WorkersTable
-            operators={operators}
+            operators={sortedOperators}
             sorting={sorting}
             onSort={handleSort}
           />
         </Table>
-
-        {/* 페이지네이션 */}
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center mt-6 space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-            >
-              이전
-            </Button>
-            <div className="flex space-x-1">
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                .filter(
-                  (pageNum) =>
-                    Math.abs(pageNum - page) <= 2 ||
-                    pageNum === 1 ||
-                    pageNum === pagination.totalPages
-                )
-                .map((pageNum, index, array) => (
-                  <React.Fragment key={pageNum}>
-                    {index > 0 && array[index - 1] !== pageNum - 1 && (
-                      <span className="px-2 py-1 text-gray-500">...</span>
-                    )}
-                    <Button
-                      variant={page === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  </React.Fragment>
-                ))}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === pagination.totalPages}
-            >
-              다음
-            </Button>
-          </div>
-        )}
       </Stat.Container>
     </PageLayout>
   );

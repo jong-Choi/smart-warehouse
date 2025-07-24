@@ -4,7 +4,7 @@ import { type Message } from "@/types/chatbot";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { Button } from "@components/ui/button";
 import { RotateCcw } from "lucide-react";
-import { Remark } from "react-remark";
+import ReactMarkdownApp from "@components/markdown/react-markdown-app";
 
 interface MessageItemProps {
   message: Message;
@@ -29,8 +29,7 @@ export const MessageItem = React.memo<MessageItemProps>(
     ]);
 
     // 로딩 메시지 표시 여부 결정
-    const shouldShowLoading =
-      message.isContext && !message.text && !message.isUser && isLoading;
+    const shouldShowLoading = !message.text && !message.isUser && isLoading;
 
     // systemContext를 한 줄씩 표시할지 결정
     const shouldShowSystemContext = shouldShowLoading && systemContext;
@@ -42,7 +41,7 @@ export const MessageItem = React.memo<MessageItemProps>(
 
     // 로딩 메시지 순환
     useEffect(() => {
-      if (message.isContext && !message.text && !message.isUser && isLoading) {
+      if (!message.text && !message.isUser && isLoading) {
         const interval = setInterval(() => {
           setLoadingMessageIndex(
             (prev) => (prev + 1) % LOADING_MESSAGES.length
@@ -52,6 +51,10 @@ export const MessageItem = React.memo<MessageItemProps>(
         return () => clearInterval(interval);
       }
     }, [message.isContext, message.text, message.isUser, isLoading]);
+
+    useEffect(() => {
+      console.log(systemContext);
+    }, [systemContext]);
 
     // systemContext 순환
     useEffect(() => {
@@ -85,7 +88,7 @@ export const MessageItem = React.memo<MessageItemProps>(
         >
           <div className="text-xs whitespace-pre-wrap">
             <div>
-              <Remark>{message.text}</Remark>
+              <ReactMarkdownApp>{message.text}</ReactMarkdownApp>
             </div>
             {message.isStreaming && !message.text && (
               <span className="inline-block ml-1">
@@ -111,7 +114,7 @@ export const MessageItem = React.memo<MessageItemProps>(
               </span>
             )}
             {shouldShowSystemContext && systemContextLines.length > 0 && (
-              <div className="inline-block ml-1 text-xs text-sidebar-muted-foreground/80 animate-pulse w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
+              <div className="inline-block ml-1 text-xs text-sidebar-muted-foreground w-[100px] overflow-hidden whitespace-nowrap opacity-20">
                 {systemContextLines[systemContextIndex]}
               </div>
             )}

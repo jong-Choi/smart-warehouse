@@ -135,10 +135,10 @@ export function DashboardSidebar({
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center rounded-lg shadow-sm">
                   <Package className="size-5" />
                 </div>
-                <div className="flex flex-col leading-tight flex-1 items-center ">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col leading-tight flex-1 items-center justify-center">
+                  <div className="flex items-center justify-center">
                     <h1 className="text-xl font-semibold text-gray-900">
-                      <div className="flex flex-col leading-tight -translate-y-0.5">
+                      <div className="flex flex-col leading-tight items-center">
                         <span className="text-2xl font-black tracking-tight text-primary">
                           S
                           <span className="inline-block -scale-y-100 translate-y-1">
@@ -162,7 +162,7 @@ export function DashboardSidebar({
                     </span>
                     rt
                   </span> */}
-                  <span className="text-[11px] uppercase tracking-widest text-muted-foreground -translate-y-2 -translate-x-0.5">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground -mt-2">
                     Warehouse
                   </span>
                 </div>

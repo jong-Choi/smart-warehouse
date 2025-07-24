@@ -123,3 +123,33 @@ export async function fetchOperatorParcels(
   const result = await response.json();
   return result;
 }
+
+// 작업자 통계 요약 조회
+export async function fetchOperatorsStats(): Promise<{
+  data: Array<{
+    operatorId: number;
+    code: string;
+    name: string;
+    type: "HUMAN" | "MACHINE";
+    workDays: number;
+    normalCount: number;
+    accidentCount: number;
+    firstWorkDate: string | null;
+    operator: {
+      id: number;
+      name: string;
+      code: string;
+      type: "HUMAN" | "MACHINE";
+    };
+  }>;
+  count: number;
+}> {
+  const response = await fetch(`${API_BASE_URL}/operators/stats/summary`);
+
+  if (!response.ok) {
+    throw new Error("작업자 통계를 불러오는데 실패했습니다.");
+  }
+
+  const result = await response.json();
+  return result;
+}
