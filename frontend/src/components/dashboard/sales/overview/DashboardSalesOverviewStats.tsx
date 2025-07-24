@@ -57,7 +57,7 @@ export function DashboardSalesOverviewStats({
       {/* 매출 요약 + 추가 통계 카드들 */}
       <Stat.Container>
         <Stat.Head>
-          <h3 className="text-lg font-semibold mb-2">매출 요약 및 통계</h3>
+          <div className="text-lg font-semibold mb-2">매출 요약 및 통계</div>
           <p className="text-sm text-muted-foreground mb-4">
             올해 전체 매출, 주요 지표, 처리 건수 등 상세 통계를 한눈에
             확인하세요.

@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
 
 interface DonutChartData {
   name: string;
@@ -42,29 +42,27 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   height = 200,
 }) => {
   return (
-    <ResponsiveContainer width={width} height={height}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={0}
-          outerRadius={85}
-          paddingAngle={0}
-          dataKey="value"
-          isAnimationActive={false}
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip
-          content={<CustomTooltip />}
-          animationDuration={0}
-          animationEasing="linear"
-          isAnimationActive={false}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <PieChart width={width} height={height}>
+      <Pie
+        data={data}
+        cx="50%"
+        cy="50%"
+        innerRadius={0}
+        outerRadius={85}
+        paddingAngle={0}
+        dataKey="value"
+        isAnimationActive={false}
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={entry.color} />
+        ))}
+      </Pie>
+      <Tooltip
+        content={<CustomTooltip />}
+        animationDuration={0}
+        animationEasing="linear"
+        isAnimationActive={false}
+      />
+    </PieChart>
   );
 };

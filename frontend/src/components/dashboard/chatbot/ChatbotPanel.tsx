@@ -26,7 +26,7 @@ export function ChatbotPanel() {
   }, [clearConversation, isConnected]);
 
   return (
-    <div className="flex flex-col h-full p-2">
+    <div className="flex flex-col h-full p-2 absolute pt-20 xl:p-2 xl:ml-0 xl:relative bottom-0 right-0 bg-white z-50">
       {/* 챗봇 패널 */}
       <div
         className={cn(

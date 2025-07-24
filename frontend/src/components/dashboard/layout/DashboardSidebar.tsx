@@ -74,7 +74,7 @@ export function DashboardSidebar({
           </SidebarMenuButton>
           <div className="ml-4 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
             {item.children.map((child: NavigationItem) => (
-              <SidebarMenuItem key={child.title}>
+              <div key={child.title} className="list-none">
                 <NavLink
                   to={child.url || "#"}
                   className="w-full"
@@ -93,7 +93,7 @@ export function DashboardSidebar({
                     </SidebarMenuButton>
                   )}
                 </NavLink>
-              </SidebarMenuItem>
+              </div>
             ))}
           </div>
         </SidebarMenuItem>

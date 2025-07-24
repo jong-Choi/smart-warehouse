@@ -244,7 +244,7 @@ ${markdownTable}
 
   return (
     <Stat.Container>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 ">
         <Stat.Head className="mb-0">운송장 목록</Stat.Head>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">

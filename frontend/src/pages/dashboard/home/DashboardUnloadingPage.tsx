@@ -1,13 +1,11 @@
-import {
-  LoadingSkeleton,
-  PageHeader,
-} from "@components/dashboard/home/waybills";
+import { PageHeader } from "@components/dashboard/home/waybills";
 import {
   useDashboardWaybillMessage,
   useDashboardSnapshotData,
 } from "@components/dashboard/home/waybills/hooks";
 import { UnloadingTable } from "@components/dashboard/home/waybills/table/UnloadingTable";
 import { UnloadingInfo } from "@components/dashboard/home/waybills/UnloadingInfo";
+import { TableSkeleton } from "@pages/dashboard/workers/components";
 import { PageLayout } from "@ui/page-layout";
 
 export default function DashboardUnloadingPage() {
@@ -20,9 +18,8 @@ export default function DashboardUnloadingPage() {
   return (
     <PageLayout>
       <PageHeader />
-
       {!tableData ? (
-        <LoadingSkeleton />
+        <TableSkeleton rows={50} />
       ) : (
         <UnloadingTable
           parcels={tableData}

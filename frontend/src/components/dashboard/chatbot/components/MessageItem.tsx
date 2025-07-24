@@ -83,8 +83,10 @@ export const MessageItem = React.memo<MessageItemProps>(
               : "bg-white/90 text-sidebar-foreground"
           )}
         >
-          <p className="text-xs whitespace-pre-wrap">
-            <Remark>{message.text}</Remark>
+          <div className="text-xs whitespace-pre-wrap">
+            <div>
+              <Remark>{message.text}</Remark>
+            </div>
             {message.isStreaming && !message.text && (
               <span className="inline-block ml-1">
                 <svg
@@ -113,10 +115,10 @@ export const MessageItem = React.memo<MessageItemProps>(
                 {systemContextLines[systemContextIndex]}
               </div>
             )}
-          </p>
-          <p className="text-xs opacity-70 mt-1">
+          </div>
+          <div className="text-xs opacity-70 mt-1">
             {message.timestamp.toLocaleTimeString()}
-          </p>
+          </div>
         </div>
         {shouldShowLoading && (
           <span className="inline-block ml-1 text-xs mt-auto text-sidebar-muted-foreground/60 animate-pulse">
