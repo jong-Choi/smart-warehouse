@@ -112,7 +112,7 @@ ${workerStats
         <Stat.Head>작업자 현황</Stat.Head>
 
         {/* 요약 통계 */}
-        <Stat.Grid cols={2} className="mb-6">
+        <Stat.Grid cols={1} className="mb-6 @[350px]:grid-cols-2">
           <Stat.Card
             icon={Users}
             title="활성 작업자"

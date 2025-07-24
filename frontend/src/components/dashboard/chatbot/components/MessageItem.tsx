@@ -52,10 +52,6 @@ export const MessageItem = React.memo<MessageItemProps>(
       }
     }, [message.isContext, message.text, message.isUser, isLoading]);
 
-    useEffect(() => {
-      console.log(systemContext);
-    }, [systemContext]);
-
     // systemContext 순환
     useEffect(() => {
       if (shouldShowSystemContext && systemContextLines.length > 0) {

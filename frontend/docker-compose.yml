@@ -1,0 +1,21 @@
+services:
+  warehouse-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: warehouse-frontend
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    ports:
+      - "3050:80"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./dist:/usr/share/nginx/html
+      - ./logs:/var/log/nginx
+    networks:
+      - npm-network
+
+networks:
+  npm-network:
+    external: true

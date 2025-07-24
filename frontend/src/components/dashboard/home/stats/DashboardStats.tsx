@@ -129,7 +129,10 @@ function DashboardStats({
   return (
     <Stat.Container>
       <Stat.Head>실시간 통계</Stat.Head>
-      <Stat.Grid cols={4}>
+      <Stat.Grid
+        cols={4}
+        className="grid-cols-1 @[500px]:grid-cols-2 @[1000px]:grid-cols-4"
+      >
         {/* 작업 진척도 */}
         <Stat.Card
           icon={TrendingUp}

@@ -52,7 +52,7 @@ function WaybillStats({
     <div className="w-full lg:w-1/2">
       <Stat.Container>
         <Stat.Head>운송장 현황 </Stat.Head>
-        <div className="flex flex-col xl:flex-row items-center xl:items-start gap-8">
+        <div className="flex flex-col @[500px]:flex-row items-center @[500px]:items-start gap-8">
           {/* 도넛 차트 */}
           <div className="flex-shrink-0">
             <DonutChart data={chartData} width={200} height={200} />

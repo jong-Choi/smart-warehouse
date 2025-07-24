@@ -1,12 +1,27 @@
 import { Outlet } from "react-router-dom";
 import { DashboardSidebar } from "@components/dashboard/layout/DashboardSidebar";
 import { ChatbotPanel } from "@components/dashboard/chatbot/ChatbotPanel";
-import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTriggerAsChild,
+} from "@components/ui/sidebar";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
 
 function DashboardLayout() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const calcWidth = isOpen
+    ? "lg:max-w-[calc(100vw-20rem)]"
+    : "lg:max-w-[calc(100vw-6rem)]";
+
   return (
     <div className="h-full">
       <SidebarProvider
+        open={isOpen}
+        onOpenChange={setIsOpen}
         style={
           {
             "--sidebar-width": "18rem",
@@ -17,6 +32,12 @@ function DashboardLayout() {
         <DashboardSidebar />
         <SidebarInset className="flex flex-col h-full">
           <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <SidebarTriggerAsChild
+              onClick={() => setIsOpen(!isOpen)}
+              className="block md:hidden"
+            >
+              <Menu className="w-6 h-6" />
+            </SidebarTriggerAsChild>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold text-gray-900">
                 <div className="flex flex-col leading-tight">
@@ -38,7 +59,13 @@ function DashboardLayout() {
             </div>
           </header>
           <div className="flex-1 overflow-auto">
-            <div className="flex h-full">
+            <div
+              className={cn(
+                "flex h-full",
+                calcWidth,
+                "transition-[max-width] duration-300"
+              )}
+            >
               <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <div className="flex flex-col gap-4 p-4">
                   <Outlet />

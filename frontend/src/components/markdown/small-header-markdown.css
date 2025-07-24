@@ -57,4 +57,73 @@
     margin-top: 0.2rem;
     margin-bottom: 0.1rem;
   }
+
+  & blockquote {
+    border-left: 2px solid #ccc;
+    padding-left: 0.5rem;
+    margin: 0.3rem 0;
+    color: #666;
+    font-style: italic;
+  }
+
+  & code {
+    font-family: monospace;
+    background-color: #f4f4f4;
+    padding: 0 0.2rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+
+  & pre {
+    background-color: #f4f4f4;
+    padding: 0.5rem;
+    overflow-x: auto;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85em;
+    line-height: 1.4;
+    margin: 0.3rem 0;
+  }
+
+  & hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 0.5rem 0;
+  }
+
+  & a {
+    color: #0a7cff;
+    text-decoration: underline;
+  }
+
+  & strong {
+    font-weight: bold;
+  }
+
+  & em {
+    font-style: italic;
+  }
+
+  & del {
+    text-decoration: line-through;
+  }
+
+  & table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.4rem 0;
+    font-size: 0.85em;
+  }
+
+  & th,
+  & td {
+    border: 1px solid #ccc;
+    padding: 0.2rem 0.4rem;
+    text-align: left;
+  }
+
+  & th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+  }
 }

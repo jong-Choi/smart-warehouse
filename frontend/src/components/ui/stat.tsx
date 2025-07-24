@@ -37,7 +37,7 @@ const StatContainer = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "p-6 rounded-lg border bg-sidebar-primary-foreground/20 text-card-foreground shadow-sm shadow-sidebar-primary/15",
+      "p-6 rounded-lg border bg-sidebar-primary-foreground/20 text-card-foreground shadow-sm shadow-sidebar-primary/15 @container",
       className
     )}
     {...props}

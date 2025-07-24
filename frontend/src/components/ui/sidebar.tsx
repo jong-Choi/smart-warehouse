@@ -327,6 +327,30 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
     />
   );
 }
+function SidebarTriggerAsChild({
+  className,
+  children,
+  onClick,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  const { toggleSidebar } = useSidebar();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn("h-9 w-9", className)}
+      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+        onClick?.(e);
+        toggleSidebar();
+      }}
+      {...props}
+    >
+      {children}
+      <span className="sr-only">Toggle sidebar</span>
+    </Button>
+  );
+}
 
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
@@ -664,6 +688,7 @@ export {
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
+  SidebarTriggerAsChild,
   SidebarSeparator,
   SidebarTrigger,
 };

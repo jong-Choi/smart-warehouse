@@ -31,8 +31,6 @@ interface PaginatedApiResponse<T> {
 export async function fetchWaybills(
   params?: WaybillFilters
 ): Promise<WaybillListResponse> {
-  console.info("Fetching waybills with params:", params);
-
   const searchParams = new URLSearchParams();
 
   if (params?.page) searchParams.append("page", params.page.toString());
@@ -74,8 +72,6 @@ export async function fetchWaybills(
 
 // 특정 운송장 상세 조회
 export async function fetchWaybillById(id: number): Promise<Waybill> {
-  console.info("Fetching waybill:", id);
-
   const response = await fetch(`${API_BASE_URL}/api/waybills/${id}`, {
     method: "GET",
     headers: {
@@ -93,8 +89,6 @@ export async function fetchWaybillById(id: number): Promise<Waybill> {
 
 // 운송장 번호로 조회
 export async function fetchWaybillByNumber(number: string): Promise<Waybill> {
-  console.info("Fetching waybill by number:", number);
-
   const response = await fetch(
     `${API_BASE_URL}/api/waybills/number/${number}`,
     {
@@ -121,8 +115,6 @@ export async function fetchWaybillStats(): Promise<{
     count: number;
   }>;
 }> {
-  console.info("Fetching waybill stats");
-
   const response = await fetch(`${API_BASE_URL}/api/waybills/stats`, {
     method: "GET",
     headers: {
@@ -156,8 +148,6 @@ export async function fetchWaybillCalendarData(params?: {
     statuses: Record<string, number>;
   }>
 > {
-  console.info("Fetching waybill calendar data:", params);
-
   const searchParams = new URLSearchParams();
 
   if (params?.startDate) {
@@ -199,8 +189,6 @@ export async function fetchWaybillCalendarData(params?: {
 
 // 하차 예정 운송장 목록 조회 (기존 함수 유지)
 export async function fetchUnloadingWaybills(): Promise<WaybillListResponse> {
-  console.info("Fetching unloading waybills");
-
   const response = await fetch(
     `${API_BASE_URL}/api/waybills?status=PENDING_UNLOAD&getAll=true`,
     {
@@ -234,8 +222,6 @@ export async function fetchUnloadingParcels(): Promise<{
   page: number;
   pageSize: number;
 }> {
-  console.info("Fetching unloading parcels (2000 items)");
-
   // 실제 API가 구현되면 여기서 호출
   // 현재는 mock 데이터 사용
   const { getMockUnloadingParcelsWithTimestamps } = await import(
@@ -258,8 +244,6 @@ export async function updateWaybillStatus(
   status: WaybillStatus,
   operatorId?: number
 ): Promise<Waybill> {
-  console.info("Updating waybill status:", waybillId, status);
-
   const response = await fetch(`${API_BASE_URL}/api/waybills/${waybillId}`, {
     method: "PATCH",
     headers: {
@@ -285,33 +269,28 @@ export const fetchWaybillsByLocationStats = async (params?: {
   startDate?: Date;
   endDate?: Date;
 }) => {
-  try {
-    const queryParams = new URLSearchParams();
+  const queryParams = new URLSearchParams();
 
-    if (params?.status) {
-      queryParams.append("status", params.status);
-    }
-    if (params?.startDate) {
-      queryParams.append("startDate", params.startDate.toISOString());
-    }
-    if (params?.endDate) {
-      queryParams.append("endDate", params.endDate.toISOString());
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/waybills/by-location/stats?${queryParams}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching waybills by location stats:", error);
-    throw error;
+  if (params?.status) {
+    queryParams.append("status", params.status);
   }
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate.toISOString());
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate.toISOString());
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/waybills/by-location/stats?${queryParams}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data;
 };
 
 export const fetchWaybillsByLocation = async (
@@ -326,45 +305,40 @@ export const fetchWaybillsByLocation = async (
     getAll?: boolean;
   }
 ) => {
-  try {
-    const queryParams = new URLSearchParams();
+  const queryParams = new URLSearchParams();
 
-    if (params?.status) {
-      queryParams.append("status", params.status);
-    }
-    if (params?.search) {
-      queryParams.append("search", params.search);
-    }
-    if (params?.startDate) {
-      queryParams.append("startDate", params.startDate.toISOString());
-    }
-    if (params?.endDate) {
-      queryParams.append("endDate", params.endDate.toISOString());
-    }
-    if (params?.page) {
-      queryParams.append("page", params.page.toString());
-    }
-    if (params?.limit) {
-      queryParams.append("limit", params.limit.toString());
-    }
-    if (params?.getAll) {
-      queryParams.append("getAll", "true");
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/waybills/by-location/${locationId}?${queryParams}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching waybills by location:", error);
-    throw error;
+  if (params?.status) {
+    queryParams.append("status", params.status);
   }
+  if (params?.search) {
+    queryParams.append("search", params.search);
+  }
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate.toISOString());
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate.toISOString());
+  }
+  if (params?.page) {
+    queryParams.append("page", params.page.toString());
+  }
+  if (params?.limit) {
+    queryParams.append("limit", params.limit.toString());
+  }
+  if (params?.getAll) {
+    queryParams.append("getAll", "true");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/waybills/by-location/${locationId}?${queryParams}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data;
 };
 
 export const fetchWaybillsByLocationCalendarData = async (params?: {
@@ -372,31 +346,26 @@ export const fetchWaybillsByLocationCalendarData = async (params?: {
   startDate?: Date;
   endDate?: Date;
 }) => {
-  try {
-    const queryParams = new URLSearchParams();
+  const queryParams = new URLSearchParams();
 
-    if (params?.status) {
-      queryParams.append("status", params.status);
-    }
-    if (params?.startDate) {
-      queryParams.append("startDate", params.startDate.toISOString());
-    }
-    if (params?.endDate) {
-      queryParams.append("endDate", params.endDate.toISOString());
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/waybills/by-location/calendar?${queryParams}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching waybills by location calendar data:", error);
-    throw error;
+  if (params?.status) {
+    queryParams.append("status", params.status);
   }
+  if (params?.startDate) {
+    queryParams.append("startDate", params.startDate.toISOString());
+  }
+  if (params?.endDate) {
+    queryParams.append("endDate", params.endDate.toISOString());
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/waybills/by-location/calendar?${queryParams}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data;
 };

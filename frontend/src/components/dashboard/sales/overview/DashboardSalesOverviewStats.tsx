@@ -63,7 +63,7 @@ export function DashboardSalesOverviewStats({
             확인하세요.
           </p>
         </Stat.Head>
-        <Stat.Grid cols={3}>
+        <Stat.Grid cols={1} className="grid-cols-1 @[950px]:grid-cols-3">
           <Stat.Card
             icon={DollarSign}
             title="총 매출"
@@ -87,7 +87,10 @@ export function DashboardSalesOverviewStats({
             helpMessage="이번 달 누적 매출입니다."
           />
         </Stat.Grid>
-        <Stat.Grid cols={4} className="mt-6">
+        <Stat.Grid
+          cols={1}
+          className="mt-6 grid-cols-1 @[350px]:grid-cols-2 @[950px]:grid-cols-4"
+        >
           <Stat.Card
             icon={Package}
             title="총 처리 건수"
