@@ -333,6 +333,75 @@ async function seedSalesMonthlyStats() {
   console.log("[완료] sales_monthly_stats 테이블 집계 및 저장");
 }
 
+async function seedOperatorsStats() {
+  // 모든 작업자 조회
+  const operators = await prisma.operator.findMany({
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      type: true,
+    },
+  });
+
+  const statsData = await Promise.all(
+    operators.map(async (operator) => {
+      // 정상처리 갯수 계산
+      const normalCount = await prisma.waybill.count({
+        where: {
+          operatorId: operator.id,
+          status: "NORMAL",
+        },
+      });
+
+      // 사고처리 갯수 계산
+      const accidentCount = await prisma.waybill.count({
+        where: {
+          operatorId: operator.id,
+          status: "ACCIDENT",
+        },
+      });
+
+      // 근무일수 계산: 정상처리/사고처리가 있었던 날짜들의 합
+      const workDaysByDateResult = await prisma.$queryRaw<
+        Array<{ date: string }>
+      >`
+        SELECT DISTINCT strftime('%Y-%m-%d', unloadDate/1000, 'unixepoch') as date
+        FROM waybills 
+        WHERE operatorId = ${operator.id} 
+        AND (status = 'NORMAL' OR status = 'ACCIDENT')
+      `;
+
+      const workDays = workDaysByDateResult.length;
+
+      // 최초 작업일 계산
+      const firstWork = await prisma.waybill.findFirst({
+        where: { operatorId: operator.id },
+        orderBy: { unloadDate: "asc" },
+        select: { unloadDate: true },
+      });
+
+      return {
+        operatorId: operator.id,
+        code: operator.code,
+        name: operator.name,
+        type: operator.type,
+        workDays,
+        normalCount,
+        accidentCount,
+        firstWorkDate: firstWork?.unloadDate || null,
+      };
+    })
+  );
+
+  // 기존 데이터 삭제 후 insert
+  await prisma.operatorsStats.deleteMany({});
+  await prisma.operatorsStats.createMany({
+    data: statsData,
+  });
+  console.log("[완료] operators_stats 테이블 집계 및 저장");
+}
+
 async function main() {
   await seedWaybillStats();
   await seedSalesStats();
@@ -340,6 +409,7 @@ async function main() {
   await seedWaybillMonthlyStats();
   await seedSalesYearlyStats();
   await seedSalesMonthlyStats();
+  await seedOperatorsStats();
   await prisma.$disconnect();
 }
 

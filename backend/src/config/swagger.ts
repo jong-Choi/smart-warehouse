@@ -308,6 +308,50 @@ const options = {
             },
           },
         },
+        // 작업자 통계 요약 스키마
+        OperatorsStats: {
+          type: "object",
+          properties: {
+            operatorId: {
+              type: "integer",
+              description: "작업자 ID",
+            },
+            code: {
+              type: "string",
+              description: "작업자 코드",
+            },
+            name: {
+              type: "string",
+              description: "작업자 이름",
+            },
+            type: {
+              type: "string",
+              enum: ["HUMAN", "MACHINE"],
+              description: "작업자 타입",
+            },
+            workDays: {
+              type: "integer",
+              description: "작업일수",
+            },
+            normalCount: {
+              type: "integer",
+              description: "정상처리 갯수",
+            },
+            accidentCount: {
+              type: "integer",
+              description: "사고처리 갯수",
+            },
+            firstWorkDate: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+              description: "최초 작업일",
+            },
+            operator: {
+              $ref: "#/components/schemas/Operator",
+            },
+          },
+        },
       },
       parameters: {
         // 공통 파라미터

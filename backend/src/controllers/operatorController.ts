@@ -286,4 +286,25 @@ export class OperatorController {
       });
     }
   }
+
+  /**
+   * 모든 작업자의 통계를 조회합니다.
+   */
+  async getAllOperatorsStats(req: Request, res: Response) {
+    try {
+      const stats = await operatorService.getAllOperatorsStats();
+
+      res.json({
+        success: true,
+        data: stats,
+        count: stats.length,
+      });
+    } catch (error) {
+      console.error("Error fetching operators stats:", error);
+      res.status(500).json({
+        success: false,
+        message: "작업자 통계 조회 중 오류가 발생했습니다.",
+      });
+    }
+  }
 }

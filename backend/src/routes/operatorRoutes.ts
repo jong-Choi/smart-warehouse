@@ -66,6 +66,34 @@ router.get("/stats", operatorController.getOperatorStats);
 
 /**
  * @swagger
+ * /api/operators/stats/summary:
+ *   get:
+ *     summary: 모든 작업자 통계 요약 조회
+ *     description: 모든 작업자의 통계 요약 정보를 조회합니다. 작업일수, 정상처리 갯수, 사고처리 갯수, 최초 작업일 등의 정보를 포함합니다.
+ *     tags: [작업자 (Operators)]
+ *     responses:
+ *       200:
+ *         description: 성공적으로 작업자 통계 요약을 조회했습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/OperatorsStats'
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ */
+router.get("/stats/summary", operatorController.getAllOperatorsStats);
+
+/**
+ * @swagger
  * /api/operators/code/{code}:
  *   get:
  *     summary: 작업자 코드로 조회

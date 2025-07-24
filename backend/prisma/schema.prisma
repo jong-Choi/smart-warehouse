@@ -43,6 +43,7 @@ model Operator {
   shifts    OperatorShift[]  // 해당 작업자의 근무 기록
   works     OperatorWork[]   // 날짜별 KPI
   waybills  Waybill[]        // 실제 처리한 운송장 목록
+  operatorsStats OperatorsStats? // 작업자 통계
 
   @@map("operators")
 }
@@ -168,6 +169,23 @@ model SalesStats {
 
   @@id([date, locationId])
   @@map("sales_stats")
+}
+
+/// Materialized View: 작업자별 통계
+model OperatorsStats {
+  operatorId  Int
+  code        String    // 작업자 코드
+  name        String    // 작업자 이름
+  type        OperatorType
+  workDays    Int       @default(0) // 작업일수
+  normalCount Int       @default(0) // 정상처리 갯수
+  accidentCount Int     @default(0) // 사고처리 갯수
+  firstWorkDate DateTime? // 최초 작업일
+
+  operator    Operator  @relation(fields: [operatorId], references: [id])
+
+  @@id([operatorId])
+  @@map("operators_stats")
 }
 
 /// 연간 운송장 통계

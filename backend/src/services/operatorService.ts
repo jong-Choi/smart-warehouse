@@ -520,4 +520,25 @@ export class OperatorService {
       },
     });
   }
+
+  /**
+   * 모든 작업자의 통계를 조회합니다.
+   */
+  async getAllOperatorsStats() {
+    return await prisma.operatorsStats.findMany({
+      include: {
+        operator: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            type: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+  }
 }
