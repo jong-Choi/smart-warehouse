@@ -22,10 +22,13 @@ app.use(
       process.env.CORS_ORIGIN || "http://localhost:3000",
       "http://localhost:5173", // Vite 개발 서버
       "http://localhost:4173", // Vite 프리뷰 서버
+      "http://localhost:3050", // 팩토리 도커
       "https://factory.jongchoi.com", // 프로덕션 도메인
       "http://factory.jongchoi.com", // HTTP 프로덕션 도메인
       "https://smartfactory.jongchoi.com", // 스마트팩토리 도메인
       "http://smartfactory.jongchoi.com", // HTTP 스마트팩토리 도메인
+      "https://warehouse.jongchoi.com", // 창고 도메인
+      "http://warehouse.jongchoi.com", // HTTP 창고 도메인
     ],
     credentials: true,
   })
