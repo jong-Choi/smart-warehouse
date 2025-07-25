@@ -29,7 +29,7 @@ export const fetchWithSecretKey = (
 ) => {
   options.headers = {
     ...options.headers,
-    LLM_SECRET_KEY: process.env.LLM_SECRET_KEY!,
+    "LLM-SECRET-KEY": process.env.LLM_SECRET_KEY!,
   };
   return fetch(url, options);
 };

@@ -13,8 +13,8 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     networks:
-      - factory-network
+      - npm-network
 
 networks:
-  factory-network:
-    driver: bridge
+  npm-network:
+    external: true
