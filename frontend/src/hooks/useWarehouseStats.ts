@@ -13,7 +13,7 @@ export interface WarehouseStats {
 }
 
 export function useWarehouseStats(): WarehouseStats {
-  // TanStack Query로 하차 예정 목록 가져오기 [[memory:2711770]]
+  // TanStack Query로 하차 예정 목록 가져오기
   const { data: unloadingData, isLoading, error } = useUnloadingParcels();
 
   // 실시간 통계 상태

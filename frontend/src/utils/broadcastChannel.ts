@@ -1,20 +1,18 @@
-// BroadcastChannel API를 사용한 웹소켓 유사 인터페이스
-// 나중에 실제 웹소켓으로 쉽게 교체할 수 있도록 동일한 인터페이스 제공
-
 import type {
   BroadcastMessage,
   BroadcastChannelInterface,
 } from "@/types/broadcast";
 
-class BroadcastChannelManager implements BroadcastChannelInterface {
+class ExtendedBroadcastChannel implements BroadcastChannelInterface {
   private channel: BroadcastChannel;
   private handlers: ((data: BroadcastMessage) => void)[] = [];
   private isConnected = false;
-  private senderId: string; // 고정된 발신자 ID
+  private senderId: string;
+  private localHandlers: ((data: BroadcastMessage) => void)[] = []; // 같은 탭 내 핸들러
 
   constructor(channelName: string = "warehouse-events") {
     this.channel = new BroadcastChannel(channelName);
-    this.senderId = this.generateSenderId(); // 생성자에서 한 번만 생성
+    this.senderId = this.generateSenderId();
     this.setupEventListeners();
   }
 
@@ -45,7 +43,6 @@ class BroadcastChannelManager implements BroadcastChannelInterface {
   }
 
   private generateSenderId(): string {
-    // 고유한 발신자 ID 생성 (탭 ID + 타임스탬프)
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
@@ -56,14 +53,23 @@ class BroadcastChannelManager implements BroadcastChannelInterface {
     }
 
     try {
-      // 발신자 ID 추가
       const messageWithSender = {
         ...data,
         senderId: this.senderId,
         timestamp: Date.now(),
       };
 
+      // BroadcastChannel로 다른 탭에 전송
       this.channel.postMessage(messageWithSender);
+
+      // 같은 탭 내 핸들러들에게도 즉시 전달
+      this.localHandlers.forEach((handler) => {
+        try {
+          handler(messageWithSender);
+        } catch (error) {
+          console.error("Local handler error:", error);
+        }
+      });
     } catch (error) {
       console.error("Failed to send message via BroadcastChannel:", error);
     }
@@ -71,10 +77,12 @@ class BroadcastChannelManager implements BroadcastChannelInterface {
 
   subscribe(handler: (data: BroadcastMessage) => void): () => void {
     this.handlers.push(handler);
+    this.localHandlers.push(handler);
 
     // 구독 해제 함수 반환
     return () => {
       this.handlers = this.handlers.filter((h) => h !== handler);
+      this.localHandlers = this.localHandlers.filter((h) => h !== handler);
     };
   }
 
@@ -82,31 +90,24 @@ class BroadcastChannelManager implements BroadcastChannelInterface {
     if (this.isConnected) {
       this.channel.close();
       this.handlers = [];
+      this.localHandlers = [];
       this.isConnected = false;
     }
   }
 }
 
-// 인스턴스 캐시 (채널명별로)
-const channelInstances = new Map<string, BroadcastChannelManager>();
-const localEventInstances = new Map<string, LocalEventManager>();
+const channelInstances = new Map<string, ExtendedBroadcastChannel>();
 
 export function createBroadcastChannel(
   channelName: string = "warehouse-events"
 ): BroadcastChannelInterface {
   if (!channelInstances.has(channelName)) {
-    channelInstances.set(channelName, new BroadcastChannelManager(channelName));
+    channelInstances.set(
+      channelName,
+      new ExtendedBroadcastChannel(channelName)
+    );
   }
   return channelInstances.get(channelName)!;
-}
-
-export function createLocalEventManager(
-  channelName: string = "warehouse-events"
-): BroadcastChannelInterface {
-  if (!localEventInstances.has(channelName)) {
-    localEventInstances.set(channelName, new LocalEventManager());
-  }
-  return localEventInstances.get(channelName)!;
 }
 
 export function getBroadcastChannel(
@@ -115,74 +116,8 @@ export function getBroadcastChannel(
   return createBroadcastChannel(channelName);
 }
 
-// BroadcastChannel 지원 여부 확인
-export function isBroadcastChannelSupported(): boolean {
-  return typeof BroadcastChannel !== "undefined";
-}
-
-// 폴백을 위한 로컬 이벤트 시스템 (BroadcastChannel을 지원하지 않는 경우)
-class LocalEventManager implements BroadcastChannelInterface {
-  private handlers: ((data: BroadcastMessage) => void)[] = [];
-  private isConnected = false;
-  private senderId: string; // 고정된 발신자 ID
-
-  constructor() {
-    this.isConnected = true;
-    this.senderId = this.generateSenderId();
-  }
-
-  private generateSenderId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  send(data: BroadcastMessage): void {
-    if (!this.isConnected) {
-      console.warn("LocalEventManager is not connected");
-      return;
-    }
-
-    // 발신자 ID 추가
-    const messageWithSender = {
-      ...data,
-      senderId: this.senderId,
-      timestamp: Date.now(),
-    };
-
-    // 즉시 모든 핸들러에게 전달 (동기적으로)
-    this.handlers.forEach((handler) => {
-      try {
-        handler(messageWithSender);
-      } catch (error) {
-        console.error("LocalEventManager handler error:", error);
-      }
-    });
-  }
-
-  subscribe(handler: (data: BroadcastMessage) => void): () => void {
-    this.handlers.push(handler);
-
-    return () => {
-      this.handlers = this.handlers.filter((h) => h !== handler);
-    };
-  }
-
-  disconnect(): void {
-    this.handlers = [];
-    this.isConnected = false;
-  }
-}
-
-// 브라우저 지원 여부에 따라 적절한 구현체 반환
 export function createChannelInterface(
   channelName: string = "warehouse-events"
 ): BroadcastChannelInterface {
-  // 개발 중에는 LocalEventManager를 사용 (같은 탭에서 테스트하기 위해)
-  // 실제 배포 시에는 BroadcastChannel 사용
-  const useLocalEvents = process.env.NODE_ENV === "development";
-
-  if (isBroadcastChannelSupported() && !useLocalEvents) {
-    return createBroadcastChannel(channelName);
-  } else {
-    return createLocalEventManager(channelName);
-  }
+  return createBroadcastChannel(channelName);
 }

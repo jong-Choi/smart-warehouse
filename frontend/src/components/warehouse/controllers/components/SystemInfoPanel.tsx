@@ -65,7 +65,7 @@ export const SystemInfoPanel: React.FC = () => {
       }
 
       const newMessage: MessageItem = {
-        id: `${message.msg}-${now}`,
+        id: `${message.msg}-${now}-${Math.random().toString(36).substr(2, 9)}`,
         message: displayMessage,
         timestamp: now,
         color,

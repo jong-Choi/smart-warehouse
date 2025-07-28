@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent } from "@components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog";
 import TutorialPage from "@components/warehouse/tutorials/TutorialPage";
 
 interface TutorialModalProps {
@@ -32,6 +32,7 @@ export default function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-dashboard-primary/70 border-0 p-0 max-w-2xl">
+        <DialogTitle className="sr-only">튜토리얼</DialogTitle>
         <TutorialPage
           page={currentPage}
           totalPages={totalPages}
