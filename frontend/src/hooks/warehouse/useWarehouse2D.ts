@@ -237,7 +237,7 @@ export function useWarehouse2D() {
             // 고장 발생 메시지 송출
             channel?.send({
               ts: now,
-              msg: "작업자 고장",
+              msg: "물건 파손",
               category: "ALARM",
               severity: "ERROR",
               asset: "WORKER",

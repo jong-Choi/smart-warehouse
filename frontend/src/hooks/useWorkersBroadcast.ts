@@ -15,10 +15,10 @@ export const useWorkersBroadcast = () => {
     const unsubscribe = channel.subscribe((message: BroadcastMessage) => {
       const now = new Date().toISOString();
 
-      if (message.msg === "작업자 처리" || message.msg === "작업자 고장") {
+      if (message.msg === "작업자 처리" || message.msg === "물건 파손") {
         const msgMap: Record<string, WorkerStatus> = {
           "작업자 처리": "WORKING",
-          "작업자 고장": "BROKEN",
+          "물건 파손": "BROKEN",
         };
         // 작업자가 물건을 처리했을 때
         const workerId = message.workerId as string;
@@ -29,7 +29,7 @@ export const useWorkersBroadcast = () => {
         const workStartedAt = currentWorker?.workStartedAt || now;
 
         // 카운트 업데이트 로직
-        const isAccident = message.msg === "작업자 고장";
+        const isAccident = message.msg === "물건 파손";
         const currentProcessedCount = currentWorker?.processedCount || 0;
         const currentAccidentCount = currentWorker?.accidentCount || 0;
 

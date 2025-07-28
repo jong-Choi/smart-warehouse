@@ -54,7 +54,7 @@ export function useWarehouseStats(): WarehouseStats {
           }));
           break;
 
-        case "작업자 고장":
+        case "물건 파손":
           setStats((prev) => ({
             ...prev,
             accidentCount: prev.accidentCount + 1,

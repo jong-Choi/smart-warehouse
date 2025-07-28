@@ -38,7 +38,7 @@ export const SystemInfoPanel: React.FC = () => {
             <span className="text-gray-600"> ({workerId})</span>
           </>
         );
-      } else if (message.msg === "작업자 고장") {
+      } else if (message.msg === "물건 파손") {
         color = "red";
         const workerId = (message.workerId as string) || "";
         displayMessage = (

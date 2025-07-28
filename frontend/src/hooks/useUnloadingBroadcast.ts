@@ -34,12 +34,11 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
           processedBy: operatorName || `작업자${operatorId}`, // 처리 작업자 업데이트
         });
       } else if (category === "ALARM" && severity === "ERROR") {
-        // 작업자 고장으로 인한 파손 처리
-        if (msg.includes("작업자 고장")) {
-          // 가장 오래된 운송장을 파손 처리 (실제로는 더 정교한 로직 필요)
-          const oldestParcel = parcels.find((p) => p.status === "UNLOADED");
-          if (oldestParcel) {
-            updateParcel(oldestParcel.waybillId, {
+        // 물건 파손으로 인한 파손 처리
+        if (msg.includes("물건 파손")) {
+          // 메시지에 포함된 waybillId를 사용해서 해당 운송장을 정확히 찾아서 ACCIDENT로 변경
+          if (waybillId) {
+            updateParcel(waybillId, {
               status: "ACCIDENT" as WaybillStatus,
               workerProcessedAt: now, // 사고 처리일시
               processedBy: "시스템", // 사고 처리자
@@ -48,7 +47,7 @@ export const useUnloadingBroadcast = (initialParcels: UnloadingParcel[]) => {
         }
       }
     },
-    [updateParcel, parcels]
+    [updateParcel]
   );
 
   // 메시지 수신 처리

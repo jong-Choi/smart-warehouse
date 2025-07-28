@@ -54,18 +54,17 @@ function WorkerStats({
     (sum, w) => sum + w.totalProcessed,
     0
   );
-  const avgAccidentCount =
-    workerStats.length > 0
-      ? Math.round(
-          workerStats.reduce((sum, w) => sum + w.accidentCount, 0) /
-            workerStats.length
-        )
-      : 0;
+  const totalAccidentCount = workerStats.reduce(
+    (sum, w) => sum + w.accidentCount,
+    0
+  );
+
   const avgAccidentRate =
-    workerStats.length > 0
+    totalProcessed > 0
       ? Math.round(
-          (workerStats.reduce((sum, w) => sum + w.accidentRate, 0) /
-            workerStats.length) *
+          (workerStats.reduce((sum, w) => sum + w.accidentCount, 0) /
+            totalProcessed) *
+            100 *
             100
         ) / 100
       : 0;
@@ -186,9 +185,9 @@ ${workerStats
               </tbody>
               <tfoot className="sticky bottom-0 bg-gray-50 z-10">
                 <tr className="bg-gray-50 font-semibold">
-                  <td className="p-2">평균</td>
-                  <td className="p-2 text-right">-</td>
-                  <td className="p-2 text-right">{avgAccidentCount}</td>
+                  <td className="p-2">총계</td>
+                  <td className="p-2 text-right">{totalProcessed}</td>
+                  <td className="p-2 text-right">{totalAccidentCount}</td>
                   <td className="p-2 text-right">
                     <span
                       className={`${
