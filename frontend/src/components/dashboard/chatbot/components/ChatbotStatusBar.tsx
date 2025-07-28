@@ -21,9 +21,10 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
     onClearConversation,
     onRetryConnection,
   }) => {
-    const { useContext, setUseContext } = useChatbotStore([
+    const { useContext, setUseContext, isLoading } = useChatbotStore([
       "useContext",
       "setUseContext",
+      "isLoading",
     ]);
     const handleToggleContext = () => {
       setUseContext(!useContext);
@@ -33,10 +34,16 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
         {/* 첫 번째 줄: 화면 기반 대화 체크박스 (연결된 경우에만 표시) */}
         {isConnected && (
           <div className="flex items-center gap-2 mb-2 border-b border-sidebar-border pb-2 justify-between">
-            <div className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80">
+            <div
+              className={cn(
+                "flex items-center gap-2 text-xs font-medium text-sidebar-foreground/80",
+                isLoading && "opacity-50"
+              )}
+            >
               <Checkbox
                 id="use-context"
                 checked={useContext}
+                disabled={isLoading}
                 onCheckedChange={handleToggleContext}
                 className="h-3 w-3"
                 iconClassName="text-green-700 -translate-y-0.5"

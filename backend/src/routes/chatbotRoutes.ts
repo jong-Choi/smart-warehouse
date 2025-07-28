@@ -2,26 +2,29 @@ import { Server as SocketIOServer } from "socket.io";
 import { Server as HTTPServer } from "http";
 import { Ollama } from "ollama";
 import { ChatOllama } from "@langchain/ollama";
+// import { ChatOpenAI } from "@langchain/openai";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
 import {
   ChatPromptTemplate,
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
-import {
-  AIMessage,
-  BaseMessage,
-  HumanMessage,
-  SystemMessage,
-} from "@langchain/core/messages";
+import { BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 
 const MODEL_NAME_MAP = {
   hyperclova05:
     "hf.co/mradermacher/HyperCLOVAX-SEED-Text-Instruct-0.5B-hf-i1-GGUF:Q4_K_M",
+  hyperclova15:
+    "hf.co/mradermacher/HyperCLOVAX-SEED-Text-Instruct-1.5B-hf-i1-GGUF:Q4_K_M",
+  hyperclova30:
+    "hf.co/cherryDavid/HyperCLOVA-X-SEED-Vision-Instruct-3B-Llamafied-Q4_K_M-GGUF:Q4_K_M",
+  qwen306: "qwen3:0.6b",
+  exaone3524b: "exaone3.5:2.4b",
+  qwen317b: "qwen3:1.7b",
 };
 
 // Ollama 모델 설정
-const MODEL_NAME = MODEL_NAME_MAP.hyperclova05;
+const MODEL_NAME = MODEL_NAME_MAP.hyperclova15;
 
 export const fetchWithSecretKey = (
   url: Request | string | URL,
@@ -63,6 +66,13 @@ export const createLLMModel = () => {
     streaming: true,
   });
 };
+// export const createLLMModel = () => {
+//   return new ChatOpenAI({
+//     model: "gpt-4.1-nano-2025-04-14",
+//     temperature: 0,
+//     apiKey: process.env.OPENAI_API_KEY,
+//   });
+// };
 
 const SYSTEM_PROMPT = `당신은 물류 관리 시스템을 위한 전문 챗봇입니다. 항상 한국어로 친절하고 정확하게 답변해주세요. 물류, 운송, 창고 관리, 배송 등과 관련하여 특히 전문적이고 실용적인 면모를 발휘해주세요.`;
 
@@ -182,7 +192,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
               }
             );
             const systemMessage = `
-            사용자의 메시지에 대해 간략하게 대답해주세요. 화면에 대한 정보 알려주지 마세요.
+            사용자의 메시지에 대해 정확하고 상세하게 대답해주세요.
             사용자의 메시지 : ${data.message} 
             사용자가 보고 있는 화면에 대한 정보 : ${data.systemContext}`;
             await chatMessageHistoryWithDeletion.addMessage(

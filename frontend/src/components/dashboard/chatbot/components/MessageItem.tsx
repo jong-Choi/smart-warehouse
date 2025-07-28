@@ -11,25 +11,45 @@ interface MessageItemProps {
   onClearConversation?: () => void;
 }
 
-const LOADING_MESSAGES = [
-  "화면을 살펴보는 중",
-  "생각하는 중",
-  "응답을 생성하는 중",
-  "준비중",
-];
-
 // 성능 최적화를 위한 메시지 컴포넌트
 export const MessageItem = React.memo<MessageItemProps>(
   ({ message, onClearConversation }) => {
-    const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
     const [systemContextIndex, setSystemContextIndex] = useState(0);
-    const { isLoading, systemContext } = useChatbotStore([
+    const { isLoading, systemContext, useContext } = useChatbotStore([
       "isLoading",
       "systemContext",
+      "useContext",
     ]);
+    const [thinkChunks, setThinkChunks] = useState<string>("");
+    const [thinkUpdatedTime, setThinkUpdatedTime] = useState<number>(0);
+    const [regularChunks, setRegularChunks] = useState<string>("");
+
+    useEffect(() => {
+      if (!message.text) return;
+
+      const text = message.text;
+
+      // <think> 태그와 </think> 태그를 찾아서 처리
+      const thinkStartIndex = text.indexOf("<think>");
+      const thinkEndIndex = text.indexOf("</think>");
+
+      if (thinkStartIndex >= 0 && thinkEndIndex < 0) {
+        const now = Date.now();
+        if (now - thinkUpdatedTime > 100) {
+          setThinkChunks(text.slice(thinkStartIndex + 6));
+          setThinkUpdatedTime(now);
+        }
+      } else if (thinkStartIndex >= 0 && thinkEndIndex >= 0) {
+        setThinkChunks(text.slice(thinkStartIndex + 6, thinkEndIndex));
+        setRegularChunks(text.slice(thinkEndIndex + 8).trim());
+      } else {
+        setThinkChunks("");
+        setRegularChunks(text);
+      }
+    }, [message.text, thinkUpdatedTime]);
 
     // 로딩 메시지 표시 여부 결정
-    const shouldShowLoading = !message.text && !message.isUser && isLoading;
+    const shouldShowLoading = !regularChunks && !message.isUser && isLoading;
 
     // systemContext를 한 줄씩 표시할지 결정
     const shouldShowSystemContext = shouldShowLoading && systemContext;
@@ -39,19 +59,6 @@ export const MessageItem = React.memo<MessageItemProps>(
       ? systemContext.split("\n").filter((line) => line.trim())
       : [];
 
-    // 로딩 메시지 순환
-    useEffect(() => {
-      if (!message.text && !message.isUser && isLoading) {
-        const interval = setInterval(() => {
-          setLoadingMessageIndex(
-            (prev) => (prev + 1) % LOADING_MESSAGES.length
-          );
-        }, 2000);
-
-        return () => clearInterval(interval);
-      }
-    }, [message.isContext, message.text, message.isUser, isLoading]);
-
     // systemContext 순환
     useEffect(() => {
       if (shouldShowSystemContext && systemContextLines.length > 0) {
@@ -59,15 +66,17 @@ export const MessageItem = React.memo<MessageItemProps>(
           setSystemContextIndex(
             (prev) => (prev + 1) % systemContextLines.length
           );
-        }, 1000); // systemContext는 1.5초 간격
+        }, 1000);
 
         return () => clearInterval(interval);
       }
     }, [shouldShowSystemContext, systemContextLines.length]);
 
-    const displayText = shouldShowLoading
-      ? LOADING_MESSAGES[loadingMessageIndex]
-      : message.text;
+    const displayText = thinkChunks
+      ? "생각하는 중"
+      : useContext && systemContext
+      ? "화면을 살펴보는 중"
+      : "준비중";
 
     return (
       <div
@@ -84,9 +93,9 @@ export const MessageItem = React.memo<MessageItemProps>(
         >
           <div className="text-xs whitespace-pre-wrap">
             <div>
-              <ReactMarkdownApp>{message.text}</ReactMarkdownApp>
+              <ReactMarkdownApp>{regularChunks}</ReactMarkdownApp>
             </div>
-            {message.isStreaming && !message.text && (
+            {shouldShowLoading && (
               <span className="inline-block ml-1">
                 <svg
                   className="w-4 h-4 animate-spin opacity-60"
@@ -111,7 +120,8 @@ export const MessageItem = React.memo<MessageItemProps>(
             )}
             {shouldShowSystemContext && systemContextLines.length > 0 && (
               <div className="inline-block ml-1 text-xs text-sidebar-muted-foreground w-[100px] overflow-hidden whitespace-nowrap opacity-20">
-                {systemContextLines[systemContextIndex]}
+                {thinkChunks.trim().slice(-20) ||
+                  (useContext && systemContextLines[systemContextIndex])}
               </div>
             )}
           </div>
