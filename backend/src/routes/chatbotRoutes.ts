@@ -2,7 +2,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { Server as HTTPServer } from "http";
 import { Ollama } from "ollama";
 import { ChatOllama } from "@langchain/ollama";
-// import { ChatOpenAI } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
 import {
   ChatPromptTemplate,
@@ -24,7 +24,7 @@ const MODEL_NAME_MAP = {
 };
 
 // Ollama 모델 설정
-const MODEL_NAME = MODEL_NAME_MAP.hyperclova15;
+const MODEL_NAME = MODEL_NAME_MAP.qwen306;
 
 export const fetchWithSecretKey = (
   url: Request | string | URL,
@@ -192,9 +192,11 @@ export const setupChatbotSocket = (server: HTTPServer) => {
               }
             );
             const systemMessage = `
-            사용자의 메시지에 대해 정확하고 상세하게 대답해주세요.
-            사용자의 메시지 : ${data.message} 
-            사용자가 보고 있는 화면에 대한 정보 : ${data.systemContext}`;
+The user is viewing a screen and has provided the current visible information. Based on this screen context, give a detailed and context-aware response that explains or helps the user. 
+Give a detailed and precise response. Be especially careful not to make mistakes in names, places, or any proper nouns.
+Always respond only in Korean. Never use Chinese. Never use Chinese. Never use Chinese.
+user message : ${data.message} 
+this screen context : ${data.systemContext}`;
             await chatMessageHistoryWithDeletion.addMessage(
               new SystemMessage({
                 content: systemMessage,
