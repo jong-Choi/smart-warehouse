@@ -124,9 +124,11 @@ export const useChatbot = () => {
     // 기존 연결 정리
     if (socketRef.current) {
       socketRef.current.disconnect();
+      socketRef.current = null;
     }
     if (connectionTimeoutRef.current) {
       clearTimeout(connectionTimeoutRef.current);
+      connectionTimeoutRef.current = null;
     }
 
     // 연결 실패 상태 초기화
@@ -156,6 +158,7 @@ export const useChatbot = () => {
         clearTimeout(connectionTimeoutRef.current);
         connectionTimeoutRef.current = null;
       }
+      clearMessages();
       setIsConnected(true);
       setConnectionFailed(false);
     });

@@ -2,12 +2,17 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkBreaks from "remark-breaks";
-import "@/components/markdown/small-header-markdown.css";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "@/styles/small-header-markdown.css";
 
 export default function ReactMarkdownApp({ children }: { children?: string }) {
   return (
     <div className="markdown-body new-york-small">
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkParse, remarkBreaks]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkParse, remarkBreaks, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      >
         {children}
       </ReactMarkdown>
     </div>

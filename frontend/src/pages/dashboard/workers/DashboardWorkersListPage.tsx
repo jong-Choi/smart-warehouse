@@ -1,8 +1,10 @@
-import { Suspense, useState, useCallback, useMemo } from "react";
+import { Suspense, useState, useCallback, useMemo, useEffect } from "react";
 import { fetchOperatorsStats } from "@/api/operatorApi";
 import {
   sortOperatorsStatsByNormalParcels,
   sortOperatorsStatsByAccidentParcels,
+  getNormalParcelCountFromStats,
+  getAccidentParcelCountFromStats,
 } from "@/utils/operatorUtils";
 import { WorkersTable, PageHeader } from "./components";
 import { Stat, PageLayout } from "@components/ui";
@@ -13,6 +15,7 @@ import { Table } from "@ui/table";
 import React from "react";
 import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 import type { OperatorsStats } from "@/types/operator";
+import { useWorkersListMessage } from "@components/dashboard/workers/list/hooks";
 
 function WorkersListContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,6 +23,9 @@ function WorkersListContent() {
   const [sorting, setSorting] = useState<Array<{ id: string; desc: boolean }>>([
     { id: "name", desc: false },
   ]);
+
+  // 챗봇 context hook
+  const { setTableMessage, isCollecting } = useWorkersListMessage();
 
   // 새로운 API를 사용해서 통계 데이터 가져오기
   const [operatorsStats, setOperatorsStats] = useState<OperatorsStats[]>([]);
@@ -108,6 +114,40 @@ function WorkersListContent() {
       }
     });
   }, []);
+
+  // 챗봇 메시지 설정
+  useEffect(() => {
+    if (isCollecting && sortedOperators.length > 0) {
+      // 테이블 데이터를 마크다운으로 변환
+      const headers = [
+        "코드",
+        "이름",
+        "타입",
+        "근무일수",
+        "정상처리",
+        "사고처리",
+        "최초작업일",
+      ];
+      const rows = sortedOperators.map((operator) => [
+        operator.code,
+        operator.name,
+        operator.type,
+        `${operator.workDays}일`,
+        `${getNormalParcelCountFromStats(operator)}개`,
+        `${getAccidentParcelCountFromStats(operator)}개`,
+        operator.firstWorkDate
+          ? new Date(operator.firstWorkDate).toLocaleDateString("ko-KR")
+          : "-",
+      ]);
+
+      const mdHeader = `| ${headers.join(" | ")} |`;
+      const mdDivider = `| ${headers.map(() => "---").join(" | ")} |`;
+      const mdRows = rows.map((cells) => `| ${cells.join(" | ")} |`).join("\n");
+      const markdownTable = [mdHeader, mdDivider, mdRows].join("\n");
+
+      setTableMessage(markdownTable);
+    }
+  }, [isCollecting, sortedOperators, setTableMessage]);
 
   if (isLoading) {
     return <LoadingSkeleton />;

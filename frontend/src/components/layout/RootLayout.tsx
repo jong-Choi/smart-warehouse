@@ -35,7 +35,7 @@ function RootLayout() {
   return (
     <div>
       <div
-        className={`h-screen flex flex-col  ${
+        className={`h-screen flex flex-col font-pyeojin-gothic ${
           isWarehouse
             ? "bg-slate-200 duration-700 transition-colors "
             : "bg-white"

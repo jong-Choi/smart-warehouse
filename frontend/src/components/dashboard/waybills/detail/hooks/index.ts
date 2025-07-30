@@ -1,0 +1,1 @@
+export { useWaybillDetailMessage } from "./useWaybillDetailMessage";

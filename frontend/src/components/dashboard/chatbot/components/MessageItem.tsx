@@ -35,12 +35,12 @@ export const MessageItem = React.memo<MessageItemProps>(
 
       if (thinkStartIndex >= 0 && thinkEndIndex < 0) {
         const now = Date.now();
-        if (now - thinkUpdatedTime > 100) {
-          setThinkChunks(text.slice(thinkStartIndex + 6));
+        if (now - thinkUpdatedTime > 200) {
+          setThinkChunks(text.slice(thinkStartIndex + 8));
           setThinkUpdatedTime(now);
         }
       } else if (thinkStartIndex >= 0 && thinkEndIndex >= 0) {
-        setThinkChunks(text.slice(thinkStartIndex + 6, thinkEndIndex));
+        setThinkChunks(text.slice(thinkStartIndex + 8, thinkEndIndex));
         setRegularChunks(text.slice(thinkEndIndex + 8).trim());
       } else {
         setThinkChunks("");
@@ -119,8 +119,20 @@ export const MessageItem = React.memo<MessageItemProps>(
               </span>
             )}
             {shouldShowSystemContext && systemContextLines.length > 0 && (
-              <div className="inline-block ml-1 text-xs text-sidebar-muted-foreground w-[100px] overflow-hidden whitespace-nowrap opacity-20">
-                {thinkChunks.trim().slice(-20) ||
+              <div
+                ref={(el) => {
+                  if (el && thinkChunks) {
+                    el.scrollTop = el.scrollHeight;
+                  }
+                }}
+                className={cn(
+                  "ml-1 text-xs text-sidebar-muted-foreground opacity-20",
+                  thinkChunks
+                    ? "max-h-20 overflow-y-auto whitespace-pre-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                    : "inline-block w-[100px] overflow-hidden whitespace-nowrap"
+                )}
+              >
+                {thinkChunks ||
                   (useContext && systemContextLines[systemContextIndex])}
               </div>
             )}

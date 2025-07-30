@@ -170,17 +170,6 @@ export function DashboardSalesOverviewStats({
                     </div>
                   ))}
                 </div>
-                {locationData.length > 5 && (
-                  <div className="mt-4 text-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate("/dashboard/location")}
-                    >
-                      전체 지역 보기
-                    </Button>
-                  </div>
-                )}
               </>
             ) : (
               <div className="text-center py-8">

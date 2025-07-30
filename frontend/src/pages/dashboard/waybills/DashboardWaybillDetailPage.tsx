@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -13,6 +13,7 @@ import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { formatCurrency } from "@utils/formatString";
+import { useWaybillDetailMessage } from "@components/dashboard/waybills/detail/hooks";
 
 interface DashboardWaybillDetailPageProps {
   waybill?: Waybill;
@@ -27,6 +28,39 @@ function WaybillDetailContent({ waybill }: { waybill?: Waybill }) {
     : id
     ? suspenseWaybill ?? null
     : null;
+
+  // 챗봇 context hook
+  const { setWaybillMessage, isCollecting } = useWaybillDetailMessage();
+
+  // waybill 데이터가 변경될 때마다 context 업데이트
+  useEffect(() => {
+    if (isCollecting && waybillData) {
+      const message = `운송장 번호: ${waybillData.number}
+상태: ${STATUS_MAP[waybillData.status].text}
+하차 예정일: ${format(new Date(waybillData.unloadDate), "yyyy년 MM월 dd일", {
+        locale: ko,
+      })}
+${
+  waybillData.processedAt
+    ? `처리 일시: ${format(
+        new Date(waybillData.processedAt),
+        "yyyy년 MM월 dd일 HH:mm",
+        { locale: ko }
+      )}`
+    : ""
+}
+작업자: ${waybillData.operator?.name || "미지정"}
+배송지: ${waybillData.location?.name || "위치 정보 없음"}
+사고 여부: ${waybillData.isAccident ? "사고" : "정상"}
+${
+  waybillData.parcel
+    ? `물건 가격: ${formatCurrency(waybillData.parcel.declaredValue)}
+소포 ID: #${waybillData.parcel.id}`
+    : "물건 정보: 없음"
+}`;
+      setWaybillMessage(message);
+    }
+  }, [isCollecting, waybillData, setWaybillMessage]);
 
   if (!waybillData) {
     return (
