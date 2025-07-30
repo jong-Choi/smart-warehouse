@@ -62,8 +62,6 @@ export {
   TypographyTitle,
 } from "./warehouse";
 export { Slider } from "./slider";
-export { DonutChart } from "./donut-chart";
-export { Calendar } from "./calendar";
 export {
   Dialog,
   DialogContent,

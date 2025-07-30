@@ -54,7 +54,7 @@ ${
 사고 여부: ${waybillData.isAccident ? "사고" : "정상"}
 ${
   waybillData.parcel
-    ? `물건 가격: ${formatCurrency(waybillData.parcel.declaredValue)}
+    ? `운송 가액: ${formatCurrency(waybillData.parcel.declaredValue)}
 소포 ID: #${waybillData.parcel.id}`
     : "물건 정보: 없음"
 }`;
@@ -172,7 +172,7 @@ ${
               <>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">
-                    물건 가격
+                    운송 가액
                   </span>
                   <span className="font-medium text-lg">
                     {formatCurrency(waybillData.parcel.declaredValue)}

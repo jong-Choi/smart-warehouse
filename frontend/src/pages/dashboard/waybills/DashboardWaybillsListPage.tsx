@@ -2,7 +2,7 @@ import { Suspense, useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Calendar } from "@components/ui/calendar";
+import { CalendarWithLazy } from "@components/ui/CalendarWithLazy";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { SectionHeader, PageLayout } from "@components/ui";
@@ -22,7 +22,7 @@ import { CalendarIcon, Search, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWaybillsSuspense } from "@/hooks/useWaybills";
 import type { Waybill, WaybillStatus } from "@/types";
-import type { DateRange } from "react-day-picker";
+import type { DateRange } from "@components/ui/CalendarWithLazy";
 import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
@@ -188,7 +188,7 @@ function WaybillsListContent() {
       },
       {
         accessorKey: "parcel.declaredValue",
-        header: "물건 가격",
+        header: "운송 가액",
         enableSorting: true,
         cell: (info: { row: { original: Waybill } }) => {
           const value = info.row.original.parcel?.declaredValue;
@@ -328,7 +328,7 @@ function WaybillsListContent() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <div className="p-4 bg-gray-50">
-                  <Calendar
+                  <CalendarWithLazy
                     mode="range"
                     selected={tempDateRange}
                     onSelect={(range: DateRange | undefined) => {

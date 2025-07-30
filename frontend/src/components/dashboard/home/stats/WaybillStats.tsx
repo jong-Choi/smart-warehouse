@@ -1,8 +1,15 @@
-import { DonutChart } from "@components/ui/donut-chart";
+import { lazy, Suspense } from "react";
 import { Package, Truck, CheckCircle, AlertTriangle } from "lucide-react";
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
 import Stat from "@components/ui/stat";
 import { useEffect } from "react";
+import { Skeleton } from "@ui/skeleton";
+
+const DonutChart = lazy(() =>
+  import("@/components/ui/donut-chart").then((mod) => ({
+    default: mod.DonutChart,
+  }))
+);
 
 function WaybillStats({
   isCollecting,
@@ -55,7 +62,9 @@ function WaybillStats({
         <div className="flex flex-col @[500px]:flex-row items-center @[500px]:items-start gap-8">
           {/* 도넛 차트 */}
           <div className="flex-shrink-0">
-            <DonutChart data={chartData} width={200} height={200} />
+            <Suspense fallback={<Skeleton className="w-[200px] h-[200px]" />}>
+              <DonutChart data={chartData} width={200} height={200} />
+            </Suspense>
           </div>
 
           {/* 상세 통계 */}

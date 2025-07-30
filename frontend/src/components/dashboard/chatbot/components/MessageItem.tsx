@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { cn } from "@/lib/utils";
 import { type Message } from "@/types/chatbot";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { Button } from "@components/ui/button";
 import { RotateCcw } from "lucide-react";
-import ReactMarkdownApp from "@components/markdown/react-markdown-app";
 
 interface MessageItemProps {
   message: Message;
   onClearConversation?: () => void;
 }
+
+const ReactMarkdownApp = lazy(() =>
+  import("@components/markdown/react-markdown-app").then((mod) => ({
+    default: mod.default,
+  }))
+);
 
 // 성능 최적화를 위한 메시지 컴포넌트
 export const MessageItem = React.memo<MessageItemProps>(
@@ -93,7 +98,13 @@ export const MessageItem = React.memo<MessageItemProps>(
         >
           <div className="text-xs whitespace-pre-wrap">
             <div>
-              <ReactMarkdownApp>{regularChunks}</ReactMarkdownApp>
+              <Suspense
+                fallback={
+                  <div className="text-sm leading-none">{regularChunks}</div>
+                }
+              >
+                <ReactMarkdownApp>{regularChunks}</ReactMarkdownApp>
+              </Suspense>
             </div>
             {shouldShowLoading && (
               <span className="inline-block ml-1">

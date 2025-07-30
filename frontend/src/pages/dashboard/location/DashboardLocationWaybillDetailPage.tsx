@@ -8,7 +8,7 @@ import React, {
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Calendar } from "@components/ui/calendar";
+import { CalendarWithLazy } from "@components/ui/CalendarWithLazy";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { SectionHeader, PageLayout } from "@components/ui";
@@ -28,7 +28,7 @@ import { CalendarIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWaybillsByLocationSuspense } from "@/hooks/useWaybills";
 import type { WaybillStatus, Waybill } from "@/types";
-import type { DateRange } from "react-day-picker";
+import type { DateRange } from "@components/ui/CalendarWithLazy";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { StatusBadge } from "@ui/status-badge";
 import { useLocationDetailMessage } from "@components/dashboard/waybills/location/detail/hooks";
@@ -296,7 +296,7 @@ function LocationWaybillDetailContent() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <div className="p-4 bg-gray-50">
-                  <Calendar
+                  <CalendarWithLazy
                     mode="range"
                     selected={tempDateRange}
                     onSelect={(range: DateRange | undefined) => {

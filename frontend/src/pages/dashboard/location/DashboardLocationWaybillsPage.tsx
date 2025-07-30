@@ -2,7 +2,7 @@ import { Suspense, useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Calendar } from "@components/ui/calendar";
+import { CalendarWithLazy } from "@components/ui/CalendarWithLazy";
 import { Button } from "@components/ui/button";
 import { SectionHeader, PageLayout } from "@components/ui";
 import {
@@ -22,7 +22,7 @@ interface LocationWaybillStat {
   count: number;
   statuses: Record<string, number>;
 }
-import type { DateRange } from "react-day-picker";
+import type { DateRange } from "@components/ui/CalendarWithLazy";
 import { StatusBadge } from "@ui/status-badge";
 import { STATUS_MAP } from "@utils/stautsMap";
 import { useLocationWaybillMessage } from "@components/dashboard/waybills/location/hooks";
@@ -212,7 +212,7 @@ function LocationWaybillsContent() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <div className="p-4 bg-gray-50">
-                  <Calendar
+                  <CalendarWithLazy
                     mode="range"
                     selected={tempDateRange}
                     onSelect={(range: DateRange | undefined) => {

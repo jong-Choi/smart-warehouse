@@ -6,7 +6,11 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "@/styles/small-header-markdown.css";
 
-export default function ReactMarkdownApp({ children }: { children?: string }) {
+type Props = {
+  children?: string;
+};
+
+export default function ReactMarkdownApp({ children }: Props) {
   return (
     <div className="markdown-body new-york-small">
       <ReactMarkdown

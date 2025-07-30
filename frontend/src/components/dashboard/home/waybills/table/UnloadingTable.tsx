@@ -19,12 +19,18 @@ import {
   OptimizedTableRow,
   UnloadingTableHeader,
   TableFilters,
-  TablePagination,
   DummyRow,
 } from "@components/dashboard/home/waybills/table/components";
 import { Stat } from "@components/ui";
 import { formatCurrency } from "@utils/formatString";
 import { generateMarkdownTable } from "@utils/tableToMarkdown";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
 
 interface UnloadingTableProps {
   parcels: UnloadingParcel[];
@@ -238,8 +244,9 @@ ${markdownTable}
   const handlePageSizeChange = useCallback(
     (value: number) => {
       setPageSize(value);
+      setPageIndex(0);
     },
-    [setPageSize]
+    [setPageSize, setPageIndex]
   );
 
   return (
@@ -324,17 +331,45 @@ ${markdownTable}
       </Table>
 
       {/* 페이징 */}
-      <TablePagination
-        pageIndex={pageIndex}
-        pageSize={pageSize}
-        totalRows={parcels.length}
-        filteredRows={table.getFilteredRowModel().rows.length}
-        pageCount={table.getPageCount()}
-        canPreviousPage={table.getCanPreviousPage()}
-        canNextPage={table.getCanNextPage()}
-        onPageIndexChange={setPageIndex}
-        onPageSizeChange={handlePageSizeChange}
-      />
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">페이지당 행 수:</span>
+          <Select
+            value={pageSize.toString()}
+            onValueChange={(value) => handlePageSizeChange(Number(value))}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
+            disabled={pageIndex === 0}
+          >
+            이전
+          </Button>
+          <span className="text-sm">
+            {pageIndex + 1} / {currentPageCount}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPageIndex(pageIndex + 1)}
+            disabled={pageIndex >= currentPageCount - 1}
+          >
+            다음
+          </Button>
+        </div>
+      </div>
     </Stat.Container>
   );
 };
