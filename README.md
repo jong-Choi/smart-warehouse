@@ -63,14 +63,14 @@
 
 ## 챗봇
 
-![화면 기반 대화 시퀀스 다이어그램](/docs/chatbot-demo1.png)
+![화면 기반 대화 시퀀스 다이어그램](/docs/chatbot-diagram.png)
 
 - Socket.io를 통해 웹소켓으로 백엔드와 실시간 소통을 하도록 구현하였습니다.
 - 백엔드는 LLM이 호스팅된 서버를 호출하여 응답을 생성하며, LLM로부터 chunk 단위의 응답이 생성되면 실시간으로 이를 전달합니다.
 
 ### 화면 기반 대화
 
-![화면 기반 대화 시퀀스 다이어그램](/docs/chatbot-diagram.png)
+![화면 기반 대화](/docs/chatbot-demo1.png)
 
 - 대시보드 앱의 테이블 렌더링을 TanStack Table로 구현하도록 통일하였습니다.
 - 사용자가 화면기반 대화 전송을 요청하면, 각 페이지마다 있는 커스텀 훅을 통해 화면기반 대화를 감지하고, TanStack Table을 마크다운 형태로 파싱하는 유틸함수를 구현([tableToMarkdown.ts](/frontend/src/utils/tableToMarkdown.ts))하여 마크다운 형태의 테이블로 메시지에 담아 함께 전송합니다.
