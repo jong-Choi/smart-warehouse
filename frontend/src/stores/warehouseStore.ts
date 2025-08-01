@@ -1,6 +1,12 @@
 import { createStoreWithSelectors } from "@utils/zustandCreate";
 import { create } from "zustand";
 
+// LoadedParcel 타입 정의
+export interface LoadedParcel {
+  progress: number;
+  id: number | string;
+}
+
 // 초기값을 별도 객체로 분리하여 유지보수성 향상
 const INITIAL_STATE = {
   workerCount: 5,
@@ -20,6 +26,13 @@ const INITIAL_STATE = {
     .fill(0)
     .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
   isTutorialShown: true,
+  // Warehouse2D 관련 상태들 추가
+  loadedParcels: [] as LoadedParcel[],
+  loadedParcelIds: [] as LoadedParcel["id"][],
+  workerCatchTimes: Array(20)
+    .fill(0)
+    .map(() => [] as number[]),
+  workerBrokenUntil: Array(20).fill(0) as number[],
 };
 
 interface WarehouseState {
@@ -52,6 +65,12 @@ interface WarehouseState {
   // 작업자별 작업속도 (20명)
   workerSpeeds: number[];
 
+  // Warehouse2D 실시간 상태들
+  loadedParcels: LoadedParcel[];
+  loadedParcelIds: LoadedParcel["id"][];
+  workerCatchTimes: number[][];
+  workerBrokenUntil: number[];
+
   // 액션들
   setWorkerCount: (count: number) => void;
   setBeltSpeed: (speed: number) => void;
@@ -66,9 +85,23 @@ interface WarehouseState {
   stopUnload: () => void;
   reset: () => void;
   setIsTutorialShown: (shown: boolean) => void;
+
+  // Warehouse2D 관련 액션들
+  setLoadedParcels: (parcels: LoadedParcel[]) => void;
+  addLoadedParcel: (parcel: LoadedParcel) => void;
+  removeLoadedParcel: (index: number) => void;
+  updateLoadedParcelProgress: (index: number, progress: number) => void;
+  setWorkerCatchTimes: (catchTimes: number[][]) => void;
+  addWorkerCatchTime: (workerIndex: number, time: number) => void;
+  setWorkerBrokenUntil: (brokenUntil: number[]) => void;
+  setWorkerBrokenUntilByIndex: (
+    workerIndex: number,
+    brokenUntil: number
+  ) => void;
+  getLoadedParcelById: (id: number | string) => LoadedParcel | undefined;
 }
 
-const _useWarehouseStore = create<WarehouseState>((set) => ({
+export const _useWarehouseStore = create<WarehouseState>((set, get) => ({
   // 초기 상태 - INITIAL_STATE 객체 사용
   ...INITIAL_STATE,
 
@@ -96,6 +129,44 @@ const _useWarehouseStore = create<WarehouseState>((set) => ({
         .map(() => Math.round(5000 * (Math.random() * 0.8 + 0.6))),
     })),
   setIsTutorialShown: (shown) => set({ isTutorialShown: shown }),
+
+  // Warehouse2D 관련 액션들
+  setLoadedParcels: (parcels) => set({ loadedParcels: parcels }),
+  addLoadedParcel: (parcel) =>
+    set((state) => ({
+      loadedParcels: [...state.loadedParcels, parcel],
+      loadedParcelIds: [...state.loadedParcelIds, parcel.id.toString()],
+    })),
+  removeLoadedParcel: (index) =>
+    set((state) => ({
+      loadedParcels: state.loadedParcels.filter((_, i) => i !== index),
+      loadedParcelIds: state.loadedParcelIds.filter((_, i) => i !== index),
+    })),
+  updateLoadedParcelProgress: (index, progress) =>
+    set((state) => ({
+      loadedParcels: state.loadedParcels.map((parcel, i) =>
+        i === index ? { ...parcel, progress } : parcel
+      ),
+    })),
+  setWorkerCatchTimes: (catchTimes) => set({ workerCatchTimes: catchTimes }),
+  addWorkerCatchTime: (workerIndex, time) =>
+    set((state) => ({
+      workerCatchTimes: state.workerCatchTimes.map((times, i) =>
+        i === workerIndex ? [...times, time] : times
+      ),
+    })),
+  setWorkerBrokenUntil: (brokenUntil) =>
+    set({ workerBrokenUntil: brokenUntil }),
+  setWorkerBrokenUntilByIndex: (workerIndex, brokenUntil) =>
+    set((state) => ({
+      workerBrokenUntil: state.workerBrokenUntil.map((time, i) =>
+        i === workerIndex ? brokenUntil : time
+      ),
+    })),
+  getLoadedParcelById: (id) => {
+    const state = get();
+    return state.loadedParcels.find((parcel) => parcel.id === id);
+  },
 }));
 
 export const useWarehouseStore =

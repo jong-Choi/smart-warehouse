@@ -1,14 +1,17 @@
-import React from "react";
 import closedBoxSvg from "@assets/svg/closed-box.svg";
 import { calculatePositionOnBelt } from "@/utils/warehouse/calculations";
+import { _useWarehouseStore } from "@stores/warehouseStore";
 
 interface MovingBoxProps {
-  loadedParcel: { progress: number; id: number | string };
+  loadedParcelId: number | string;
 }
 
 // 이동하는 박스 컴포넌트 (메모이제이션)
-export const MovingBox = React.memo(({ loadedParcel }: MovingBoxProps) => {
-  const movingBox = calculatePositionOnBelt(loadedParcel.progress);
+export const MovingBox = ({ loadedParcelId }: MovingBoxProps) => {
+  const progress = _useWarehouseStore(
+    (s) => s.getLoadedParcelById(loadedParcelId)?.progress
+  );
+  const movingBox = calculatePositionOnBelt(progress || 0);
 
   return (
     <g
@@ -20,4 +23,4 @@ export const MovingBox = React.memo(({ loadedParcel }: MovingBoxProps) => {
       <image href={closedBoxSvg} x={0} y={0} width={40} height={40} />
     </g>
   );
-});
+};

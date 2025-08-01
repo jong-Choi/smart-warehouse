@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 import { createChannelInterface } from "@/utils";
 import { useWarehouseStore } from "@/stores/warehouseStore";
 import {
-  MAX_WORKERS,
   WORKER_COOLDOWN_SCALES,
   WORKER_CATCH_RANGE_SQUARED,
   WORKER_BROKEN_DURATION,
@@ -32,8 +31,15 @@ export function useWarehouse2D() {
     workerCount,
     beltSpeed,
     failCount,
+    loadedParcels,
+    workerCatchTimes,
+    workerBrokenUntil,
     setFailCount,
     setWorkerSpeeds,
+    setLoadedParcels,
+    addLoadedParcel,
+    addWorkerCatchTime,
+    setWorkerBrokenUntilByIndex,
     stopUnload,
   } = useWarehouseStore([
     "isRunning",
@@ -43,8 +49,15 @@ export function useWarehouse2D() {
     "workerCount",
     "beltSpeed",
     "failCount",
+    "loadedParcels",
+    "workerCatchTimes",
+    "workerBrokenUntil",
     "setFailCount",
     "setWorkerSpeeds",
+    "setLoadedParcels",
+    "addLoadedParcel",
+    "addWorkerCatchTime",
+    "setWorkerBrokenUntilByIndex",
     "stopUnload",
   ]);
 
@@ -52,25 +65,8 @@ export function useWarehouse2D() {
   const speed = useMemo(() => beltSpeed / 2 / SPEED_DENOMINATOR, [beltSpeed]);
   const requestRef = useRef<number | null>(null);
 
-  // 여러 개의 하차된 물건 상태
-  const [loadedParcels, setLoadedParcels] = useState<LoadedParcel[]>([]);
-
-  // 벨트 작업자별로 잡은 시간 배열
-  const [workerCatchTimes, setWorkerCatchTimes] = useState<number[][]>(() =>
-    Array(MAX_WORKERS)
-      .fill(0)
-      .map(() => [])
-  );
-
-  // 작업자별 일시적 고장 해제 시각 (0이면 정상)
-  const [workerBrokenUntil, setWorkerBrokenUntil] = useState<number[]>(() =>
-    Array(MAX_WORKERS).fill(0)
-  );
-
   // 브로드캐스트 채널 인터페이스 생성
   const channel = useMemo(() => createChannelInterface("warehouse-events"), []);
-
-  // 운송장 번호 ref (타이머에서 사용)
 
   // 브로드캐스트 채널 ref (타이머에서 사용)
   const channelRef = useRef(channel);
@@ -150,10 +146,7 @@ export function useWarehouse2D() {
       const unloadWorkerId = Math.random() < 0.5 ? "U1" : "U2";
 
       const parcel = percels.pop();
-      setLoadedParcels((prev) => [
-        ...prev,
-        { progress: 0, id: parcel!.waybillId },
-      ]);
+      addLoadedParcel({ progress: 0, id: parcel!.waybillId });
 
       // --- 하차 작업자 하차 완료 메시지 송출 ---
       channelRef.current?.send({
@@ -167,21 +160,32 @@ export function useWarehouse2D() {
       });
     }, unloadInterval);
     return () => clearInterval(timer);
-  }, [unloadInterval, running, paused, stopUnload, percels, unloadingData]); // paused 추가
+  }, [
+    unloadInterval,
+    running,
+    paused,
+    stopUnload,
+    percels,
+    unloadingData,
+    addLoadedParcel,
+  ]); // paused 추가
 
   // 각 동그라미의 progress를 부드럽게 업데이트 (running일 때만 동작)
   useEffect(() => {
     if (!running) return;
     const animate = () => {
       if (paused && !loadedParcels.length) return;
-      setLoadedParcels((prev) => {
-        const newParcels = prev.map((c) => {
-          let next = c.progress + speed;
-          if (next >= 1) next = 0;
-          return { progress: next, id: c.id };
-        });
-        return shallow(prev, newParcels) ? prev : newParcels;
+
+      const newParcels = loadedParcels.map((c) => {
+        let next = c.progress + speed;
+        if (next >= 1) next = 0;
+        return { progress: next, id: c.id };
       });
+
+      if (!shallow(loadedParcels, newParcels)) {
+        setLoadedParcels(newParcels);
+      }
+
       requestRef.current = requestAnimationFrame(animate);
     };
     requestRef.current = requestAnimationFrame(animate);
@@ -190,7 +194,7 @@ export function useWarehouse2D() {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [speed, running, paused, loadedParcels.length]); // running 추가
+  }, [speed, running, paused, loadedParcels, setLoadedParcels]); // running 추가
 
   // 동그라미가 작업자 위치에 오면 즉시 사라지게 (running일 때만 동작)
   useEffect(() => {
@@ -234,6 +238,7 @@ export function useWarehouse2D() {
           ) {
             // 고장 발생!
             newBrokenUntil[workerIdx] = now + WORKER_BROKEN_DURATION;
+            setWorkerBrokenUntilByIndex(workerIdx, newBrokenUntil[workerIdx]);
             // 고장 발생 메시지 송출
             channel?.send({
               ts: now,
@@ -269,22 +274,14 @@ export function useWarehouse2D() {
           removeIdxs.push(idx);
           caughtCircleSet.add(circle.id);
           newCatchTimes[workerIdx].push(now);
+          addWorkerCatchTime(workerIdx, now);
           caught = true;
         }
       });
     }
-    if (
-      removeIdxs.length > 0 ||
-      newBrokenUntil.some((v, i) => v !== workerBrokenUntil[i])
-    ) {
-      if (removeIdxs.length > 0) {
-        const removeSet = new Set(removeIdxs);
-        setLoadedParcels((prev) => prev.filter((_, i) => !removeSet.has(i)));
-        setWorkerCatchTimes(newCatchTimes);
-      }
-      if (newBrokenUntil.some((v, i) => v !== workerBrokenUntil[i])) {
-        setWorkerBrokenUntil(newBrokenUntil);
-      }
+    if (removeIdxs.length > 0) {
+      const removeSet = new Set(removeIdxs);
+      setLoadedParcels(loadedParcels.filter((_, i) => !removeSet.has(i)));
     }
   }, [
     loadedParcels,
@@ -294,6 +291,9 @@ export function useWarehouse2D() {
     running,
     workerBrokenUntil,
     channel,
+    setLoadedParcels,
+    addWorkerCatchTime,
+    setWorkerBrokenUntilByIndex,
   ]);
 
   // 벨트 끝까지 도달한 동그라미를 실패로 처리 (running일 때만 동작)
@@ -309,16 +309,13 @@ export function useWarehouse2D() {
       .filter((i) => i !== -1);
     if (failedIdxs.length > 0) {
       setFailCount(failCount + failedIdxs.length);
-      setLoadedParcels((prev) =>
-        prev.filter((_, i) => !failedIdxs.includes(i))
-      );
+      setLoadedParcels(loadedParcels.filter((_, i) => !failedIdxs.includes(i)));
     }
-  }, [loadedParcels, running, failCount, setFailCount]);
+  }, [loadedParcels, running, failCount, setFailCount, setLoadedParcels]);
 
   return {
     loadedParcels,
     workerCatchTimes,
     workerBrokenUntil,
-    speed,
   };
 }

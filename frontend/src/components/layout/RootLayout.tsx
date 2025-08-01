@@ -6,11 +6,11 @@ import { useWorkersBroadcast } from "@hooks/useWorkersBroadcast";
 import { useUnloadingParcels } from "@hooks/useWaybills";
 import { useMemo } from "react";
 import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";
+import { Warehouse2DSimulator } from "@components/warehouse/warehouse2d/Warehouse2DSimulator";
 
 function RootLayout() {
   const location = useLocation();
   const isWarehouse = location.pathname.startsWith("/warehouse");
-  // const isDashboard = location.pathname.startsWith("/dashboard");
 
   // 전역 parcels 데이터 관리
   const { data: parcelsData } = useUnloadingParcels();
@@ -43,6 +43,7 @@ function RootLayout() {
       >
         <TabSwitcher />
         {/* Warehouse 백그라운드 - 창고일 때만 표시 */}
+        <Warehouse2DSimulator />
         <WarehouseBackground />
         <Outlet />
       </div>
